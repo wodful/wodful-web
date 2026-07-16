@@ -22,8 +22,13 @@ export class AuthenticateService {
     switch (statusCode) {
       case HttpStatusCode.ok:
         return body!;
-      default:
-        throw new Error();
+      default: {
+        const message =
+          body && typeof body === 'object' && 'message' in body
+            ? String((body as { message?: string }).message ?? '')
+            : '';
+        throw new Error(message || 'login_failed');
+      }
     }
   }
 }

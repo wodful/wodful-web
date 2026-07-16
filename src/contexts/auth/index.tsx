@@ -16,6 +16,7 @@ export interface AuthContextData {
   Logout(): void;
   isLoading: boolean;
   isError: boolean;
+  errorMessage: string | null;
   access: string | null;
   Access: (accessCode: string) => Promise<void>;
   Reset(): void;
@@ -30,6 +31,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [access, setAccessCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const Login = useCallback(async ({ email, password }: IAuthenticateUserRequest) => {
     setIsLoading(true);
@@ -37,12 +39,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       .login({ email, password })
       .then((userData: AuthenticatedUser) => {
         setIsError(false);
+        setErrorMessage(null);
         setUser(userData.user);
 
         localStorage.setItem('@Wodful:usr', JSON.stringify(userData.user));
         localStorage.setItem('@Wodful:tkn', userData.token);
       })
-      .catch(() => setIsError(true))
+      .catch((err: unknown) => {
+        setIsError(true);
+        const message = err instanceof Error ? err.message : '';
+        if (message.includes('inactive')) {
+          setErrorMessage('Sua conta está desativada. Fale com o suporte Wodful.');
+        } else if (message.includes('no access')) {
+          setErrorMessage('Sua conta não possui acesso ao sistema.');
+        } else {
+          setErrorMessage('E-mail ou senha incorreto.');
+        }
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -63,7 +76,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         localStorage.setItem('@Wodful:access', access.code);
         localStorage.setItem('@Wodful:pcname', access.championship.name);
       })
-      .catch(() => setIsError(true))
+      .catch(() => {
+        setIsError(true);
+        setErrorMessage(null);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -93,6 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         Logout,
         isLoading,
         isError,
+        errorMessage,
         Access,
         Reset,
         access,
