@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Login = () => {
-  const { Login, isError, isLoading } = useAuth();
+  const { Login, isError, isLoading, errorMessage } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -81,7 +81,7 @@ const Login = () => {
                 </Stack>
                 {isError && (
                   <FormErrorMessage data-cy='error-message'>
-                    E-mail ou senha incorreto.
+                    {errorMessage || 'E-mail ou senha incorreto.'}
                   </FormErrorMessage>
                 )}
               </FormControl>
