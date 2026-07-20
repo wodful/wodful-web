@@ -1,10 +1,10 @@
 import AnalyticsAdapter from '@/adapters/AnalyticsAdapter';
-import { Loader } from '@/components/Loader';
+import { Button } from '@/components/ui/Button';
+import { PublicLoader } from '@/components/ui/PublicLoader';
 import { CategoryProvider } from '@/contexts/category';
 import { ScheduleProvider } from '@/contexts/schedule';
 import useApp from '@/hooks/useApp';
 import useScheduleData from '@/hooks/useScheduleData';
-import { Box, Button, Center, Flex, Text } from '@chakra-ui/react';
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { RefreshCw } from 'react-feather';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -12,24 +12,20 @@ import { ValidateAccess } from '../Leaderboard/helper/ValidateAccess';
 
 const ListCardPublicSchedule = lazy(() => import('./components/cardList'));
 
-const PublicSchedule = () => {
-  return (
-    <ScheduleProvider>
-      <CategoryProvider>
-        <PublicScheduleAccess />
-      </CategoryProvider>
-    </ScheduleProvider>
-  );
-};
+const PublicSchedule = () => (
+  <ScheduleProvider>
+    <CategoryProvider>
+      <PublicScheduleAccess />
+    </CategoryProvider>
+  </ScheduleProvider>
+);
 
 const PublicScheduleAccess = () => {
   const { code } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-
   const { PublicList } = useScheduleData();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   const { setPublicChampionshipName } = useApp();
 
   const handleIsAttList = useCallback(() => {
@@ -41,9 +37,8 @@ const PublicScheduleAccess = () => {
     });
 
     setIsLoading(true);
-
     setTimeout(() => setIsLoading(false), 1000);
-  }, []);
+  }, [code]);
 
   useEffect(() => {
     if (code) PublicList(code);
@@ -61,59 +56,38 @@ const PublicScheduleAccess = () => {
   useEffect(() => {
     ValidateAccess.verify(code as string, navigate);
   }, [code, navigate]);
+
   return (
-    <Suspense fallback={<Loader title='Carregando ...' />}>
-      <Center as='main' role='main'>
-        <Box
-          w='100%'
-          maxW='1280px'
-          display='flex'
-          flexDirection='column'
-          alignItems='center'
-          as='section'
-          px={4}
-          marginTop={'130px'}
-        >
-          <Flex
-            as='section'
-            role='textbox'
-            w='100%'
-            mt={4}
-            justifyContent='space-between'
-            direction={['column', 'row', 'row']}
+    <Suspense fallback={<PublicLoader label="Carregando cronograma…" />}>
+      <div className="flex flex-col gap-6">
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Cronograma
+            </h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Horários e heats do campeonato.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            isLoading={isLoading}
+            loadingLabel="Atualizando…"
+            className="sm:!w-auto"
+            onClick={() => {
+              PublicList(code!);
+              handleIsAttList();
+            }}
           >
-            <Flex
-              as='article'
-              role='textbox'
-              direction='row'
-              justifyContent='space-between'
-              align='baseline'
-            >
-              <Text fontSize='2xl' as='b' role='heading'>
-                Cronograma
-              </Text>
-              <Button
-                gap='10px'
-                rightIcon={<RefreshCw size={16} />}
-                isLoading={isLoading}
-                loadingText='Atualizando'
-                spinnerPlacement='end'
-                color='teal.500'
-                variant={'ghost'}
-                onClick={() => {
-                  PublicList(code!);
-                  handleIsAttList();
-                }}
-              >
-                Atualizar
-              </Button>
-            </Flex>
-          </Flex>
-          <Box as='section' w='100%' p='1.5rem 0px' maxW='1280px'>
-            <ListCardPublicSchedule />
-          </Box>
-        </Box>
-      </Center>
+            <RefreshCw size={16} aria-hidden />
+            Atualizar
+          </Button>
+        </header>
+
+        <ListCardPublicSchedule />
+      </div>
     </Suspense>
   );
 };

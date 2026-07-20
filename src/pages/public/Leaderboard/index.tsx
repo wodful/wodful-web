@@ -1,12 +1,12 @@
 import AnalyticsAdapter from '@/adapters/AnalyticsAdapter';
-import { Loader } from '@/components/Loader';
+import { PublicLoader } from '@/components/ui/PublicLoader';
+import { Select } from '@/components/ui/Select';
 import { CategoryProvider } from '@/contexts/category';
 import { LeaderboardProvider } from '@/contexts/leaderboard';
 import useApp from '@/hooks/useApp';
 import useCategoryData from '@/hooks/useCategoryData';
 import useLeaderboardData from '@/hooks/useLeaderboardData';
-import { Box, Center, Flex, Select, Text } from '@chakra-ui/react';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Server } from 'react-feather';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ListPublicLeaderboard from './components';
@@ -29,34 +29,43 @@ const PublicLeaderboardAccess = () => {
   const { PublicList, publicCategories } = useCategoryData();
   const { ListPublic } = useLeaderboardData();
   const location = useLocation();
-  const [selectedCategory, setSelectedCategory] = useState<{ name: string; value: string }>({
+  const [selectedCategory, setSelectedCategory] = useState<{
+    name: string;
+    value: string;
+  }>({
     name: 'Sem categoria',
     value: '0',
   });
 
-  const hasSelectedCategory = useMemo(
-    () => selectedCategory.name === 'Sem categoria',
-    [selectedCategory],
+  const hasCategorySelected = useMemo(
+    () => selectedCategory.value !== '0',
+    [selectedCategory.value],
   );
 
   const handleSelection = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
-      if (event.target.value) {
-        ListPublic(String(event.target.value));
-        const category = publicCategories.find((selected) => selected.id === event.target.value);
-        setSelectedCategory({ name: category!.name, value: category!.id });
-
-        AnalyticsAdapter.event({
-          action: 'buscar_leaderboard_categoria',
-          category: 'Atleta',
-          label: 'Buscar leaderboard por categoria',
-          value: `${category!.name}`,
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const categoryId = event.target.value;
+      if (!categoryId) {
+        setSelectedCategory({
+          name: 'Sem categoria',
+          value: '0',
         });
         return;
       }
-      setSelectedCategory({
-        name: 'Sem categoria',
-        value: '0',
+
+      ListPublic(String(categoryId));
+      const category = publicCategories.find(
+        (selected) => selected.id === categoryId,
+      );
+      if (!category) return;
+
+      setSelectedCategory({ name: category.name, value: category.id });
+
+      AnalyticsAdapter.event({
+        action: 'buscar_leaderboard_categoria',
+        category: 'Atleta',
+        label: 'Buscar leaderboard por categoria',
+        value: `${category.name}`,
       });
     },
     [ListPublic, publicCategories],
@@ -76,87 +85,71 @@ const PublicLeaderboardAccess = () => {
   }, [code, navigate, setPublicChampionshipName]);
 
   return (
-    <Suspense fallback={<Loader title='Carregando ...' />}>
-      <Center as='main' role='main'>
-        <Box
-          w='100%'
-          maxW='1280px'
-          display='flex'
-          flexDirection='column'
-          alignItems='center'
-          as='section'
-          px={4}
-          marginTop={'130px'}
-        >
-          <Flex
-            as='section'
-            role='textbox'
-            w='100%'
-            mt={4}
-            justifyContent='space-between'
-            direction={['column', 'row', 'row']}
-          >
-            <Flex as='article' role='textbox' direction='column' gap='0.75rem'>
-              {!hasSelectedCategory && (
-                <Text fontSize='2xl' as='b' role='heading'>
-                  Leaderboard
-                </Text>
-              )}
-            </Flex>
-            {!hasSelectedCategory && (
-              <Flex as='article' gap='1rem' mt={[4, 0, 0]}>
-                <Select
-                  as='select'
-                  id='category'
-                  defaultValue={selectedCategory.value}
-                  onChange={(event) => {
-                    handleSelection(event);
-                  }}
-                >
-                  {publicCategories?.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </Select>
-              </Flex>
-            )}
-          </Flex>
-          <Box as='section' w='100%' maxW='1280px' p='1.5rem 0px'>
-            {!hasSelectedCategory ? (
-              <ListPublicLeaderboard />
-            ) : (
-              <Box
-                display='flex'
-                flexDirection='column'
-                alignItems='center'
-                justifyContent='center'
-                gap='8px'
-                mt='20%'
+    <Suspense fallback={<PublicLoader label="Carregando ranking…" />}>
+      <div className="flex flex-col gap-6">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Ranking
+            </h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Selecione a categoria para ver a classificação.
+            </p>
+          </div>
+
+          {hasCategorySelected ? (
+            <div className="w-full sm:max-w-xs">
+              <label htmlFor="category" className="sr-only">
+                Categoria
+              </label>
+              <Select
+                id="category"
+                value={selectedCategory.value}
+                onChange={handleSelection}
               >
-                <Server size={80} color='#1A202C' />
-                <Text color='teal.500'>Selecione uma categoria</Text>
-                <Flex as='article' gap='1rem' mt={[4, 0, 0]}>
-                  <Select
-                    as='select'
-                    id='category'
-                    placeholder='Categorias'
-                    onChange={(event) => {
-                      handleSelection(event);
-                    }}
-                  >
-                    {publicCategories?.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Select>
-                </Flex>
-              </Box>
-            )}
-          </Box>
-        </Box>
-      </Center>
+                {publicCategories?.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          ) : null}
+        </header>
+
+        {hasCategorySelected ? (
+          <ListPublicLeaderboard />
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
+            <Server size={56} className="text-gray-700" aria-hidden />
+            <div className="space-y-1">
+              <p className="font-semibold text-gray-900">Selecione uma categoria</p>
+              <p className="text-sm text-gray-500">
+                O ranking é exibido por categoria do campeonato.
+              </p>
+            </div>
+            <div className="w-full max-w-xs">
+              <label htmlFor="category-empty" className="sr-only">
+                Categorias
+              </label>
+              <Select
+                id="category-empty"
+                value=""
+                onChange={handleSelection}
+              >
+                <option value="" disabled>
+                  Categorias
+                </option>
+                {publicCategories?.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+        )}
+      </div>
     </Suspense>
   );
 };

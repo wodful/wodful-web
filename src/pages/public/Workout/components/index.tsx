@@ -1,110 +1,96 @@
 import useWorkoutData from '@/hooks/useWorkoutData';
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Box,
-  Flex,
-  Heading,
-  HStack,
-  SimpleGrid,
-  Tag,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
+import { useState } from 'react';
+import { ChevronDown } from 'react-feather';
 
 const ListPublicWorkouts = () => {
   const { publicWorkouts } = useWorkoutData();
-
   const showPontuacao = publicWorkouts?.[0]?.resultType !== 'RANKING';
 
-  return (
-    <>
-      <SimpleGrid color='gray.600' columns={[null, 1, 2, 3]} spacing='24px' justifyItems='center'>
-        {publicWorkouts?.map((workout) => (
-          <Box
-            p={4}
-            pb={2}
-            w='100%'
-            maxW='384px'
-            minW='300px'
-            borderWidth='1px'
-            borderColor='gray.200'
-            borderRadius='lg'
-            key={workout.id}
-          >
-            <VStack gap='8px' align='start'>
-              <Heading color='black' as='h3' size='sm' width={'100%'}>
-                <Flex gap={'2'} justify={'space-between'} align='flex-start'>
-                  <Text>{workout.name}</Text>
-                  <VStack gap={1} align='flex-end' flexShrink={0}>
-                    <Text
-                      as='span'
-                      color='blue.500'
-                      fontSize='medium'
-                      background='#31979517'
-                      px='0.25rem'
-                      py='0.125rem'
-                      borderRadius='0.25rem'
-                    >
-                      {workout.workoutType}
-                    </Text>
-                    {showPontuacao && (
-                      <Tag
-                        size='sm'
-                        variant='subtle'
-                        colorScheme={workout.worthHalfPoints ? 'orange' : 'gray'}
-                      >
-                        {workout.worthHalfPoints ? '50 pts' : '100 pts'}
-                      </Tag>
-                    )}
-                  </VStack>
-                </Flex>
-              </Heading>
+  if (!publicWorkouts?.length) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+        <p className="font-medium text-gray-800">Nenhuma prova nesta categoria</p>
+        <p className="mt-1 text-sm text-gray-500">
+          As provas aparecem aqui quando forem liberadas pelo organizador.
+        </p>
+      </div>
+    );
+  }
 
-              <HStack fontSize='14px' width='100%'>
-                <Accordion allowToggle width='100%'>
-                  <AccordionItem borderBottom='none'>
-                    {({ isExpanded }) => (
-                      <>
-                        <AccordionButton>
-                          <HStack justify='center' w='100%'>
-                            <Box textAlign='left' as='b'>
-                              {isExpanded ? 'Esconder' : 'Mostrar'}
-                            </Box>
-                            <AccordionIcon />
-                          </HStack>
-                        </AccordionButton>
-                        <AccordionPanel py={3} px={0}>
-                          <Flex direction='column' key={workout.id}>
-                            <HStack justify='center' w='100%'>
-                              <Text
-                                as={'h3'}
-                                fontSize='0.8rem'
-                                fontWeight={'600'}
-                                whiteSpace={'pre-wrap'}
-                                color='gray.600'
-                                textAlign={'center'}
-                                size='sm'
-                              >
-                                {workout.description}
-                              </Text>
-                            </HStack>
-                          </Flex>
-                        </AccordionPanel>
-                      </>
-                    )}
-                  </AccordionItem>
-                </Accordion>
-              </HStack>
-            </VStack>
-          </Box>
-        ))}
-      </SimpleGrid>
-    </>
+  return (
+    <ul className="grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-2 xl:grid-cols-3">
+      {publicWorkouts.map((workout) => (
+        <WorkoutCard
+          key={workout.id}
+          workout={workout}
+          showPontuacao={showPontuacao}
+        />
+      ))}
+    </ul>
   );
 };
+
+type WorkoutCardProps = {
+  workout: {
+    id: string;
+    name: string;
+    description: string;
+    workoutType: string;
+    worthHalfPoints?: boolean;
+  };
+  showPontuacao: boolean;
+};
+
+function WorkoutCard({ workout, showPontuacao }: WorkoutCardProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <li className="flex list-none flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex items-start justify-between gap-3 px-4 pt-4">
+        <h2 className="min-w-0 text-base font-semibold text-gray-900">{workout.name}</h2>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="inline-flex rounded-md bg-primary/10 px-2 py-0.5 text-sm font-semibold text-primary">
+            {workout.workoutType}
+          </span>
+          {showPontuacao ? (
+            <span
+              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                workout.worthHalfPoints
+                  ? 'bg-orange-100 text-orange-700'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {workout.worthHalfPoints ? '50 pts' : '100 pts'}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-3 border-t border-gray-100">
+        <button
+          type="button"
+          className="flex w-full items-center justify-center gap-1.5 px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((open) => !open)}
+        >
+          {expanded ? 'Esconder' : 'Mostrar'}
+          <ChevronDown
+            size={16}
+            className={`transition ${expanded ? 'rotate-180' : ''}`}
+            aria-hidden
+          />
+        </button>
+
+        {expanded ? (
+          <div className="border-t border-gray-100 px-4 py-3">
+            <p className="whitespace-pre-wrap text-center text-sm font-medium leading-relaxed text-gray-600">
+              {workout.description}
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </li>
+  );
+}
 
 export default ListPublicWorkouts;

@@ -1,181 +1,164 @@
 import useLeaderboardData from '@/hooks/useLeaderboardData';
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Box,
-  Flex,
-  Heading,
-  HStack,
-  SimpleGrid,
-  Spacer,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
-import { useCallback } from 'react';
-import { Info } from 'react-feather';
+import { useCallback, useId, useState } from 'react';
+import { ChevronDown, Info } from 'react-feather';
 
 const ListPublicLeaderboard = () => {
   const { publicLeaderboards } = useLeaderboardData();
-
   const isScore = useCallback((value: string) => value.includes(':'), []);
+
+  if (!publicLeaderboards?.length) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+        <p className="font-medium text-gray-800">Nenhum atleta nesta categoria</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Os resultados aparecem aqui assim que forem publicados.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <SimpleGrid color='gray.600' columns={[null, 1, 2, 3]} spacing='24px' justifyItems='center'>
-        {publicLeaderboards?.map((leaderboard, index) => (
-          <Box
-            p={4}
-            pb={2}
-            w='100%'
-            maxW='384px'
-            minW='300px'
-            borderWidth='1px'
-            borderColor='gray.200'
-            borderRadius='lg'
-            key={index}
-          >
-            <VStack gap='8px' align='start'>
-              <VStack align='start' spacing={1} w='100%'>
-                <HStack justify='space-between' w='100%'>
-                  <Heading color='black' as='h4' size='md'>
-                    {leaderboard.ranking === 0 ? (
-                      'Sem resultados'
-                    ) : (
-                      <Flex gap={'2'}>
-                        <Text
-                          as={'h3'}
-                          color={'blue.500'}
-                          fontSize={'medium'}
-                          background={'#31979517'}
-                          p={'0.125rem 0.25rem'}
-                          borderRadius={'0.25rem'}
-                        >
-                          {leaderboard.ranking}º{' '}
-                        </Text>
-                        <Text>Lugar geral</Text>
-                      </Flex>
-                    )}
-                  </Heading>
-                  <Spacer />
-                  <Text fontSize='14px'>
-                    {leaderboard.generalScore}
-                    {leaderboard.generalScore === 1 ? ' ponto' : ' pontos'}
-                  </Text>
-                </HStack>
-              </VStack>
-
-              <HStack fontSize='14px' align='start' gap='24px' w='100%'>
-                <VStack align='start' spacing={0} w='100%'>
-                  <Accordion allowToggle width='100%'>
-                    <AccordionItem border='none'>
-                      {({ isExpanded }) => (
-                        <>
-                          <AccordionButton p={'0'}>
-                            <HStack justify='flex-start' w='100%'>
-                              <Text
-                                as='b'
-                                color='gray.700'
-                                textTransform='capitalize'
-                                textOverflow={'ellipsis'}
-                                whiteSpace={'nowrap'}
-                                overflow={'hidden'}
-                              >
-                                {leaderboard.nickname}
-                              </Text>
-                              <Box textAlign='left'>
-                                {isExpanded ? (
-                                  <Info size={'14px'} />
-                                ) : (
-                                  <Info color='#2b6cb0' size={'14px'} />
-                                )}
-                              </Box>
-                            </HStack>
-                          </AccordionButton>
-                          <AccordionPanel py={0.5} px={0}>
-                            <VStack align='start' spacing={0}>
-                              <Text as='small' textTransform='capitalize'>
-                                {leaderboard.participants
-                                  .map((participant) => {
-                                    const splitName = participant.name.split(' ');
-                                    return splitName.length > 1
-                                      ? `${splitName[0]} ${splitName[splitName.length - 1]}`
-                                      : splitName[0];
-                                  })
-                                  .join(' - ')}
-                              </Text>
-                              <Text as='small' textTransform='capitalize'>
-                                {leaderboard.participants
-                                  .map((participant) => participant.affiliation)
-                                  .join(' - ')}
-                              </Text>
-                            </VStack>
-                          </AccordionPanel>
-                        </>
-                      )}
-                    </AccordionItem>
-                  </Accordion>
-
-                  <Text fontSize='sm'>{leaderboard.category.name}</Text>
-                </VStack>
-              </HStack>
-              <HStack fontSize='14px' width='100%'>
-                <Accordion allowToggle width='100%'>
-                  <AccordionItem borderBottom='none'>
-                    {({ isExpanded }) => (
-                      <>
-                        <AccordionButton>
-                          <HStack justify='center' w='100%'>
-                            <Box textAlign='left' as='b'>
-                              {isExpanded ? 'Esconder' : 'Mostrar'} resultados
-                            </Box>
-                            <AccordionIcon />
-                          </HStack>
-                        </AccordionButton>
-                        <AccordionPanel py={3} px={0}>
-                          {!leaderboard.results.length && (
-                            <Text fontSize='0.8rem' as='b' color='gray.600' size='sm'>
-                              Sem resultados
-                            </Text>
-                          )}
-                          {leaderboard.results?.map((content, index) => (
-                            <Flex
-                              direction='column'
-                              mb='10px'
-                              align='center'
-                              key={index + 'result'}
-                            >
-                              <HStack justify='space-between' w='100%'>
-                                <Text fontSize='0.8rem' as='b' color='gray.600' size='sm'>
-                                  {content.workout.name}
-                                </Text>
-                                <Spacer />
-                                <Text fontSize='12px' minW='50px'>
-                                  {content.points} {content.points === 1 ? ' ponto' : ' pontos'}
-                                </Text>
-                              </HStack>
-                              <HStack w='100%'>
-                                <Text fontSize='12px' minW='50px'>
-                                  {content.classification} lugar - {content.result}
-                                  {isScore(content.result) ? ' min' : ' reps'}
-                                </Text>
-                                <Spacer />
-                              </HStack>
-                            </Flex>
-                          ))}
-                        </AccordionPanel>
-                      </>
-                    )}
-                  </AccordionItem>
-                </Accordion>
-              </HStack>
-            </VStack>
-          </Box>
-        ))}
-      </SimpleGrid>
-    </>
+    <ul className="grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-2 xl:grid-cols-3">
+      {publicLeaderboards.map((leaderboard, index) => (
+        <LeaderboardCard
+          key={`${leaderboard.nickname}-${index}`}
+          leaderboard={leaderboard}
+          isScore={isScore}
+        />
+      ))}
+    </ul>
   );
 };
+
+type LeaderboardCardProps = {
+  leaderboard: {
+    ranking: number;
+    nickname: string;
+    generalScore: number;
+    category: { name: string };
+    participants: Array<{ name: string; affiliation: string }>;
+    results: Array<{
+      result: string;
+      points: number;
+      classification: number;
+      workout: { name: string };
+    }>;
+  };
+  isScore: (value: string) => boolean;
+};
+
+function LeaderboardCard({ leaderboard, isScore }: LeaderboardCardProps) {
+  const [showInfo, setShowInfo] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const infoId = useId();
+  const resultsId = useId();
+
+  const participantNames = leaderboard.participants
+    .map((participant) => {
+      const splitName = participant.name.split(' ');
+      return splitName.length > 1
+        ? `${splitName[0]} ${splitName[splitName.length - 1]}`
+        : splitName[0];
+    })
+    .join(' · ');
+
+  const affiliations = leaderboard.participants
+    .map((participant) => participant.affiliation)
+    .join(' · ');
+
+  return (
+    <li className="flex list-none flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex items-start justify-between gap-3 px-4 pt-4">
+        {leaderboard.ranking === 0 ? (
+          <p className="text-base font-semibold text-gray-900">Sem resultados</p>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex rounded-md bg-primary/10 px-2 py-0.5 text-sm font-bold text-primary">
+              {leaderboard.ranking}º
+            </span>
+            <span className="text-base font-semibold text-gray-900">Lugar geral</span>
+          </div>
+        )}
+        <p className="shrink-0 text-sm tabular-nums text-gray-600">
+          {leaderboard.generalScore}{' '}
+          {leaderboard.generalScore === 1 ? 'ponto' : 'pontos'}
+        </p>
+      </div>
+
+      <div className="px-4 pt-3">
+        <button
+          type="button"
+          className="group flex w-full min-w-0 items-center gap-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          aria-expanded={showInfo}
+          aria-controls={infoId}
+          onClick={() => setShowInfo((open) => !open)}
+        >
+          <span className="truncate text-sm font-bold capitalize text-gray-800">
+            {leaderboard.nickname}
+          </span>
+          <Info
+            size={16}
+            className={`shrink-0 ${showInfo ? 'text-gray-500' : 'text-primary'}`}
+            aria-hidden
+          />
+          <span className="sr-only">
+            {showInfo ? 'Ocultar detalhes do atleta' : 'Mostrar detalhes do atleta'}
+          </span>
+        </button>
+
+        {showInfo ? (
+          <div id={infoId} className="mt-2 space-y-0.5 text-sm capitalize text-gray-600">
+            <p>{participantNames}</p>
+            <p>{affiliations}</p>
+          </div>
+        ) : null}
+
+        <p className="mt-1 text-sm text-gray-500">{leaderboard.category.name}</p>
+      </div>
+
+      <div className="mt-3 border-t border-gray-100">
+        <button
+          type="button"
+          className="flex w-full items-center justify-center gap-1.5 px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+          aria-expanded={showResults}
+          aria-controls={resultsId}
+          onClick={() => setShowResults((open) => !open)}
+        >
+          {showResults ? 'Esconder' : 'Mostrar'} resultados
+          <ChevronDown
+            size={16}
+            className={`transition ${showResults ? 'rotate-180' : ''}`}
+            aria-hidden
+          />
+        </button>
+
+        {showResults ? (
+          <div id={resultsId} className="space-y-3 border-t border-gray-100 px-4 py-3">
+            {!leaderboard.results.length ? (
+              <p className="text-sm font-medium text-gray-500">Sem resultados</p>
+            ) : (
+              leaderboard.results.map((content, resultIndex) => (
+                <div key={`${content.workout.name}-${resultIndex}`} className="space-y-0.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="text-sm font-semibold text-gray-700">
+                      {content.workout.name}
+                    </p>
+                    <p className="shrink-0 text-xs tabular-nums text-gray-600">
+                      {content.points} {content.points === 1 ? 'ponto' : 'pontos'}
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {content.classification}º lugar — {content.result}
+                    {isScore(content.result) ? ' min' : ' reps'}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        ) : null}
+      </div>
+    </li>
+  );
+}
 
 export default ListPublicLeaderboard;

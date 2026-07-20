@@ -1,5 +1,4 @@
-import { Header } from '@/components/Header';
-import { Navbar } from '@/components/Navbar';
+import { PublicLayout } from '@/components/public/PublicLayout';
 import Access from '@/pages/public/Access';
 import PublicLeaderboard from '@/pages/public/Leaderboard';
 import Login from '@/pages/public/Login';
@@ -11,19 +10,20 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 const PublicRoutes = () => {
   return (
     <BrowserRouter>
-      <Header />
       <Routes>
-        <Route path='/' element={<Navigate to='/login' replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
-        <Route path='/login' element={<Login />} />
-        <Route path='/access' element={<Access />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/access" element={<Access />} />
 
-        <Route path='/championships' element={<Navigate to='/login' replace />} />
-        <Route path='/championships/:id/*' element={<Navigate to='/login' replace />} />
-        <Route path='/access/:code/' element={<Navbar />}>
-          <Route path='/access/:code/leaderboards' element={<PublicLeaderboard />} />
-          <Route path='/access/:code/schedules' element={<PublicSchedule />} />
-          <Route path='/access/:code/workouts' element={<PublicWorkouts />} />
+        <Route path="/championships" element={<Navigate to="/login" replace />} />
+        <Route path="/championships/:id/*" element={<Navigate to="/login" replace />} />
+
+        <Route path="/access/:code" element={<PublicLayout />}>
+          <Route path="leaderboards" element={<PublicLeaderboard />} />
+          <Route path="schedules" element={<PublicSchedule />} />
+          <Route path="workouts" element={<PublicWorkouts />} />
+          <Route index element={<Navigate to="leaderboards" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
