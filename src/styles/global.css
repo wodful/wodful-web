@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --blue-dark: #060919;
+  --primary: #319795;
+  --primary-hover: #2c7a7b;
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply font-sans antialiased text-gray-900;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+}
+
+/* Card LIVE no cronograma: borda em gradiente animado */
+@layer components {
+  .schedule-card-live {
+    @apply relative rounded-xl p-[2px];
+    background: linear-gradient(
+      90deg,
+      #ef4444,
+      #f97316,
+      #ef4444,
+      #dc2626,
+      #ef4444
+    );
+    background-size: 300% 100%;
+    animation: scheduleLiveBorder 3s linear infinite;
+  }
+
+  .schedule-card-live-inner {
+    @apply rounded-[10px] bg-white p-4;
+  }
+
+  .schedule-live-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white;
+  }
+
+  .schedule-live-dot {
+    @apply h-1.5 w-1.5 rounded-full bg-white;
+    animation: scheduleLivePulse 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes scheduleLiveBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+@keyframes scheduleLivePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+}
+
