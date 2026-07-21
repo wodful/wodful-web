@@ -1,12 +1,23 @@
 import AnalyticsAdapter from '@/adapters/AnalyticsAdapter';
-import { Button } from '@/components/ui/Button';
+import { PublicFilterBar } from '@/components/public/PublicFilterBar';
 import { PublicLoader } from '@/components/ui/PublicLoader';
+import { Select } from '@/components/ui/Select';
 import { CategoryProvider } from '@/contexts/category';
 import { ScheduleProvider } from '@/contexts/schedule';
 import useApp from '@/hooks/useApp';
+import useCategoryData from '@/hooks/useCategoryData';
+import { usePublicAutoRefresh } from '@/hooks/usePublicAutoRefresh';
+import { usePublicCategoryParam } from '@/hooks/usePublicCategoryParam';
 import useScheduleData from '@/hooks/useScheduleData';
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
-import { RefreshCw } from 'react-feather';
+import {
+  ChangeEvent,
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ValidateAccess } from '../Leaderboard/helper/ValidateAccess';
 
@@ -25,24 +36,47 @@ const PublicScheduleAccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { PublicList } = useScheduleData();
-  const [isLoading, setIsLoading] = useState(false);
+  const { PublicList: PublicCategoryList, publicCategories } = useCategoryData();
   const { setPublicChampionshipName } = useApp();
+  const { categoryId, setCategoryId } = usePublicCategoryParam();
+  const [search, setSearch] = useState('');
 
-  const handleIsAttList = useCallback(() => {
+  const selectedCategoryName = useMemo(() => {
+    if (!categoryId) return '';
+    return publicCategories.find((item) => item.id === categoryId)?.name ?? '';
+  }, [categoryId, publicCategories]);
+
+  const handleSelection = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const nextId = event.target.value;
+      setCategoryId(nextId === 'all' ? '' : nextId);
+    },
+    [setCategoryId],
+  );
+
+  const onRefresh = useCallback(async () => {
+    if (!code) return;
     AnalyticsAdapter.event({
       action: 'buscar_cronograma_atualizado',
       category: 'Atleta',
       label: 'Atualizar cronograma',
       value: `${code}`,
     });
+    await PublicList(code);
+  }, [PublicList, code]);
 
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
-  }, [code]);
+  const { isRefreshing, updatedLabel, secondsSinceUpdate, refresh } =
+    usePublicAutoRefresh({
+      enabled: Boolean(code),
+      onRefresh,
+    });
 
   useEffect(() => {
-    if (code) PublicList(code);
-  }, [PublicList, code]);
+    if (code) {
+      PublicList(code);
+      PublicCategoryList(code);
+    }
+  }, [PublicList, PublicCategoryList, code]);
 
   useEffect(() => {
     AnalyticsAdapter.pageview(location.pathname);
@@ -57,36 +91,56 @@ const PublicScheduleAccess = () => {
     ValidateAccess.verify(code as string, navigate);
   }, [code, navigate]);
 
+  useEffect(() => {
+    if (!publicCategories.length || !categoryId) return;
+    const exists = publicCategories.some((item) => item.id === categoryId);
+    if (!exists) setCategoryId('');
+  }, [publicCategories, categoryId, setCategoryId]);
+
   return (
     <Suspense fallback={<PublicLoader label="Carregando cronograma…" />}>
-      <div className="flex flex-col gap-6">
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              Cronograma
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Horários e heats do campeonato.
-            </p>
-          </div>
+      <div className="flex flex-col gap-5">
+        <header className="flex flex-col gap-4">
+          <h1 className="sr-only">Cronograma</h1>
 
-          <Button
-            type="button"
-            variant="secondary"
-            isLoading={isLoading}
-            loadingLabel="Atualizando…"
-            className="sm:!w-auto"
-            onClick={() => {
-              PublicList(code!);
-              handleIsAttList();
-            }}
-          >
-            <RefreshCw size={16} aria-hidden />
-            Atualizar
-          </Button>
+          <PublicFilterBar
+            searchId="schedule-search"
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Buscar atleta ou time…"
+            searchLabel="Buscar no cronograma"
+            onRefresh={refresh}
+            isRefreshing={isRefreshing}
+            updatedLabel={updatedLabel}
+            secondsSinceUpdate={secondsSinceUpdate}
+            categoryControl={
+              <>
+                <label htmlFor="schedule-category" className="sr-only">
+                  Filtrar por categoria
+                </label>
+                <Select
+                  id="schedule-category"
+                  value={categoryId || 'all'}
+                  onChange={handleSelection}
+                  className="!min-h-11 !py-2 !text-sm"
+                >
+                  <option value="all">Todas as categorias</option>
+                  {publicCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
+              </>
+            }
+          />
         </header>
 
-        <ListCardPublicSchedule />
+        <ListCardPublicSchedule
+          search={search}
+          categoryName={selectedCategoryName}
+          accessCode={code}
+        />
       </div>
     </Suspense>
   );

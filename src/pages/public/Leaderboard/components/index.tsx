@@ -1,10 +1,73 @@
 import useLeaderboardData from '@/hooks/useLeaderboardData';
-import { useCallback, useId, useState } from 'react';
-import { ChevronDown, Info } from 'react-feather';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ChevronDown } from 'react-feather';
 
-const ListPublicLeaderboard = () => {
+type ListPublicLeaderboardProps = {
+  search?: string;
+};
+
+type LeaderboardEntry = {
+  ranking: number;
+  nickname: string;
+  generalScore: number;
+  category: { name: string };
+  participants: Array<{ name: string; affiliation: string }>;
+  results: Array<{
+    result: string;
+    points: number;
+    classification: number;
+    workout: { name: string };
+  }>;
+};
+
+function entryMatches(entry: LeaderboardEntry, query: string) {
+  if (!query) return false;
+  const nick = entry.nickname.toLowerCase();
+  const names = entry.participants
+    .map((participant) => participant.name.toLowerCase())
+    .join(' ');
+  return nick.includes(query) || names.includes(query);
+}
+
+const ListPublicLeaderboard = ({ search = '' }: ListPublicLeaderboardProps) => {
   const { publicLeaderboards } = useLeaderboardData();
   const isScore = useCallback((value: string) => value.includes(':'), []);
+  const firstMatchRef = useRef<HTMLLIElement | null>(null);
+
+  const query = search.trim().toLowerCase();
+
+  const sorted = useMemo(() => {
+    return [...(publicLeaderboards ?? [])].sort((a, b) => {
+      if (a.ranking === 0 && b.ranking !== 0) return 1;
+      if (b.ranking === 0 && a.ranking !== 0) return -1;
+      if (a.ranking !== b.ranking) return a.ranking - b.ranking;
+      return a.nickname.localeCompare(b.nickname);
+    });
+  }, [publicLeaderboards]);
+
+  const firstMatchIndex = useMemo(() => {
+    if (!query) return -1;
+    return sorted.findIndex((entry) => entryMatches(entry, query));
+  }, [sorted, query]);
+
+  useEffect(() => {
+    if (firstMatchIndex < 0) return;
+    const frame = window.requestAnimationFrame(() => {
+      firstMatchRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [firstMatchIndex, query]);
 
   if (!publicLeaderboards?.length) {
     return (
@@ -17,148 +80,181 @@ const ListPublicLeaderboard = () => {
     );
   }
 
+  if (query && firstMatchIndex < 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+        <p className="font-medium text-gray-800">Nenhum resultado para a busca</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Tente outro nome de atleta ou time.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <ul className="grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-2 xl:grid-cols-3">
-      {publicLeaderboards.map((leaderboard, index) => (
-        <LeaderboardCard
-          key={`${leaderboard.nickname}-${index}`}
-          leaderboard={leaderboard}
-          isScore={isScore}
-        />
-      ))}
+    <ul className="list-none divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white p-0">
+      {sorted.map((leaderboard, index) => {
+        const isMatch = entryMatches(leaderboard, query);
+        const isFirstMatch = index === firstMatchIndex;
+
+        return (
+          <LeaderboardRow
+            key={`${leaderboard.nickname}-${leaderboard.ranking}-${index}`}
+            ref={isFirstMatch ? firstMatchRef : undefined}
+            leaderboard={leaderboard}
+            isScore={isScore}
+            highlighted={isMatch}
+            defaultExpanded={isFirstMatch}
+            expandKey={query}
+          />
+        );
+      })}
     </ul>
   );
 };
 
-type LeaderboardCardProps = {
-  leaderboard: {
-    ranking: number;
-    nickname: string;
-    generalScore: number;
-    category: { name: string };
-    participants: Array<{ name: string; affiliation: string }>;
-    results: Array<{
-      result: string;
-      points: number;
-      classification: number;
-      workout: { name: string };
-    }>;
-  };
+type LeaderboardRowProps = {
+  leaderboard: LeaderboardEntry;
   isScore: (value: string) => boolean;
+  highlighted?: boolean;
+  defaultExpanded?: boolean;
+  expandKey?: string;
 };
 
-function LeaderboardCard({ leaderboard, isScore }: LeaderboardCardProps) {
-  const [showInfo, setShowInfo] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const infoId = useId();
-  const resultsId = useId();
+function podiumClass(ranking: number) {
+  if (ranking === 1) return 'bg-amber-100 text-amber-800';
+  if (ranking === 2) return 'bg-slate-200 text-slate-700';
+  if (ranking === 3) return 'bg-orange-100 text-orange-800';
+  return 'bg-gray-100 text-gray-600';
+}
 
-  const participantNames = leaderboard.participants
-    .map((participant) => {
-      const splitName = participant.name.split(' ');
-      return splitName.length > 1
-        ? `${splitName[0]} ${splitName[splitName.length - 1]}`
-        : splitName[0];
-    })
-    .join(' · ');
+const LeaderboardRow = forwardRef<HTMLLIElement, LeaderboardRowProps>(
+  function LeaderboardRow(
+    {
+      leaderboard,
+      isScore,
+      highlighted = false,
+      defaultExpanded = false,
+      expandKey = '',
+    },
+    ref,
+  ) {
+    const [expanded, setExpanded] = useState(defaultExpanded);
+    const detailsId = useId();
 
-  const affiliations = leaderboard.participants
-    .map((participant) => participant.affiliation)
-    .join(' · ');
+    useEffect(() => {
+      setExpanded(defaultExpanded);
+    }, [defaultExpanded, expandKey]);
 
-  return (
-    <li className="flex list-none flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-start justify-between gap-3 px-4 pt-4">
-        {leaderboard.ranking === 0 ? (
-          <p className="text-base font-semibold text-gray-900">Sem resultados</p>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex rounded-md bg-primary/10 px-2 py-0.5 text-sm font-bold text-primary">
+    const participantNames = leaderboard.participants
+      .map((participant) => {
+        const splitName = participant.name.split(' ');
+        return splitName.length > 1
+          ? `${splitName[0]} ${splitName[splitName.length - 1]}`
+          : splitName[0];
+      })
+      .join(' · ');
+
+    const affiliations = leaderboard.participants
+      .map((participant) => participant.affiliation)
+      .filter(Boolean)
+      .join(' · ');
+
+    return (
+      <li
+        ref={ref}
+        className={`list-none ${
+          highlighted ? 'bg-primary/[0.06]' : 'bg-white'
+        }`}
+      >
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+          aria-expanded={expanded}
+          aria-controls={detailsId}
+          onClick={() => setExpanded((open) => !open)}
+        >
+          {leaderboard.ranking === 0 ? (
+            <span className="inline-flex h-8 w-10 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-500">
+              —
+            </span>
+          ) : (
+            <span
+              className={`inline-flex h-8 w-10 shrink-0 items-center justify-center rounded-md text-sm font-bold tabular-nums ${podiumClass(
+                leaderboard.ranking,
+              )}`}
+            >
               {leaderboard.ranking}º
             </span>
-            <span className="text-base font-semibold text-gray-900">Lugar geral</span>
-          </div>
-        )}
-        <p className="shrink-0 text-sm tabular-nums text-gray-600">
-          {leaderboard.generalScore}{' '}
-          {leaderboard.generalScore === 1 ? 'ponto' : 'pontos'}
-        </p>
-      </div>
+          )}
 
-      <div className="px-4 pt-3">
-        <button
-          type="button"
-          className="group flex w-full min-w-0 items-center gap-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          aria-expanded={showInfo}
-          aria-controls={infoId}
-          onClick={() => setShowInfo((open) => !open)}
-        >
-          <span className="truncate text-sm font-bold capitalize text-gray-800">
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold capitalize text-gray-900">
             {leaderboard.nickname}
           </span>
-          <Info
-            size={16}
-            className={`shrink-0 ${showInfo ? 'text-gray-500' : 'text-primary'}`}
-            aria-hidden
-          />
-          <span className="sr-only">
-            {showInfo ? 'Ocultar detalhes do atleta' : 'Mostrar detalhes do atleta'}
+
+          <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-700">
+            {leaderboard.generalScore}
+            <span className="ml-1 text-xs font-medium text-gray-400">
+              {leaderboard.generalScore === 1 ? 'pt' : 'pts'}
+            </span>
           </span>
-        </button>
 
-        {showInfo ? (
-          <div id={infoId} className="mt-2 space-y-0.5 text-sm capitalize text-gray-600">
-            <p>{participantNames}</p>
-            <p>{affiliations}</p>
-          </div>
-        ) : null}
-
-        <p className="mt-1 text-sm text-gray-500">{leaderboard.category.name}</p>
-      </div>
-
-      <div className="mt-3 border-t border-gray-100">
-        <button
-          type="button"
-          className="flex w-full items-center justify-center gap-1.5 px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
-          aria-expanded={showResults}
-          aria-controls={resultsId}
-          onClick={() => setShowResults((open) => !open)}
-        >
-          {showResults ? 'Esconder' : 'Mostrar'} resultados
           <ChevronDown
             size={16}
-            className={`transition ${showResults ? 'rotate-180' : ''}`}
+            className={`shrink-0 text-gray-400 transition ${expanded ? 'rotate-180' : ''}`}
             aria-hidden
           />
         </button>
 
-        {showResults ? (
-          <div id={resultsId} className="space-y-3 border-t border-gray-100 px-4 py-3">
+        {expanded ? (
+          <div id={detailsId} className="border-t border-gray-100 bg-white px-4 py-3">
+            {(participantNames || affiliations) && (
+              <div className="mb-3 space-y-0.5 text-xs capitalize text-gray-500">
+                {participantNames ? <p>{participantNames}</p> : null}
+                {affiliations ? <p>{affiliations}</p> : null}
+              </div>
+            )}
+
             {!leaderboard.results.length ? (
               <p className="text-sm font-medium text-gray-500">Sem resultados</p>
             ) : (
-              leaderboard.results.map((content, resultIndex) => (
-                <div key={`${content.workout.name}-${resultIndex}`} className="space-y-0.5">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-sm font-semibold text-gray-700">
-                      {content.workout.name}
-                    </p>
-                    <p className="shrink-0 text-xs tabular-nums text-gray-600">
-                      {content.points} {content.points === 1 ? 'ponto' : 'pontos'}
-                    </p>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {content.classification}º lugar — {content.result}
-                    {isScore(content.result) ? ' min' : ' reps'}
-                  </p>
-                </div>
-              ))
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[18rem] border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                      <th className="pb-2 pr-3 font-semibold">Prova</th>
+                      <th className="pb-2 pr-3 font-semibold">Col.</th>
+                      <th className="pb-2 pr-3 font-semibold">Resultado</th>
+                      <th className="pb-2 text-right font-semibold">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {leaderboard.results.map((content, resultIndex) => (
+                      <tr key={`${content.workout.name}-${resultIndex}`}>
+                        <td className="max-w-[9rem] truncate py-2 pr-3 font-semibold text-gray-800">
+                          {content.workout.name}
+                        </td>
+                        <td className="whitespace-nowrap py-2 pr-3 tabular-nums text-gray-600">
+                          {content.classification}º
+                        </td>
+                        <td className="whitespace-nowrap py-2 pr-3 tabular-nums text-gray-600">
+                          {content.result}
+                          {isScore(content.result) ? ' min' : ' reps'}
+                        </td>
+                        <td className="whitespace-nowrap py-2 text-right font-semibold tabular-nums text-gray-700">
+                          {content.points}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         ) : null}
-      </div>
-    </li>
-  );
-}
+      </li>
+    );
+  },
+);
 
 export default ListPublicLeaderboard;
