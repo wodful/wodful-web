@@ -1,66 +1,77 @@
 import AnalyticsAdapter from '@/adapters/AnalyticsAdapter';
-import { Loader } from '@/components/Loader';
+import { PublicFilterBar } from '@/components/public/PublicFilterBar';
+import { PublicLoader } from '@/components/ui/PublicLoader';
+import { Select } from '@/components/ui/Select';
 import { CategoryProvider } from '@/contexts/category';
 import { LeaderboardProvider } from '@/contexts/leaderboard';
 import useApp from '@/hooks/useApp';
 import useCategoryData from '@/hooks/useCategoryData';
 import useLeaderboardData from '@/hooks/useLeaderboardData';
-import { Box, Center, Flex, Select, Text } from '@chakra-ui/react';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { Server } from 'react-feather';
+import { usePublicAutoRefresh } from '@/hooks/usePublicAutoRefresh';
+import { usePublicCategoryParam } from '@/hooks/usePublicCategoryParam';
+import {
+  ChangeEvent,
+  Suspense,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ListPublicLeaderboard from './components';
 import { ValidateAccess } from './helper/ValidateAccess';
 
-const PublicLeaderboard = () => {
-  return (
-    <LeaderboardProvider>
-      <CategoryProvider>
-        <PublicLeaderboardAccess />
-      </CategoryProvider>
-    </LeaderboardProvider>
-  );
-};
+const PublicLeaderboard = () => (
+  <LeaderboardProvider>
+    <CategoryProvider>
+      <PublicLeaderboardAccess />
+    </CategoryProvider>
+  </LeaderboardProvider>
+);
 
 const PublicLeaderboardAccess = () => {
   const { code } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { setPublicChampionshipName } = useApp();
   const { PublicList, publicCategories } = useCategoryData();
   const { ListPublic } = useLeaderboardData();
-  const location = useLocation();
-  const [selectedCategory, setSelectedCategory] = useState<{ name: string; value: string }>({
-    name: 'Sem categoria',
-    value: '0',
-  });
+  const { categoryId, setCategoryId } = usePublicCategoryParam();
+  const [search, setSearch] = useState('');
 
-  const hasSelectedCategory = useMemo(
-    () => selectedCategory.name === 'Sem categoria',
-    [selectedCategory],
+  const hasCategory = Boolean(
+    categoryId && publicCategories.some((item) => item.id === categoryId),
   );
 
   const handleSelection = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
-      if (event.target.value) {
-        ListPublic(String(event.target.value));
-        const category = publicCategories.find((selected) => selected.id === event.target.value);
-        setSelectedCategory({ name: category!.name, value: category!.id });
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const nextId = event.target.value;
+      if (!nextId) return;
 
-        AnalyticsAdapter.event({
-          action: 'buscar_leaderboard_categoria',
-          category: 'Atleta',
-          label: 'Buscar leaderboard por categoria',
-          value: `${category!.name}`,
-        });
-        return;
-      }
-      setSelectedCategory({
-        name: 'Sem categoria',
-        value: '0',
+      setCategoryId(nextId);
+
+      const category = publicCategories.find((item) => item.id === nextId);
+      if (!category) return;
+
+      AnalyticsAdapter.event({
+        action: 'buscar_leaderboard_categoria',
+        category: 'Atleta',
+        label: 'Buscar leaderboard por categoria',
+        value: `${category.name}`,
       });
     },
-    [ListPublic, publicCategories],
+    [publicCategories, setCategoryId],
   );
+
+  const onRefresh = useCallback(async () => {
+    if (!categoryId) return;
+    await ListPublic(categoryId);
+  }, [ListPublic, categoryId]);
+
+  const { isRefreshing, updatedLabel, secondsSinceUpdate, refresh } =
+    usePublicAutoRefresh({
+      enabled: hasCategory,
+      onRefresh,
+    });
 
   useEffect(() => {
     if (code) PublicList(code);
@@ -75,88 +86,65 @@ const PublicLeaderboardAccess = () => {
     if (name) setPublicChampionshipName(name);
   }, [code, navigate, setPublicChampionshipName]);
 
+  useEffect(() => {
+    if (!publicCategories.length) return;
+    const valid =
+      categoryId && publicCategories.some((item) => item.id === categoryId);
+    if (valid) return;
+    setCategoryId(publicCategories[0].id);
+  }, [publicCategories, categoryId, setCategoryId]);
+
+  useEffect(() => {
+    if (!categoryId) return;
+    if (!publicCategories.some((item) => item.id === categoryId)) return;
+    ListPublic(categoryId);
+  }, [categoryId, publicCategories, ListPublic]);
+
   return (
-    <Suspense fallback={<Loader title='Carregando ...' />}>
-      <Center as='main' role='main'>
-        <Box
-          w='100%'
-          maxW='1280px'
-          display='flex'
-          flexDirection='column'
-          alignItems='center'
-          as='section'
-          px={4}
-          marginTop={'130px'}
-        >
-          <Flex
-            as='section'
-            role='textbox'
-            w='100%'
-            mt={4}
-            justifyContent='space-between'
-            direction={['column', 'row', 'row']}
-          >
-            <Flex as='article' role='textbox' direction='column' gap='0.75rem'>
-              {!hasSelectedCategory && (
-                <Text fontSize='2xl' as='b' role='heading'>
-                  Leaderboard
-                </Text>
-              )}
-            </Flex>
-            {!hasSelectedCategory && (
-              <Flex as='article' gap='1rem' mt={[4, 0, 0]}>
+    <Suspense fallback={<PublicLoader label="Carregando ranking…" />}>
+      <div className="flex flex-col gap-5">
+        <header className="flex flex-col gap-4">
+          <h1 className="sr-only">Ranking</h1>
+
+          <PublicFilterBar
+            searchId="leaderboard-search"
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Buscar atleta ou time…"
+            searchLabel="Buscar no ranking"
+            onRefresh={hasCategory ? refresh : undefined}
+            isRefreshing={isRefreshing}
+            updatedLabel={updatedLabel}
+            secondsSinceUpdate={secondsSinceUpdate}
+            categoryControl={
+              <>
+                <label htmlFor="category" className="sr-only">
+                  Categoria
+                </label>
                 <Select
-                  as='select'
-                  id='category'
-                  defaultValue={selectedCategory.value}
-                  onChange={(event) => {
-                    handleSelection(event);
-                  }}
+                  id="category"
+                  value={hasCategory ? categoryId : ''}
+                  onChange={handleSelection}
+                  disabled={!publicCategories.length}
+                  className="!min-h-11 !py-2 !text-sm"
                 >
-                  {publicCategories?.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </Select>
-              </Flex>
-            )}
-          </Flex>
-          <Box as='section' w='100%' maxW='1280px' p='1.5rem 0px'>
-            {!hasSelectedCategory ? (
-              <ListPublicLeaderboard />
-            ) : (
-              <Box
-                display='flex'
-                flexDirection='column'
-                alignItems='center'
-                justifyContent='center'
-                gap='8px'
-                mt='20%'
-              >
-                <Server size={80} color='#1A202C' />
-                <Text color='teal.500'>Selecione uma categoria</Text>
-                <Flex as='article' gap='1rem' mt={[4, 0, 0]}>
-                  <Select
-                    as='select'
-                    id='category'
-                    placeholder='Categorias'
-                    onChange={(event) => {
-                      handleSelection(event);
-                    }}
-                  >
-                    {publicCategories?.map((category) => (
+                  {!publicCategories.length ? (
+                    <option value="">Carregando categorias…</option>
+                  ) : (
+                    publicCategories.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.name}
                       </option>
-                    ))}
-                  </Select>
-                </Flex>
-              </Box>
-            )}
-          </Box>
-        </Box>
-      </Center>
+                    ))
+                  )}
+                </Select>
+              </>
+            }
+          />
+        </header>
+
+        {hasCategory ? <ListPublicLeaderboard search={search} /> : null}
+      </div>
     </Suspense>
   );
 };

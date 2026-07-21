@@ -1,67 +1,63 @@
 import AnalyticsAdapter from '@/adapters/AnalyticsAdapter';
-import { Loader } from '@/components/Loader';
+import { PublicFilterBar } from '@/components/public/PublicFilterBar';
+import { PublicLoader } from '@/components/ui/PublicLoader';
+import { Select } from '@/components/ui/Select';
 import { CategoryProvider } from '@/contexts/category';
 import { WorkoutProvider } from '@/contexts/workout';
 import useApp from '@/hooks/useApp';
 import useCategoryData from '@/hooks/useCategoryData';
+import { usePublicCategoryParam } from '@/hooks/usePublicCategoryParam';
 import useWorkoutData from '@/hooks/useWorkoutData';
-import { Box, Center, Flex, Select, Text } from '@chakra-ui/react';
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
-import { Server } from 'react-feather';
+import {
+  ChangeEvent,
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ValidateAccess } from '../Leaderboard/helper/ValidateAccess';
 
 const ListPublicWorkouts = lazy(() => import('./components/'));
 
-const PublicWorkouts = () => {
-  return (
-    <WorkoutProvider>
-      <CategoryProvider>
-        <Workouts />
-      </CategoryProvider>
-    </WorkoutProvider>
-  );
-};
+const PublicWorkouts = () => (
+  <WorkoutProvider>
+    <CategoryProvider>
+      <Workouts />
+    </CategoryProvider>
+  </WorkoutProvider>
+);
 
 const Workouts = () => {
   const { code } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { setPublicChampionshipName } = useApp();
-
   const { PublicList, publicCategories } = useCategoryData();
   const { PublicListByCategory } = useWorkoutData();
-  const [selectedCategory, setSelectedCategory] = useState<{ name: string; value: string }>({
-    name: 'Sem categoria',
-    value: '0',
-  });
-
-  const hasSelectedCategory = useMemo(
-    () => selectedCategory.name === 'Sem categoria',
-    [selectedCategory],
-  );
+  const { categoryId, setCategoryId } = usePublicCategoryParam();
+  const [search, setSearch] = useState('');
 
   const handleSelection = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
-      if (event.target.value) {
-        PublicListByCategory(event.target.value);
-        const category = publicCategories.find((selected) => selected.id === event.target.value);
-        setSelectedCategory({ name: category!.name, value: category!.id });
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const nextId = event.target.value;
+      if (!nextId) return;
 
-        AnalyticsAdapter.event({
-          action: 'buscar_provas_categoria',
-          category: 'Atleta',
-          label: 'Buscar provas por categoria',
-          value: `${category!.name}`,
-        });
-        return;
-      }
-      setSelectedCategory({
-        name: 'Sem categoria',
-        value: '0',
+      setCategoryId(nextId);
+      setSearch('');
+
+      const category = publicCategories.find((item) => item.id === nextId);
+      if (!category) return;
+
+      AnalyticsAdapter.event({
+        action: 'buscar_provas_categoria',
+        category: 'Atleta',
+        label: 'Buscar provas por categoria',
+        value: `${category.name}`,
       });
     },
-    [PublicListByCategory, publicCategories],
+    [publicCategories, setCategoryId],
   );
 
   useEffect(() => {
@@ -77,88 +73,78 @@ const Workouts = () => {
   useEffect(() => {
     ValidateAccess.verify(code as string, navigate);
   }, [code, navigate]);
+
+  useEffect(() => {
+    if (!publicCategories.length) return;
+    const valid =
+      categoryId && publicCategories.some((item) => item.id === categoryId);
+    if (valid) return;
+    setCategoryId(publicCategories[0].id);
+  }, [publicCategories, categoryId, setCategoryId]);
+
+  useEffect(() => {
+    if (!categoryId) return;
+    if (!publicCategories.some((item) => item.id === categoryId)) return;
+    PublicListByCategory(categoryId);
+  }, [categoryId, publicCategories, PublicListByCategory]);
+
+  const hasCategory = Boolean(
+    categoryId && publicCategories.some((item) => item.id === categoryId),
+  );
+
   return (
-    <Suspense fallback={<Loader title='Carregando ...' />}>
-      <Center as='main' role='main'>
-        <Box
-          w='100%'
-          maxW='1280px'
-          display='flex'
-          flexDirection='column'
-          alignItems='center'
-          as='section'
-          px={4}
-          marginTop={'130px'}
-        >
-          <Flex
-            as='section'
-            role='textbox'
-            w='100%'
-            mt={4}
-            justifyContent='space-between'
-            direction={['column', 'row', 'row']}
-          >
-            <Flex as='article' role='textbox' direction='column' gap='0.75rem'>
-              {!hasSelectedCategory && (
-                <Text fontSize='2xl' as='b' role='heading'>
-                  Provas
-                </Text>
-              )}
-            </Flex>
-            {!hasSelectedCategory && (
-              <Flex as='article' gap='1rem' mt={[4, 0, 0]}>
-                <Select
-                  as='select'
-                  id='category'
-                  defaultValue={selectedCategory.value}
-                  onChange={(event) => {
-                    handleSelection(event);
-                  }}
-                >
-                  {publicCategories?.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </Select>
-              </Flex>
-            )}
-          </Flex>
-          <Box as='section' w='100%' maxW='1280px' p='1.5rem 0px'>
-            {!hasSelectedCategory ? (
-              <ListPublicWorkouts />
-            ) : (
-              <Box
-                display='flex'
-                flexDirection='column'
-                alignItems='center'
-                justifyContent='center'
-                gap='8px'
-                mt='20%'
-              >
-                <Server size={80} color='#1A202C' />
-                <Text color='teal.500'>Selecione uma categoria</Text>
-                <Flex as='article' gap='1rem' mt={[4, 0, 0]}>
+    <Suspense fallback={<PublicLoader label="Carregando provas…" />}>
+      <div className="flex flex-col gap-5">
+        <header className="flex flex-col gap-4">
+          <h1 className="sr-only">Provas</h1>
+
+          {hasCategory ? (
+            <PublicFilterBar
+              searchId="workout-search"
+              searchValue={search}
+              onSearchChange={setSearch}
+              searchPlaceholder="Buscar prova…"
+              searchLabel="Buscar prova"
+              categoryControl={
+                <>
+                  <label htmlFor="workout-category" className="sr-only">
+                    Categoria
+                  </label>
                   <Select
-                    as='select'
-                    id='category'
-                    placeholder='Categorias'
-                    onChange={(event) => {
-                      handleSelection(event);
-                    }}
+                    id="workout-category"
+                    value={categoryId}
+                    onChange={handleSelection}
+                    disabled={!publicCategories.length}
+                    className="!min-h-11 !py-2 !text-sm"
                   >
-                    {publicCategories?.map((category) => (
+                    {publicCategories.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.name}
                       </option>
                     ))}
                   </Select>
-                </Flex>
-              </Box>
-            )}
-          </Box>
-        </Box>
-      </Center>
+                </>
+              }
+            />
+          ) : (
+            <div className="w-full sm:max-w-xs">
+              <label htmlFor="workout-category-loading" className="sr-only">
+                Categoria
+              </label>
+              <Select
+                id="workout-category-loading"
+                value=""
+                disabled
+                className="!min-h-11 !py-2 !text-sm"
+              >
+                <option value="">Carregando categorias…</option>
+              </Select>
+            </div>
+          )}
+        </header>
+
+        {hasCategory ? <ListPublicWorkouts search={search} /> : null}
+      </div>
     </Suspense>
   );
 };

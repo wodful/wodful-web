@@ -1,181 +1,260 @@
 import useLeaderboardData from '@/hooks/useLeaderboardData';
 import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Box,
-  Flex,
-  Heading,
-  HStack,
-  SimpleGrid,
-  Spacer,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
-import { useCallback } from 'react';
-import { Info } from 'react-feather';
+  forwardRef,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ChevronDown } from 'react-feather';
 
-const ListPublicLeaderboard = () => {
+type ListPublicLeaderboardProps = {
+  search?: string;
+};
+
+type LeaderboardEntry = {
+  ranking: number;
+  nickname: string;
+  generalScore: number;
+  category: { name: string };
+  participants: Array<{ name: string; affiliation: string }>;
+  results: Array<{
+    result: string;
+    points: number;
+    classification: number;
+    workout: { name: string };
+  }>;
+};
+
+function entryMatches(entry: LeaderboardEntry, query: string) {
+  if (!query) return false;
+  const nick = entry.nickname.toLowerCase();
+  const names = entry.participants
+    .map((participant) => participant.name.toLowerCase())
+    .join(' ');
+  return nick.includes(query) || names.includes(query);
+}
+
+const ListPublicLeaderboard = ({ search = '' }: ListPublicLeaderboardProps) => {
   const { publicLeaderboards } = useLeaderboardData();
-
   const isScore = useCallback((value: string) => value.includes(':'), []);
+  const firstMatchRef = useRef<HTMLLIElement | null>(null);
+
+  const query = search.trim().toLowerCase();
+
+  const sorted = useMemo(() => {
+    return [...(publicLeaderboards ?? [])].sort((a, b) => {
+      if (a.ranking === 0 && b.ranking !== 0) return 1;
+      if (b.ranking === 0 && a.ranking !== 0) return -1;
+      if (a.ranking !== b.ranking) return a.ranking - b.ranking;
+      return a.nickname.localeCompare(b.nickname);
+    });
+  }, [publicLeaderboards]);
+
+  const firstMatchIndex = useMemo(() => {
+    if (!query) return -1;
+    return sorted.findIndex((entry) => entryMatches(entry, query));
+  }, [sorted, query]);
+
+  useEffect(() => {
+    if (firstMatchIndex < 0) return;
+    const frame = window.requestAnimationFrame(() => {
+      firstMatchRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [firstMatchIndex, query]);
+
+  if (!publicLeaderboards?.length) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+        <p className="font-medium text-gray-800">Nenhum atleta nesta categoria</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Os resultados aparecem aqui assim que forem publicados.
+        </p>
+      </div>
+    );
+  }
+
+  if (query && firstMatchIndex < 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+        <p className="font-medium text-gray-800">Nenhum resultado para a busca</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Tente outro nome de atleta ou time.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <SimpleGrid color='gray.600' columns={[null, 1, 2, 3]} spacing='24px' justifyItems='center'>
-        {publicLeaderboards?.map((leaderboard, index) => (
-          <Box
-            p={4}
-            pb={2}
-            w='100%'
-            maxW='384px'
-            minW='300px'
-            borderWidth='1px'
-            borderColor='gray.200'
-            borderRadius='lg'
-            key={index}
-          >
-            <VStack gap='8px' align='start'>
-              <VStack align='start' spacing={1} w='100%'>
-                <HStack justify='space-between' w='100%'>
-                  <Heading color='black' as='h4' size='md'>
-                    {leaderboard.ranking === 0 ? (
-                      'Sem resultados'
-                    ) : (
-                      <Flex gap={'2'}>
-                        <Text
-                          as={'h3'}
-                          color={'blue.500'}
-                          fontSize={'medium'}
-                          background={'#31979517'}
-                          p={'0.125rem 0.25rem'}
-                          borderRadius={'0.25rem'}
-                        >
-                          {leaderboard.ranking}º{' '}
-                        </Text>
-                        <Text>Lugar geral</Text>
-                      </Flex>
-                    )}
-                  </Heading>
-                  <Spacer />
-                  <Text fontSize='14px'>
-                    {leaderboard.generalScore}
-                    {leaderboard.generalScore === 1 ? ' ponto' : ' pontos'}
-                  </Text>
-                </HStack>
-              </VStack>
+    <ul className="list-none divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white p-0">
+      {sorted.map((leaderboard, index) => {
+        const isMatch = entryMatches(leaderboard, query);
+        const isFirstMatch = index === firstMatchIndex;
 
-              <HStack fontSize='14px' align='start' gap='24px' w='100%'>
-                <VStack align='start' spacing={0} w='100%'>
-                  <Accordion allowToggle width='100%'>
-                    <AccordionItem border='none'>
-                      {({ isExpanded }) => (
-                        <>
-                          <AccordionButton p={'0'}>
-                            <HStack justify='flex-start' w='100%'>
-                              <Text
-                                as='b'
-                                color='gray.700'
-                                textTransform='capitalize'
-                                textOverflow={'ellipsis'}
-                                whiteSpace={'nowrap'}
-                                overflow={'hidden'}
-                              >
-                                {leaderboard.nickname}
-                              </Text>
-                              <Box textAlign='left'>
-                                {isExpanded ? (
-                                  <Info size={'14px'} />
-                                ) : (
-                                  <Info color='#2b6cb0' size={'14px'} />
-                                )}
-                              </Box>
-                            </HStack>
-                          </AccordionButton>
-                          <AccordionPanel py={0.5} px={0}>
-                            <VStack align='start' spacing={0}>
-                              <Text as='small' textTransform='capitalize'>
-                                {leaderboard.participants
-                                  .map((participant) => {
-                                    const splitName = participant.name.split(' ');
-                                    return splitName.length > 1
-                                      ? `${splitName[0]} ${splitName[splitName.length - 1]}`
-                                      : splitName[0];
-                                  })
-                                  .join(' - ')}
-                              </Text>
-                              <Text as='small' textTransform='capitalize'>
-                                {leaderboard.participants
-                                  .map((participant) => participant.affiliation)
-                                  .join(' - ')}
-                              </Text>
-                            </VStack>
-                          </AccordionPanel>
-                        </>
-                      )}
-                    </AccordionItem>
-                  </Accordion>
-
-                  <Text fontSize='sm'>{leaderboard.category.name}</Text>
-                </VStack>
-              </HStack>
-              <HStack fontSize='14px' width='100%'>
-                <Accordion allowToggle width='100%'>
-                  <AccordionItem borderBottom='none'>
-                    {({ isExpanded }) => (
-                      <>
-                        <AccordionButton>
-                          <HStack justify='center' w='100%'>
-                            <Box textAlign='left' as='b'>
-                              {isExpanded ? 'Esconder' : 'Mostrar'} resultados
-                            </Box>
-                            <AccordionIcon />
-                          </HStack>
-                        </AccordionButton>
-                        <AccordionPanel py={3} px={0}>
-                          {!leaderboard.results.length && (
-                            <Text fontSize='0.8rem' as='b' color='gray.600' size='sm'>
-                              Sem resultados
-                            </Text>
-                          )}
-                          {leaderboard.results?.map((content, index) => (
-                            <Flex
-                              direction='column'
-                              mb='10px'
-                              align='center'
-                              key={index + 'result'}
-                            >
-                              <HStack justify='space-between' w='100%'>
-                                <Text fontSize='0.8rem' as='b' color='gray.600' size='sm'>
-                                  {content.workout.name}
-                                </Text>
-                                <Spacer />
-                                <Text fontSize='12px' minW='50px'>
-                                  {content.points} {content.points === 1 ? ' ponto' : ' pontos'}
-                                </Text>
-                              </HStack>
-                              <HStack w='100%'>
-                                <Text fontSize='12px' minW='50px'>
-                                  {content.classification} lugar - {content.result}
-                                  {isScore(content.result) ? ' min' : ' reps'}
-                                </Text>
-                                <Spacer />
-                              </HStack>
-                            </Flex>
-                          ))}
-                        </AccordionPanel>
-                      </>
-                    )}
-                  </AccordionItem>
-                </Accordion>
-              </HStack>
-            </VStack>
-          </Box>
-        ))}
-      </SimpleGrid>
-    </>
+        return (
+          <LeaderboardRow
+            key={`${leaderboard.nickname}-${leaderboard.ranking}-${index}`}
+            ref={isFirstMatch ? firstMatchRef : undefined}
+            leaderboard={leaderboard}
+            isScore={isScore}
+            highlighted={isMatch}
+            defaultExpanded={isFirstMatch}
+            expandKey={query}
+          />
+        );
+      })}
+    </ul>
   );
 };
+
+type LeaderboardRowProps = {
+  leaderboard: LeaderboardEntry;
+  isScore: (value: string) => boolean;
+  highlighted?: boolean;
+  defaultExpanded?: boolean;
+  expandKey?: string;
+};
+
+function podiumClass(ranking: number) {
+  if (ranking === 1) return 'bg-amber-100 text-amber-800';
+  if (ranking === 2) return 'bg-slate-200 text-slate-700';
+  if (ranking === 3) return 'bg-orange-100 text-orange-800';
+  return 'bg-gray-100 text-gray-600';
+}
+
+const LeaderboardRow = forwardRef<HTMLLIElement, LeaderboardRowProps>(
+  function LeaderboardRow(
+    {
+      leaderboard,
+      isScore,
+      highlighted = false,
+      defaultExpanded = false,
+      expandKey = '',
+    },
+    ref,
+  ) {
+    const [expanded, setExpanded] = useState(defaultExpanded);
+    const detailsId = useId();
+
+    useEffect(() => {
+      setExpanded(defaultExpanded);
+    }, [defaultExpanded, expandKey]);
+
+    const participantNames = leaderboard.participants
+      .map((participant) => {
+        const splitName = participant.name.split(' ');
+        return splitName.length > 1
+          ? `${splitName[0]} ${splitName[splitName.length - 1]}`
+          : splitName[0];
+      })
+      .join(' · ');
+
+    const affiliations = leaderboard.participants
+      .map((participant) => participant.affiliation)
+      .filter(Boolean)
+      .join(' · ');
+
+    return (
+      <li
+        ref={ref}
+        className={`list-none ${
+          highlighted ? 'bg-primary/[0.06]' : 'bg-white'
+        }`}
+      >
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+          aria-expanded={expanded}
+          aria-controls={detailsId}
+          onClick={() => setExpanded((open) => !open)}
+        >
+          {leaderboard.ranking === 0 ? (
+            <span className="inline-flex h-8 w-10 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-500">
+              —
+            </span>
+          ) : (
+            <span
+              className={`inline-flex h-8 w-10 shrink-0 items-center justify-center rounded-md text-sm font-bold tabular-nums ${podiumClass(
+                leaderboard.ranking,
+              )}`}
+            >
+              {leaderboard.ranking}º
+            </span>
+          )}
+
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold capitalize text-gray-900">
+            {leaderboard.nickname}
+          </span>
+
+          <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-700">
+            {leaderboard.generalScore}
+            <span className="ml-1 text-xs font-medium text-gray-400">
+              {leaderboard.generalScore === 1 ? 'pt' : 'pts'}
+            </span>
+          </span>
+
+          <ChevronDown
+            size={16}
+            className={`shrink-0 text-gray-400 transition ${expanded ? 'rotate-180' : ''}`}
+            aria-hidden
+          />
+        </button>
+
+        {expanded ? (
+          <div id={detailsId} className="border-t border-gray-100 bg-white px-4 py-3">
+            {(participantNames || affiliations) && (
+              <div className="mb-3 space-y-0.5 text-xs capitalize text-gray-500">
+                {participantNames ? <p>{participantNames}</p> : null}
+                {affiliations ? <p>{affiliations}</p> : null}
+              </div>
+            )}
+
+            {!leaderboard.results.length ? (
+              <p className="text-sm font-medium text-gray-500">Sem resultados</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[18rem] border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                      <th className="pb-2 pr-3 font-semibold">Prova</th>
+                      <th className="pb-2 pr-3 font-semibold">Col.</th>
+                      <th className="pb-2 pr-3 font-semibold">Resultado</th>
+                      <th className="pb-2 text-right font-semibold">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {leaderboard.results.map((content, resultIndex) => (
+                      <tr key={`${content.workout.name}-${resultIndex}`}>
+                        <td className="max-w-[9rem] truncate py-2 pr-3 font-semibold text-gray-800">
+                          {content.workout.name}
+                        </td>
+                        <td className="whitespace-nowrap py-2 pr-3 tabular-nums text-gray-600">
+                          {content.classification}º
+                        </td>
+                        <td className="whitespace-nowrap py-2 pr-3 tabular-nums text-gray-600">
+                          {content.result}
+                          {isScore(content.result) ? ' min' : ' reps'}
+                        </td>
+                        <td className="whitespace-nowrap py-2 text-right font-semibold tabular-nums text-gray-700">
+                          {content.points}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </li>
+    );
+  },
+);
 
 export default ListPublicLeaderboard;

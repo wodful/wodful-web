@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --blue-dark: #060919;
+  --primary: #319795;
+  --primary-hover: #2c7a7b;
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply font-sans antialiased text-gray-900;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+}
+
+@layer components {
+  .schedule-live-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white;
+  }
+
+  .schedule-live-dot {
+    @apply h-1.5 w-1.5 rounded-full bg-white;
+    animation: scheduleLivePulse 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes scheduleLivePulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+}
