@@ -5,7 +5,6 @@ const WARMUP_BATTERY_COUNT = 2;
 
 type WarmupAnchor = {
   id: string;
-  category: string;
   start: number;
 };
 
@@ -29,108 +28,98 @@ function storageKey(accessCode: string) {
   return `wodful:warmup-anchor:${accessCode}`;
 }
 
-function persistLiveAnchors(accessCode: string, anchors: WarmupAnchor[]) {
+function persistLiveAnchor(accessCode: string, anchor: WarmupAnchor) {
   if (!accessCode || typeof sessionStorage === 'undefined') return;
   try {
-    sessionStorage.setItem(storageKey(accessCode), JSON.stringify(anchors));
+    sessionStorage.setItem(storageKey(accessCode), JSON.stringify(anchor));
   } catch {
     // ignore quota / private mode
   }
 }
 
-function readPersistedAnchors(accessCode: string): WarmupAnchor[] {
-  if (!accessCode || typeof sessionStorage === 'undefined') return [];
+function clearPersistedAnchor(accessCode: string) {
+  if (!accessCode || typeof sessionStorage === 'undefined') return;
   try {
-    const raw = sessionStorage.getItem(storageKey(accessCode));
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as WarmupAnchor[];
-    return Array.isArray(parsed) ? parsed : [];
+    sessionStorage.removeItem(storageKey(accessCode));
   } catch {
-    return [];
+    // ignore private mode
   }
 }
 
-function takeNextPending(
+function readPersistedAnchor(accessCode: string): WarmupAnchor | null {
+  if (!accessCode || typeof sessionStorage === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(storageKey(accessCode));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as WarmupAnchor | WarmupAnchor[];
+    // Compat: versões antigas gravavam um array de âncoras
+    if (Array.isArray(parsed)) {
+      if (!parsed.length) return null;
+      return parsed.reduce((latest, item) =>
+        item.start >= latest.start ? item : latest,
+      );
+    }
+    if (parsed && typeof parsed.start === 'number') return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function takeNextPendingByTime(
   timed: TimedActivity[],
   anchorStart: number,
   limit: number,
-  categoryName?: string,
 ): IPublicSchedule[] {
-  const category = categoryName?.toLowerCase();
-
   return timed
     .filter(
       ({ item, start }) =>
-        !item.isLive &&
-        !item.isOver &&
-        start > anchorStart &&
-        (!category || item.category.name.toLowerCase() === category),
+        !item.isLive && !item.isOver && start > anchorStart,
     )
     .slice(0, limit)
     .map(({ item }) => item);
 }
 
-function pickAfterAnchors(
-  timed: TimedActivity[],
-  anchors: WarmupAnchor[],
-  count: number,
-): Set<string> {
-  const ids = new Set<string>();
-
-  for (const anchor of anchors) {
-    const sameCategory = takeNextPending(
-      timed,
-      anchor.start,
-      count,
-      anchor.category,
-    );
-    const picks =
-      sameCategory.length > 0
-        ? sameCategory
-        : takeNextPending(timed, anchor.start, count);
-
-    picks.forEach((item) => ids.add(item.id));
-  }
-
-  return ids;
+function latestByStart(items: TimedActivity[]): TimedActivity | null {
+  if (!items.length) return null;
+  return items.reduce((latest, item) =>
+    item.start >= latest.start ? item : latest,
+  );
 }
 
-function resolveWarmupAnchors(
+function resolveWarmupAnchor(
   schedules: IPublicSchedule[],
   accessCode: string,
-): WarmupAnchor[] {
+): WarmupAnchor | null {
   const timed = toTimed(schedules);
   const live = timed.filter(({ item }) => item.isLive);
 
   if (live.length) {
-    const anchors = live.map(({ item, start }) => ({
-      id: item.id,
-      category: item.category.name,
-      start,
-    }));
-    persistLiveAnchors(accessCode, anchors);
-    return anchors;
+    const current = latestByStart(live)!;
+    const anchor = { id: current.item.id, start: current.start };
+    persistLiveAnchor(accessCode, anchor);
+    return anchor;
   }
 
-  const latestOverByCategory = new Map<string, WarmupAnchor>();
-  for (const { item, start } of timed) {
-    if (!item.isOver) continue;
-    const key = item.category.name.toLowerCase();
-    const prev = latestOverByCategory.get(key);
-    if (!prev || start >= prev.start) {
-      latestOverByCategory.set(key, {
-        id: item.id,
-        category: item.category.name,
-        start,
-      });
-    }
+  const latestOver = latestByStart(timed.filter(({ item }) => item.isOver));
+  const persisted = readPersistedAnchor(accessCode);
+
+  // 1ª prova iniciada e parada sem encerrar: limpa o token
+  if (persisted && !latestOver) {
+    clearPersistedAnchor(accessCode);
+    return null;
   }
 
-  if (latestOverByCategory.size) {
-    return Array.from(latestOverByCategory.values());
+  // Gap entre baterias: preferir o LIVE recente da sessão, se for mais novo
+  if (persisted && latestOver && persisted.start >= latestOver.start) {
+    return persisted;
   }
 
-  return readPersistedAnchors(accessCode);
+  if (latestOver) {
+    return { id: latestOver.item.id, start: latestOver.start };
+  }
+
+  return null;
 }
 
 export function findWarmupBatteryIds(
@@ -139,7 +128,10 @@ export function findWarmupBatteryIds(
   count = WARMUP_BATTERY_COUNT,
 ): Set<string> {
   const timed = toTimed(schedules);
-  const anchors = resolveWarmupAnchors(schedules, accessCode);
-  if (!anchors.length) return new Set();
-  return pickAfterAnchors(timed, anchors, count);
+  const anchor = resolveWarmupAnchor(schedules, accessCode);
+  if (!anchor) return new Set();
+
+  return new Set(
+    takeNextPendingByTime(timed, anchor.start, count).map((item) => item.id),
+  );
 }
