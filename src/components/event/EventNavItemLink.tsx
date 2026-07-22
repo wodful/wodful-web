@@ -6,12 +6,14 @@ type EventNavItemLinkProps = {
   item: EventNavItem;
   championshipId: string;
   compact?: boolean;
+  onNavigate?: () => void;
 };
 
 export function EventNavItemLink({
   item,
   championshipId,
   compact = false,
+  onNavigate,
 }: EventNavItemLinkProps) {
   const to = eventPath(championshipId, item.pathSegment);
   const end = item.pathSegment === '';
@@ -20,6 +22,7 @@ export function EventNavItemLink({
     <NavLink
       to={to}
       end={end}
+      onClick={onNavigate}
       className={({ isActive }) =>
         [
           'flex items-center gap-2.5 rounded-md text-sm font-medium transition',
