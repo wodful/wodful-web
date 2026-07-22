@@ -29,7 +29,7 @@ export function ChampionshipCard({ championship }: ChampionshipCardProps) {
   };
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card">
+    <article className="group flex flex-col overflow-hidden rounded-surface border border-gray-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card">
       <Link
         to={eventPath}
         onClick={openEvent}
@@ -42,7 +42,7 @@ export function ChampionshipCard({ championship }: ChampionshipCardProps) {
         />
         <span
           className={[
-            'absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-xs font-semibold shadow-sm',
+            'absolute left-3 top-3 rounded-chip px-2.5 py-0.5 text-xs font-semibold shadow-sm',
             championship.isActive
               ? 'bg-primary text-white'
               : 'bg-white/95 text-gray-700',

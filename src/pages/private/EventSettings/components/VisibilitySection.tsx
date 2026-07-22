@@ -28,7 +28,7 @@ export function VisibilitySection({
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={[
-                'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                'inline-flex rounded-chip px-2.5 py-0.5 text-xs font-semibold',
                 championship.isActive
                   ? 'bg-primary/10 text-primary'
                   : 'bg-gray-100 text-gray-700',
@@ -61,18 +61,15 @@ export function VisibilitySection({
               })
             }
           >
-            <button
-              type="button"
-              className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-800 transition hover:border-primary/40 hover:text-primary"
-            >
+            <Button variant="secondary" className="w-full flex-1">
               Copiar link de inscrição
-            </button>
+            </Button>
           </CopyToClipboard>
           <a
             href={inscriptionUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-800 no-underline transition hover:border-primary/40 hover:text-primary"
+            className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-control border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 no-underline transition hover:border-primary/40 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary"
           >
             Abrir página pública
             <ExternalLink size={14} aria-hidden />

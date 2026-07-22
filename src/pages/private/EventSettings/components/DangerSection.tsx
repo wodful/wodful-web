@@ -12,11 +12,7 @@ export function DangerSection({ onDelete }: DangerSectionProps) {
       description="A exclusão remove o evento de forma permanente."
       tone="danger"
     >
-      <Button
-        variant="secondary"
-        className="w-full border-red-200 text-red-700 hover:border-red-300 hover:text-red-800 sm:w-auto"
-        onClick={onDelete}
-      >
+      <Button variant="dangerOutline" className="w-full sm:w-auto" onClick={onDelete}>
         Excluir evento
       </Button>
     </SettingsSection>

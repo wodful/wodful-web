@@ -22,7 +22,7 @@ export function Toggle({
   return (
     <div
       className={[
-        'flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3.5',
+        'flex items-start justify-between gap-4 rounded-surface border border-slate-200 bg-slate-50/80 px-4 py-3.5',
         disabled ? 'opacity-60' : '',
       ].join(' ')}
     >

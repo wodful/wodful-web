@@ -2,10 +2,10 @@ import * as React from 'react';
 import { FieldHint } from './FieldHint';
 
 const lightInputBase =
-  'min-h-11 min-w-0 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-slate-400 shadow-sm transition hover:border-slate-300 focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60';
+  'min-h-11 min-w-0 w-full rounded-control border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-slate-400 transition hover:border-slate-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60';
 
 const darkInputBase =
-  'min-h-[48px] min-w-0 w-full rounded-lg border border-white/12 bg-white/[0.04] px-4 py-3 text-[15px] text-white placeholder:text-white/35 transition focus:border-primary focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-60';
+  'min-h-[48px] min-w-0 w-full rounded-control border border-white/12 bg-white/[0.04] px-4 py-3 text-[15px] text-white placeholder:text-white/35 transition focus:border-primary focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-60';
 
 const lightInvalid = 'border-red-400 bg-red-50/40 focus:border-red-500 focus:ring-red-500/15';
 const darkInvalid = 'border-red-400/70 focus:border-red-400 focus:ring-red-400/20';
@@ -64,7 +64,7 @@ export const FormField = ({
           id={resolvedErrorId}
           className={
             tone === 'dark'
-              ? 'rounded-lg border border-red-400/30 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-200'
+              ? 'rounded-control border border-red-400/30 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-200'
               : 'text-xs font-medium text-red-600'
           }
           role="alert"

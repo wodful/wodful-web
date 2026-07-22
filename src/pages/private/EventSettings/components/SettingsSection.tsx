@@ -16,7 +16,7 @@ export function SettingsSection({
   return (
     <section
       className={[
-        'rounded-xl border bg-white p-5 shadow-sm sm:p-6',
+        'rounded-surface border bg-white p-5 shadow-sm sm:p-6',
         tone === 'danger' ? 'border-red-200' : 'border-gray-200',
       ].join(' ')}
     >

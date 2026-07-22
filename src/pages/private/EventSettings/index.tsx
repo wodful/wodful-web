@@ -139,7 +139,7 @@ function EventSettingsView() {
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className="relative w-full max-w-sm rounded-xl border border-gray-200 bg-white p-5 shadow-xl"
+            className="relative w-full max-w-sm rounded-surface border border-gray-200 bg-white p-5 shadow-xl"
           >
             <h2 id={titleId} className="text-base font-semibold text-gray-900">
               Remover campeonato
@@ -149,7 +149,7 @@ function EventSettingsView() {
             </p>
             <div className="mt-5 flex flex-col gap-2">
               <Button
-                variant="primary"
+                variant="danger"
                 isLoading={deleting}
                 onClick={() => void confirmDelete()}
               >

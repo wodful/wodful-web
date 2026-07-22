@@ -49,7 +49,7 @@ const ShirtSizeManager = ({ sizes, setSizes }: ShirtSizeManagerProps) => {
             disabled={!size.trim()}
             onClick={addSize}
             aria-label="Adicionar tamanho"
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-surface bg-primary text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus size={18} aria-hidden />
           </button>
@@ -60,12 +60,12 @@ const ShirtSizeManager = ({ sizes, setSizes }: ShirtSizeManagerProps) => {
         <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
           {sizes.map((item, index) => (
             <li key={`${item}-${index}`} className="list-none">
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+              <span className="inline-flex items-center gap-1 rounded-chip bg-slate-800 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white">
                 {item}
                 <button
                   type="button"
                   onClick={() => removeSize(index)}
-                  className="rounded-full p-0.5 transition hover:bg-white/20"
+                  className="rounded-control p-0.5 transition hover:bg-white/20"
                   aria-label={`Remover ${item}`}
                 >
                   <X size={12} aria-hidden />

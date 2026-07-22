@@ -104,11 +104,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           return (
             <div
               key={item.id}
-              className={`pointer-events-auto flex items-start gap-3 rounded-2xl border px-4 py-3.5 shadow-xl animate-fade-in-up ${styles.panel}`}
+              className={`pointer-events-auto flex items-start gap-3 rounded-surface border px-4 py-3.5 shadow-xl animate-fade-in-up ${styles.panel}`}
               role="status"
             >
               <span
-                className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${styles.iconWrap}`}
+                className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-control ${styles.iconWrap}`}
                 aria-hidden
               >
                 <Icon size={18} className={styles.icon} strokeWidth={2.5} />
@@ -122,7 +122,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 <button
                   type="button"
                   onClick={() => dismiss(item.id)}
-                  className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition ${styles.close}`}
+                  className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-control transition ${styles.close}`}
                   aria-label="Fechar"
                 >
                   <X size={16} aria-hidden />

@@ -2,157 +2,169 @@ import ComponentModal from '@/components/ComponentModal';
 import { EmptyList } from '@/components/EmptyList';
 import { Loader } from '@/components/Loader';
 import { Button } from '@/components/ui/Button';
-import {
-  DropdownMenu,
-  DropdownMenuButton,
-  DropdownMenuItem,
-  DropdownMenuList,
-} from '@/components/ui/DropdownMenu';
-import { Tooltip } from '@/components/ui/Tooltip';
+import { LivePageShell } from '@/components/ui/LivePageShell';
 import { CategoryProvider } from '@/contexts/category';
-import { ChampionshipProvider } from '@/contexts/championship';
 import { ScheduleProvider } from '@/contexts/schedule';
 import { WorkoutProvider } from '@/contexts/workout';
-import { IConfiguration } from '@/data/interfaces/configuration';
-import useChampionshipData from '@/hooks/useChampionshipData';
+import { IIsLiveDTO, IIsOverDTO } from '@/data/interfaces/schedule';
 import useScheduleData from '@/hooks/useScheduleData';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { Circle, Menu as MenuIcon } from 'react-feather';
+import { Suspense, useCallback, useMemo, useState } from 'react';
+import { Radio } from 'react-feather';
 import { useParams } from 'react-router-dom';
 import ScheduleForm from './components/form';
 import ListSchedule from './components/list';
 
 const ScheduleWithProvider = () => (
   <ScheduleProvider onClose={() => undefined}>
-    <ChampionshipProvider onClose={() => undefined}>
-      <CategoryProvider>
-        <WorkoutProvider>
-          <Schedule />
-        </WorkoutProvider>
-      </CategoryProvider>
-    </ChampionshipProvider>
+    <CategoryProvider>
+      <WorkoutProvider>
+        <Schedule />
+      </WorkoutProvider>
+    </CategoryProvider>
   </ScheduleProvider>
 );
 
 const Schedule = () => {
   const { id } = useParams();
-
   const [isOpen, setIsOpen] = useState(false);
-  const [isOpenOption, setIsOpenOption] = useState<boolean>(false);
-  const [isAuto, setIsAuto] = useState('false');
+  const [confirmEndId, setConfirmEndId] = useState<string | null>(null);
 
-  const { schedulePages } = useScheduleData();
-  const { GetConfiguration, PatchIsAutoSchedule } = useChampionshipData();
+  const { schedulePages, IsLive, IsOver } = useScheduleData();
 
-  const hasElements: boolean = useMemo(() => schedulePages.count !== 0, [schedulePages]);
-
-  const handleToggleIsAutomatic = useCallback(
-    (value: string) => {
-      let key = 'true';
-      if (value === 'true') key = 'false';
-      if (id) {
-        PatchIsAutoSchedule(id, key).then(() => {
-          setIsAuto(key);
-          setIsOpenOption(false);
-        });
-      }
-    },
-    [PatchIsAutoSchedule, id],
+  const hasElements = useMemo(() => schedulePages.count !== 0, [schedulePages]);
+  const liveActivity = useMemo(
+    () => schedulePages.results?.find((item) => item.isLive),
+    [schedulePages.results],
   );
 
-  useEffect(() => {
-    if (id) {
-      GetConfiguration(id).then((conf) => {
-        const config = conf as IConfiguration;
-        setIsAuto(config.configuration.isAutoSchedule);
-      });
-    }
-  }, [GetConfiguration, id]);
+  const handleIsLive = useCallback(
+    (activityId: string, isLive: boolean) => {
+      if (!id) return;
+      const payload: IIsLiveDTO = { championshipId: id, activityId, isLive };
+      IsLive(payload);
+    },
+    [IsLive, id],
+  );
+
+  const handleIsOver = useCallback(
+    (activityId: string, isOver: boolean) => {
+      if (!id) return;
+      const payload: IIsOverDTO = { championshipId: id, activityId, isOver };
+      IsOver(payload);
+    },
+    [IsOver, id],
+  );
 
   return (
-    <Suspense fallback={<Loader title='Carregando ...' />}>
-      <main className='flex w-full flex-col items-center p-6' role='main'>
-        {hasElements && (
-          <>
-            <section className='flex w-full items-center justify-between gap-3' role='textbox'>
-              <article className='flex flex-col gap-3' role='textbox'>
-                <h1 className='text-2xl font-bold text-slate-900' role='heading'>
-                  Cronograma
-                </h1>
-              </article>
-              <article className='flex items-center gap-4'>
-                <DropdownMenu>
-                  <DropdownMenuButton
-                    aria-label='Opções'
-                    className='!h-auto !w-auto min-w-0 gap-2 border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 hover:border-primary/40 hover:text-primary'
+    <Suspense fallback={<Loader title="Carregando ..." />}>
+      <LivePageShell
+        title="Cronograma"
+        description="Gerencie suas baterias do evento."
+        actions={
+          hasElements ? (
+            <Button variant="primary" onClick={() => setIsOpen(true)}>
+              Adicionar atividade
+            </Button>
+          ) : null
+        }
+      >
+        {hasElements ? (
+          <div className="space-y-4">
+            {liveActivity ? (
+              <div
+                className="flex flex-col gap-3 rounded-surface border border-red-200 border-l-4 border-l-red-500 bg-red-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                aria-live="polite"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white">
+                    <Radio size={16} aria-hidden />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
+                      Ao vivo agora
+                    </p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {liveActivity.hour} · {liveActivity.category.name} ·{' '}
+                      {liveActivity.workout.name}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      Bateria {liveActivity.heat} · {liveActivity.laneQuantity} baias
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 sm:justify-end">
+                  <Button
+                    variant="secondary"
+                    className="!min-h-9 !px-3 !py-1.5 !text-xs"
+                    onClick={() => handleIsLive(liveActivity.id, false)}
                   >
-                    <MenuIcon size={20} />
-                    Opções
-                  </DropdownMenuButton>
-                  <DropdownMenuList align='right'>
-                    <DropdownMenuItem onClick={() => setIsOpenOption(true)}>
-                      <span className='flex items-center gap-2'>
-                        {isAuto === 'true' ? (
-                          <Tooltip label='Ativada'>
-                            <Circle fill='#E53E3E' size={12} color='#E53E3E' />
-                          </Tooltip>
-                        ) : null}
-                        Ordenação automática
-                      </span>
-                    </DropdownMenuItem>
-                  </DropdownMenuList>
-                </DropdownMenu>
-                <Button variant='primary' className='min-w-[170px] w-auto' onClick={() => setIsOpen(true)}>
-                  Adicionar atividade
-                </Button>
-              </article>
-            </section>
+                    Parar
+                  </Button>
+                  <Button
+                    variant="dangerOutline"
+                    className="!min-h-9 !px-3 !py-1.5 !text-xs"
+                    onClick={() => setConfirmEndId(liveActivity.id)}
+                  >
+                    Encerrar
+                  </Button>
+                </div>
+              </div>
+            ) : null}
 
-            <section className='mt-6 w-full'>
-              <ListSchedule championshipId={id as string} />
-            </section>
-          </>
+            <ListSchedule
+              championshipId={id as string}
+              onRequestEnd={(activityId) => setConfirmEndId(activityId)}
+            />
+          </div>
+        ) : (
+          <EmptyList
+            text="Você não possui um cronograma ainda!"
+            contentButton="Crie um cronograma"
+            onClose={() => setIsOpen(true)}
+          />
         )}
 
         <ComponentModal
-          modalHeader={`${isAuto === 'false' ? 'Ativar' : 'Desativar'} ordenação automática`}
-          size='sm'
-          isOpen={isOpenOption}
-          onClose={() => setIsOpenOption(false)}
+          modalHeader="Encerrar atividade"
+          size="sm"
+          isOpen={!!confirmEndId}
+          onClose={() => setConfirmEndId(null)}
         >
-          <div className='flex w-full flex-col gap-6 pb-4'>
-            <p className='text-sm text-slate-700'>
-              {`Tem certeza que deseja ${
-                isAuto === 'false' ? 'ativar' : 'desativar'
-              } a ordenação automática do cronograma?`}
+          <div className="flex w-full flex-col gap-5 pb-2">
+            <p className="text-sm text-slate-700">
+              Encerrar marca a bateria como finalizada. Você poderá reabrir depois, se precisar.
             </p>
-            <Button
-              variant='primary'
-              className='mt-4 w-full'
-              onClick={() => handleToggleIsAutomatic(isAuto)}
-            >
-              {`${isAuto === 'false' ? 'Ativar' : 'Desativar'}`}
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="danger"
+                className="w-full"
+                onClick={() => {
+                  if (confirmEndId) handleIsOver(confirmEndId, true);
+                  setConfirmEndId(null);
+                }}
+              >
+                Encerrar
+              </Button>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setConfirmEndId(null)}
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
         </ComponentModal>
 
         <ComponentModal
-          modalHeader='Adicionar atividade ao cronograma'
-          size='lg'
+          modalHeader="Adicionar atividade ao cronograma"
+          size="lg"
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
         >
           <ScheduleForm onClose={() => setIsOpen(false)} />
         </ComponentModal>
-
-        {!hasElements && (
-          <EmptyList
-            text='Você não possui um cronograma ainda!'
-            contentButton='Crie um cronograma'
-            onClose={() => setIsOpen(true)}
-          />
-        )}
-      </main>
+      </LivePageShell>
     </Suspense>
   );
 };

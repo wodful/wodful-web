@@ -69,7 +69,7 @@ export function DropdownMenuButton({
       aria-expanded={open}
       aria-controls={menuId}
       aria-label={ariaLabel}
-      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 ${className}`}
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-control text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 ${className}`}
       onClick={() => setOpen(!open)}
     >
       {children}
@@ -90,7 +90,7 @@ export function DropdownMenuList({
     <div
       id={menuId}
       role="menu"
-      className={`absolute z-30 mt-1 min-w-[10rem] rounded-xl border border-slate-200 bg-white py-1 shadow-lg ${
+      className={`absolute z-30 mt-1 min-w-[10rem] rounded-surface border border-slate-200 bg-white py-1 shadow-lg ${
         align === 'right' ? 'right-0' : 'left-0'
       }`}
     >

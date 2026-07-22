@@ -25,7 +25,7 @@ export function EventNavItemLink({
       onClick={onNavigate}
       className={({ isActive }) =>
         [
-          'flex items-center gap-2.5 rounded-md text-sm font-medium transition',
+          'flex items-center gap-2.5 rounded-control text-sm font-medium transition',
           compact ? 'px-2.5 py-2' : 'px-3 py-2',
           isActive
             ? 'bg-primary/10 text-primary'

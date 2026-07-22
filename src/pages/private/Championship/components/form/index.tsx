@@ -38,7 +38,7 @@ function FieldGroup({
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-surface border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <header className="mb-4">
         <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
         {description ? (
@@ -199,7 +199,7 @@ const FormChampionship = ({
           <button
             type="button"
             onClick={() => setDescriptionOpen(true)}
-            className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-left transition hover:border-primary/30"
+            className="rounded-surface border border-slate-200 bg-slate-50 px-3.5 py-3 text-left transition hover:border-primary/30"
           >
             {descriptionValue ? (
               <p className="line-clamp-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
@@ -259,7 +259,7 @@ const FormChampionship = ({
     >
       {isEdit && !codeEditing ? (
         <div className="flex items-center gap-2">
-          <div className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5">
+          <div className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-surface border border-slate-200 bg-slate-50 px-3.5">
             <Lock size={14} className="shrink-0 text-slate-400" aria-hidden />
             <span className="truncate font-mono text-sm font-semibold uppercase tracking-wide text-slate-800">
               {accessCodeValue || '—'}
@@ -268,7 +268,7 @@ const FormChampionship = ({
           <button
             type="button"
             onClick={() => setCodeEditing(true)}
-            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-primary/40 hover:text-primary"
+            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-surface border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-primary/40 hover:text-primary"
           >
             <Edit2 size={14} aria-hidden />
             Alterar
@@ -302,7 +302,7 @@ const FormChampionship = ({
     <div className="flex flex-col gap-1.5">
       <span className="text-sm font-medium text-slate-700">Tipo de resultado</span>
       <div className="flex min-h-11 flex-wrap items-center gap-2">
-        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-sm font-semibold text-slate-800">
+        <span className="rounded-chip bg-slate-100 px-2.5 py-1 text-sm font-semibold text-slate-800">
           {RESULT_TYPE_LABEL[lockedResultType] ?? lockedResultType}
         </span>
       </div>
@@ -335,14 +335,14 @@ const FormChampionship = ({
         type="file"
         accept="image/png, image/jpeg"
         invalid={!!errors.banner}
-        className="py-2 file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary"
+        className="py-2 file:mr-3 file:rounded-control file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary"
         {...register('banner', {
           required: validationMessages['required'],
           onChange: handleChange,
         })}
       />
       {file ? (
-        <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
+        <div className="mt-3 overflow-hidden rounded-surface border border-slate-200">
           <img src={file} alt="Preview do banner" className="max-h-40 w-full object-cover" />
         </div>
       ) : null}
@@ -354,7 +354,7 @@ const FormChampionship = ({
       className={[
         'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
         isEdit
-          ? 'sticky bottom-3 z-[1] rounded-xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur'
+          ? 'sticky bottom-3 z-[1] rounded-surface border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur'
           : 'border-t border-slate-100 pt-4',
       ].join(' ')}
     >
