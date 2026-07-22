@@ -15,16 +15,11 @@ const EventHome = () => {
     : null;
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <header className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-            Visão geral
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-gray-900 capitalize">
-            {currentChampionship?.name ?? 'Evento'}
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-slate-900">Visão geral</h1>
+          <p className="mt-1 text-sm text-slate-500">
             Escolha uma área para gerenciar o campeonato.
           </p>
         </div>
