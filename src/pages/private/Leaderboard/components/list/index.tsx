@@ -9,11 +9,12 @@ import {
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PaginationBar } from '@/components/ui/PaginationBar';
 import useLeaderboardData from '@/hooks/useLeaderboardData';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface IListLeaderboard {
   champ: string;
   category: string;
+  categoryName?: string;
 }
 
 function initials(name: string) {
@@ -30,7 +31,7 @@ function rankTone(ranking: number) {
   return 'bg-slate-100 text-slate-600 ring-slate-200';
 }
 
-const ListLeaderboard = ({ champ, category }: IListLeaderboard) => {
+const ListLeaderboard = ({ champ, category, categoryName }: IListLeaderboard) => {
   const [currentTotal, setCurrentTotal] = useState(0);
   const { ListPaginated, leaderboardPages, page, limit, setLimit, setPage, isLoading } =
     useLeaderboardData();
@@ -45,104 +46,128 @@ const ListLeaderboard = ({ champ, category }: IListLeaderboard) => {
     setCurrentTotal(leaderboardPages.results?.length ?? 0);
   }, [leaderboardPages.results?.length]);
 
+  const tiedRanks = useMemo(() => {
+    const counts = new Map<number, number>();
+    for (const row of leaderboardPages.results ?? []) {
+      if (row.ranking > 0) {
+        counts.set(row.ranking, (counts.get(row.ranking) ?? 0) + 1);
+      }
+    }
+    return new Set([...counts.entries()].filter(([, n]) => n > 1).map(([rank]) => rank));
+  }, [leaderboardPages.results]);
+
   if (leaderboardPages.results && leaderboardPages.results.length === 0) {
     return (
       <EmptyState
-        title="Sem inscrições nesta categoria"
-        description="Quando houver participantes, o ranking aparece aqui."
+        title="Sem participantes nesta categoria"
+        description={
+          categoryName
+            ? `Ainda não há inscritos em ${categoryName} para montar o ranking.`
+            : 'Quando houver participantes, o ranking aparece aqui.'
+        }
       />
     );
   }
 
   if (!leaderboardPages.results) {
     return (
-      <EmptyState
-        title="Carregando ranking…"
-        description="Aguarde um instante."
-      />
+      <EmptyState title="Carregando ranking…" description="Aguarde um instante." />
     );
   }
 
+  const hasScores = leaderboardPages.results.some((row) => row.generalScore > 0);
+  const totalCount = leaderboardPages.count ?? 0;
+  const showPagination = totalCount > limit;
+
   return (
     <>
-      <DataTable>
-        <DataTableHead>
-          <DataTableRow>
-            <DataTableHeaderCell className="w-16">#</DataTableHeaderCell>
-            <DataTableHeaderCell>Participante</DataTableHeaderCell>
-            <DataTableHeaderCell>Categoria</DataTableHeaderCell>
-            <DataTableHeaderCell className="text-right">Pontuação</DataTableHeaderCell>
-          </DataTableRow>
-        </DataTableHead>
-        <DataTableBody>
-          {leaderboardPages.results.map((leaderboard) => {
-            const rank = leaderboard.ranking;
-            const podium = rank >= 1 && rank <= 3;
-            return (
-              <DataTableRow
-                key={`${leaderboard.nickname}_${leaderboard.generalScore}`}
-                className={podium ? 'bg-primary/[0.03]' : ''}
-              >
-                <DataTableCell className="py-3.5">
-                  {rank === 0 ? (
-                    <span className="text-slate-400">—</span>
-                  ) : (
-                    <span
-                      className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ring-1 ${rankTone(
-                        rank,
-                      )}`}
-                    >
-                      {rank}º
-                    </span>
-                  )}
-                </DataTableCell>
-                <DataTableCell className="py-3.5">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-white">
-                      {initials(leaderboard.nickname)}
-                    </span>
-                    <span
-                      className={`capitalize ${
-                        podium ? 'font-semibold text-slate-900' : 'font-medium text-slate-800'
-                      }`}
-                    >
-                      {leaderboard.nickname}
-                    </span>
-                  </div>
-                </DataTableCell>
-                <DataTableCell className="py-3.5 capitalize text-slate-600">
-                  {leaderboard.category.name}
-                </DataTableCell>
-                <DataTableCell className="py-3.5 text-right tabular-nums font-semibold text-slate-900">
-                  {leaderboard.generalScore === 0
-                    ? '—'
-                    : `${leaderboard.generalScore} ${
-                        leaderboard.generalScore === 1 ? 'pt' : 'pts'
-                      }`}
-                </DataTableCell>
-              </DataTableRow>
-            );
-          })}
-        </DataTableBody>
-      </DataTable>
-
-      {leaderboardPages.results.length ? (
-        <PaginationBar
-          page={page}
-          limit={limit}
-          count={leaderboardPages.count ?? 0}
-          currentTotal={currentTotal}
-          hasPrevious={!!leaderboardPages.previous}
-          hasNext={!!leaderboardPages.next}
-          isLoading={isLoading}
-          onLimitChange={(next) => {
-            setLimit(next);
-            setPage(1);
-          }}
-          onPrevious={() => setPage(page - 1)}
-          onNext={() => setPage(page + 1)}
-        />
+      {!hasScores ? (
+        <p className="mb-3 rounded-surface border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-sm text-slate-600">
+          Participantes listados, mas ainda sem pontuação nesta categoria.
+        </p>
       ) : null}
+
+      <div className="overflow-hidden rounded-surface border border-slate-200 bg-white">
+        <DataTable containerClassName="rounded-none border-0">
+          <DataTableHead>
+            <DataTableRow>
+              <DataTableHeaderCell className="w-24">#</DataTableHeaderCell>
+              <DataTableHeaderCell>Participante</DataTableHeaderCell>
+              <DataTableHeaderCell className="w-36 text-right sm:w-44">
+                Pontuação
+              </DataTableHeaderCell>
+            </DataTableRow>
+          </DataTableHead>
+          <DataTableBody>
+            {leaderboardPages.results.map((leaderboard) => {
+              const rank = leaderboard.ranking;
+              const isTie = tiedRanks.has(rank);
+              return (
+                <DataTableRow
+                  key={`${leaderboard.nickname}_${leaderboard.generalScore}_${leaderboard.ranking}`}
+                >
+                  <DataTableCell className="py-3">
+                    {rank === 0 ? (
+                      <span className="text-slate-400">—</span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ring-1 ${rankTone(
+                            rank,
+                          )}`}
+                        >
+                          {rank}º
+                        </span>
+                        {isTie ? (
+                          <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            Empate
+                          </span>
+                        ) : null}
+                      </div>
+                    )}
+                  </DataTableCell>
+                  <DataTableCell className="py-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[10px] font-semibold text-white">
+                        {initials(leaderboard.nickname)}
+                      </span>
+                      <span className="truncate font-medium capitalize text-slate-900">
+                        {leaderboard.nickname}
+                      </span>
+                    </div>
+                  </DataTableCell>
+                  <DataTableCell className="py-3 text-right text-base tabular-nums font-semibold text-slate-900">
+                    {leaderboard.generalScore === 0
+                      ? '—'
+                      : `${leaderboard.generalScore} ${
+                          leaderboard.generalScore === 1 ? 'pt' : 'pts'
+                        }`}
+                  </DataTableCell>
+                </DataTableRow>
+              );
+            })}
+          </DataTableBody>
+        </DataTable>
+
+        {showPagination ? (
+          <PaginationBar
+            page={page}
+            limit={limit}
+            count={totalCount}
+            currentTotal={currentTotal}
+            hasPrevious={!!leaderboardPages.previous}
+            hasNext={!!leaderboardPages.next}
+            isLoading={isLoading}
+            limitOptions={[10, 20, 50]}
+            onLimitChange={(next) => {
+              setLimit(next);
+              setPage(1);
+            }}
+            onPrevious={() => setPage(page - 1)}
+            onNext={() => setPage(page + 1)}
+          />
+        ) : null}
+      </div>
     </>
   );
 };

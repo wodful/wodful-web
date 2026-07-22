@@ -22,7 +22,7 @@ export function PaginationBar({
   page,
   limit,
   count,
-  currentTotal,
+  currentTotal: _currentTotal,
   hasPrevious,
   hasNext,
   isLoading,
@@ -31,8 +31,8 @@ export function PaginationBar({
   onPrevious,
   onNext,
 }: PaginationBarProps) {
-  const from = page * limit - (limit - 1);
-  const to = page === 1 ? page * limit : page * limit - limit + currentTotal;
+  const from = count === 0 ? 0 : (page - 1) * limit + 1;
+  const to = count === 0 ? 0 : Math.min(page * limit, count);
 
   return (
     <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
