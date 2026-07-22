@@ -31,8 +31,4 @@ export default {
     },
   },
   plugins: [],
-  // Avoid clashes with Chakra during hybrid migration
-  corePlugins: {
-    preflight: false,
-  },
 };

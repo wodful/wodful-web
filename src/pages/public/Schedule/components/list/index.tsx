@@ -1,66 +1,47 @@
+import { Badge } from '@/components/ui/Badge';
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable';
 import useScheduleData from '@/hooks/useScheduleData';
 import { formatDate } from '@/utils/formatDate';
-import {
-  HStack,
-  Table,
-  TableContainer,
-  Tag,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-} from '@chakra-ui/react';
 import { ArrowDown } from 'react-feather';
-import '../lists.css';
 
 const ListTablePublicSchedule = () => {
   const { schedules } = useScheduleData();
 
   return (
-    <TableContainer border='1px' borderColor='gray.100' fontSize='sm' color='#2D3748'>
-      <Table variant='simple'>
-        <Thead bg='gray.50' border='1px' borderColor='gray.100'>
-          <Tr>
-            <Th>
-              <Text as='b'>DATA</Text>
-            </Th>
-            <Th>
-              <Text as='b'>HORÁRIO</Text>
-            </Th>
-            <Th>
-              <Text as='b'>CATEGORIA</Text>
-            </Th>
-            <Th>
-              <Text as='b'>PROVA</Text>
-            </Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {schedules?.map((schedule) => (
-            <Tr key={schedule.id}>
-              <Td p={6}>
-                <HStack>
-                  <ArrowDown size={16} /> <Text> {formatDate(`${schedule.date}`)}</Text>
-                </HStack>
-              </Td>
-              <Td p={6}>
-                <HStack>
-                  <Text> {schedule.hour}</Text>
-                </HStack>
-              </Td>
-              <Td p={6}>
-                <Tag size='md' key='md' variant='solid' colorScheme='teal'>
-                  {schedule.category.name}
-                </Tag>
-              </Td>
-              <Td p={6}>{schedule.workout.name}</Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
-    </TableContainer>
+    <DataTable>
+      <DataTableHead>
+        <DataTableRow>
+          <DataTableHeaderCell>Data</DataTableHeaderCell>
+          <DataTableHeaderCell>Horário</DataTableHeaderCell>
+          <DataTableHeaderCell>Categoria</DataTableHeaderCell>
+          <DataTableHeaderCell>Prova</DataTableHeaderCell>
+        </DataTableRow>
+      </DataTableHead>
+      <DataTableBody>
+        {schedules?.map((schedule) => (
+          <DataTableRow key={schedule.id}>
+            <DataTableCell className="py-4">
+              <div className="flex items-center gap-2">
+                <ArrowDown size={16} aria-hidden />
+                <span>{formatDate(`${schedule.date}`)}</span>
+              </div>
+            </DataTableCell>
+            <DataTableCell className="py-4">{schedule.hour}</DataTableCell>
+            <DataTableCell className="py-4">
+              <Badge tone="primary">{schedule.category.name}</Badge>
+            </DataTableCell>
+            <DataTableCell className="py-4">{schedule.workout.name}</DataTableCell>
+          </DataTableRow>
+        ))}
+      </DataTableBody>
+    </DataTable>
   );
 };
 

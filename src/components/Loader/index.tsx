@@ -1,27 +1,17 @@
-import { Flex, Spinner, Text } from '@chakra-ui/react';
-
 interface LoaderProps {
   title: string;
   description?: string;
 }
 
 const Loader = ({ title, description }: LoaderProps) => (
-  <Flex
-    h='100%'
-    w='100%'
-    position='fixed'
-    top='0px'
-    left='0px'
-    bg='rgba(255,255,255,0.9)'
-    zIndex='1000'
-    align='center'
-    justify='center'
-    flexDirection='column'
-  >
-    <Spinner thickness='4px' speed='0.65s' emptyColor='gray.200' color='blue.500' size='xl' />
-    <Text fontWeight='bold'>{title} </Text>
-    {description && <Text>{description} </Text>}
-  </Flex>
+  <div className="fixed inset-0 z-[1000] flex h-full w-full flex-col items-center justify-center bg-white/90">
+    <span
+      className="mb-3 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-primary"
+      aria-hidden
+    />
+    <p className="font-bold text-slate-900">{title}</p>
+    {description ? <p className="mt-1 text-sm text-slate-600">{description}</p> : null}
+  </div>
 );
 
 export { Loader };

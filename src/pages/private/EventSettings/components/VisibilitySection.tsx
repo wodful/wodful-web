@@ -1,5 +1,5 @@
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { useToast } from '@chakra-ui/react';
+import { useToast } from '@/components/ui/Toast';
 import { ExternalLink } from 'react-feather';
 
 import { Button } from '@/components/ui/Button';

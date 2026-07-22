@@ -1,21 +1,15 @@
+import { Button } from '@/components/ui/Button';
+import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { ISubscriptionForm } from '@/data/interfaces/subscription';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
 import useTicketData from '@/hooks/useTicketData';
 import { regexOnlyNumber } from '@/utils/documentVerification';
 import { validationMessages } from '@/utils/messages';
-import {
-  Button,
-  ButtonGroup,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  Select,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+
 interface CreateModalProps {
   id: string;
   openFormParticipants: (step: number, participantsNumber: number) => void;
@@ -49,98 +43,72 @@ const FormSubscription = ({ id, openFormParticipants }: CreateModalProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <VStack align='start' w='100%' spacing={6} pb={6} flexDirection='column'>
-        <Text as='b'>Dados do responsável</Text>
-        <FormControl isInvalid={!!errors.responsibleName}>
-          <FormLabel htmlFor='responsibleName' m={0}>
-            Nome
-          </FormLabel>
-          <Input
-            as='input'
-            id='responsibleName'
-            placeholder='Nome do responsável'
-            {...register('responsibleName', {
-              required: validationMessages['required'],
-              minLength: { value: 4, message: validationMessages['minLength'] },
-              maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-            })}
-          />
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
+      <p className="font-bold text-slate-900">Dados do responsável</p>
+      <FormField id="responsibleName" label="Nome" error={errors.responsibleName?.message}>
+        <Input
+          id="responsibleName"
+          placeholder="Nome do responsável"
+          invalid={!!errors.responsibleName}
+          {...register('responsibleName', {
+            required: validationMessages['required'],
+            minLength: { value: 4, message: validationMessages['minLength'] },
+            maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+          })}
+        />
+      </FormField>
+      <FormField id="responsibleEmail" label="E-mail" error={errors.responsibleEmail?.message}>
+        <Input
+          id="responsibleEmail"
+          placeholder="E-mail do responsável"
+          invalid={!!errors.responsibleEmail}
+          {...register('responsibleEmail', {
+            required: validationMessages['required'],
+            minLength: { value: 4, message: validationMessages['minLength'] },
+            maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+            pattern: {
+              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+              message: validationMessages['invalidField'],
+            },
+          })}
+        />
+      </FormField>
+      <FormField id="responsiblePhone" label="Telefone" error={errors.responsiblePhone?.message}>
+        <Input
+          id="responsiblePhone"
+          placeholder="Telefone do responsável"
+          value={formatDisplayPhone}
+          invalid={!!errors.responsiblePhone}
+          {...register('responsiblePhone', {
+            required: validationMessages['required'],
+            minLength: { value: 10, message: validationMessages['minLength'] },
+            maxLength: { value: 15, message: validationMessages['maxLengthSm'] },
+            onChange(event) {
+              formatPhone(event.target.value);
+            },
+          })}
+        />
+      </FormField>
 
-          <FormErrorMessage>
-            {errors.responsibleName && errors.responsibleName.message}
-          </FormErrorMessage>
-        </FormControl>
-        <FormControl isInvalid={!!errors.responsibleEmail}>
-          <FormLabel htmlFor='email' m={0}>
-            E-mail
-          </FormLabel>
-          <Input
-            as='input'
-            id='responsibleEmail'
-            placeholder='E-mail do responsável'
-            {...register('responsibleEmail', {
-              required: validationMessages['required'],
-              minLength: { value: 4, message: validationMessages['minLength'] },
-              maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: validationMessages['invalidField'],
-              },
-            })}
-          />
-
-          <FormErrorMessage>
-            {errors.responsibleEmail && errors.responsibleEmail.message}
-          </FormErrorMessage>
-        </FormControl>
-        <FormControl isInvalid={!!errors.responsiblePhone}>
-          <FormLabel htmlFor='responsiblePhone' m={0}>
-            Telefone
-          </FormLabel>
-          <Input
-            id='responsiblePhone'
-            placeholder='Telefone do responsável'
-            value={formatDisplayPhone}
-            {...register('responsiblePhone', {
-              required: validationMessages['required'],
-              minLength: { value: 10, message: validationMessages['minLength'] },
-              maxLength: { value: 15, message: validationMessages['maxLengthSm'] },
-              onChange(event) {
-                formatPhone(event.target.value);
-              },
-            })}
-          />
-
-          <FormErrorMessage>
-            {errors.responsiblePhone && errors.responsiblePhone.message}
-          </FormErrorMessage>
-        </FormControl>
-
-        <FormControl isInvalid={!!errors.ticketIndex}>
-          <FormLabel>Ticket</FormLabel>
-          <Select
-            as='select'
-            id='members'
-            placeholder='Selecione o ticket da categoria'
-            {...register('ticketIndex', {
-              required: validationMessages['required'],
-            })}
-          >
-            {tickets?.map((ticket, index) => (
-              <option key={ticket.id} value={index}>
-                {ticket.name}
-              </option>
-            ))}
-          </Select>
-          <FormErrorMessage>{errors.ticketIndex && errors.ticketIndex.message}</FormErrorMessage>
-        </FormControl>
-        <ButtonGroup flexDirection='column' alignItems='end' gap={6} w='100%'>
-          <Button colorScheme='teal' w='100%' mt={4} type='submit' disabled={!isValid}>
-            Próximo
-          </Button>
-        </ButtonGroup>
-      </VStack>
+      <FormField id="members" label="Ticket" error={errors.ticketIndex?.message}>
+        <Select
+          id="members"
+          invalid={!!errors.ticketIndex}
+          {...register('ticketIndex', {
+            required: validationMessages['required'],
+          })}
+        >
+          <option value="">Selecione o ticket da categoria</option>
+          {tickets?.map((ticket, index) => (
+            <option key={ticket.id} value={index}>
+              {ticket.name}
+            </option>
+          ))}
+        </Select>
+      </FormField>
+      <Button type="submit" variant="primary" disabled={!isValid} className="w-full">
+        Próximo
+      </Button>
     </form>
   );
 };

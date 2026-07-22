@@ -1,38 +1,29 @@
 import ComponentModal from '@/components/ComponentModal';
 import { EmptyList } from '@/components/EmptyList';
-import useCoupon from '@/hooks/useCoupon';
+import { Button } from '@/components/ui/Button';
 import {
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  FormLabel,
-  HStack,
-  IconButton,
-  Input,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Select,
-  Switch,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Tfoot,
-  Th,
-  Thead,
-  Tooltip,
-  Tr,
-  useDisclosure,
-} from '@chakra-ui/react';
-import { MoreHorizontal } from 'react-feather';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'react-feather';
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable';
+import {
+  DropdownMenu,
+  DropdownMenuButton,
+  DropdownMenuItem,
+  DropdownMenuList,
+} from '@/components/ui/DropdownMenu';
+import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
+import { PaginationBar } from '@/components/ui/PaginationBar';
+import { Select } from '@/components/ui/Select';
+import useCoupon from '@/hooks/useCoupon';
 import { ICoupon } from '@/data/interfaces/coupon';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { MoreHorizontal } from 'react-feather';
+import { useParams } from 'react-router-dom';
 
 const Coupons = () => {
   const { id } = useParams();
@@ -57,7 +48,7 @@ const Coupons = () => {
   const [value, setValue] = useState('');
   const [maxRedemptions, setMaxRedemptions] = useState('');
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<ICoupon | null>(null);
 
   useEffect(() => {
@@ -113,13 +104,13 @@ const Coupons = () => {
 
     resetForm();
     setEditingCoupon(null);
-    onClose();
+    setIsOpen(false);
   };
 
   const openCreate = () => {
     resetForm();
     setEditingCoupon(null);
-    onOpen();
+    setIsOpen(true);
   };
 
   const openEdit = (coupon: ICoupon) => {
@@ -129,238 +120,197 @@ const Coupons = () => {
     setType(coupon.type);
     setValue(String(coupon.value));
     setMaxRedemptions(coupon.maxRedemptions ? String(coupon.maxRedemptions) : '');
-    onOpen();
+    setIsOpen(true);
   };
 
   return (
-    <Box w='100%' display='flex' flexDirection='column' alignItems='center' p={6}>
-      <Flex w='100%' justifyContent='space-between'>
+    <div className="flex w-full flex-col items-center p-6">
+      <div className="flex w-full justify-between">
         {hasElements && (
           <>
-            <Text fontSize='2xl' as='b'>
-              Gestão de cupons
-            </Text>
-            <Button colorScheme='teal' size='md' onClick={openCreate}>
+            <h1 className="text-2xl font-bold text-slate-900">Gestão de cupons</h1>
+            <Button variant="primary" className="w-auto" onClick={openCreate}>
               Adicionar cupom
             </Button>
           </>
         )}
-      </Flex>
+      </div>
 
       <ComponentModal
         modalHeader={editingCoupon ? 'Editar cupom' : 'Adicionar cupom'}
-        size='lg'
+        size="lg"
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={() => setIsOpen(false)}
       >
-        <Box as='form' display='flex' flexDirection='column' gap={4} pb={4}>
-          <FormControl mb={4}>
-              <FormLabel>Código</FormLabel>
-              <Input
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder='CUPOM10'
-              />
-          </FormControl>
-          <FormControl mb={4}>
-            <FormLabel>Descrição</FormLabel>
+        <form
+          className="flex flex-col gap-4 pb-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSubmit();
+          }}
+        >
+          <FormField id="coupon-code" label="Código">
             <Input
+              id="coupon-code"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              placeholder="CUPOM10"
+            />
+          </FormField>
+          <FormField id="coupon-description" label="Descrição">
+            <Input
+              id="coupon-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder='Lote promocional'
+              placeholder="Lote promocional"
             />
-          </FormControl>
-          <Flex mb={4} gap={4} flexWrap='wrap'>
-            <FormControl>
-              <FormLabel>Tipo</FormLabel>
-              <Select
-                value={type}
-                onChange={(e) => setType(e.target.value as 'PERCENTAGE' | 'FIXED')}
+          </FormField>
+          <div className="flex flex-wrap gap-4">
+            <div className="min-w-[140px] flex-1">
+              <FormField id="coupon-type" label="Tipo">
+                <Select
+                  id="coupon-type"
+                  value={type}
+                  onChange={(e) => setType(e.target.value as 'PERCENTAGE' | 'FIXED')}
+                >
+                  <option value="PERCENTAGE">Porcentagem (%)</option>
+                  <option value="FIXED">Valor fixo</option>
+                </Select>
+              </FormField>
+            </div>
+            <div className="min-w-[140px] flex-1">
+              <FormField
+                id="coupon-value"
+                label={type === 'PERCENTAGE' ? 'Valor (%)' : 'Valor (R$)'}
               >
-                <option value='PERCENTAGE'>Porcentagem (%)</option>
-                <option value='FIXED'>Valor fixo</option>
-              </Select>
-            </FormControl>
-            <FormControl>
-              <FormLabel>{type === 'PERCENTAGE' ? 'Valor (%)' : 'Valor (R$)'}</FormLabel>
-              <Input
-                type='number'
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-            </FormControl>
-          </Flex>
-          <FormControl>
-            <FormLabel>Qtd. máxima (opcional)</FormLabel>
+                <Input
+                  id="coupon-value"
+                  type="number"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                />
+              </FormField>
+            </div>
+          </div>
+          <FormField id="coupon-max" label="Qtd. máxima (opcional)">
             <Input
-              type='number'
+              id="coupon-max"
+              type="number"
               value={maxRedemptions}
               onChange={(e) => setMaxRedemptions(e.target.value)}
             />
-          </FormControl>
-          <Button colorScheme='teal' onClick={handleSubmit} isLoading={isLoading} mt={4}>
+          </FormField>
+          <Button type="submit" variant="primary" isLoading={isLoading} className="mt-2 w-full">
             {editingCoupon ? 'Salvar alterações' : 'Criar cupom'}
           </Button>
-        </Box>
+        </form>
       </ComponentModal>
 
       {!hasElements && (
         <EmptyList
-          text='Você não possui cupons ainda!'
-          contentButton='Crie um cupom'
+          text="Você não possui cupons ainda!"
+          contentButton="Crie um cupom"
           onClose={openCreate}
         />
       )}
 
       {hasElements && (
-        <Box w='100%' marginTop={6}>
-          <TableContainer border='1px' borderColor='gray.100' fontSize='sm' color='#2D3748'>
-            <Table variant='simple'>
-              <Thead bg='gray.50' border='1px' borderColor='gray.100'>
-                <Tr>
-                  <Th>
-                    <Text as='b'>Código</Text>
-                  </Th>
-                  <Th>
-                    <Text as='b'>Descrição</Text>
-                  </Th>
-                  <Th>
-                    <Text as='b'>Tipo</Text>
-                  </Th>
-                  <Th isNumeric>
-                    <Text as='b'>Valor</Text>
-                  </Th>
-                  <Th isNumeric>
-                    <Text as='b'>Qtd. máx.</Text>
-                  </Th>
-                  <Th>
-                    <Text as='b'>Ativo</Text>
-                  </Th>
-                  <Th></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {couponsPages.results?.map((coupon) => (
-                  <Tr key={coupon.id}>
-                    <Td p={6}>{coupon.code}</Td>
-                    <Td p={6}>{coupon.description}</Td>
-                    <Td p={6}>{coupon.type === 'PERCENTAGE' ? 'Porcentagem' : 'Fixo'}</Td>
-                    <Td isNumeric p={6}>
-                      {Number(coupon.value).toString()}
-                    </Td>
-                    <Td isNumeric p={6}>
-                      {coupon.maxRedemptions ?? '-'}
-                    </Td>
-                    <Td p={6}>
-                      <Switch
-                        isChecked={coupon.isActive}
-                        onChange={() =>
-                          Update(coupon.id, {
-                            isActive: !coupon.isActive,
-                            championshipId: coupon.championshipId,
-                          })
-                        }
-                      />
-                    </Td>
-                    <Td p={6}>
-                      <Flex justify='end'>
-                        <Menu>
-                          <MenuButton
-                            as={IconButton}
-                            aria-label='Options'
-                            icon={<MoreHorizontal />}
-                            variant='none'
-                          />
-                          <MenuList>
-                            <MenuItem onClick={() => openEdit(coupon)}>Editar</MenuItem>
-                            <MenuItem
-                              onClick={() => Delete(coupon.id, coupon.championshipId)}
-                            >
-                              Deletar
-                            </MenuItem>
-                          </MenuList>
-                        </Menu>
-                      </Flex>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-              <Tfoot>
-                <Tr>
-                  <Th display='flex' flexDirection='row'>
-                    <Flex align='center' mr={2}>
-                      Linhas por página
-                    </Flex>
-                    <Select
-                      w='75px'
-                      value={limit}
-                      onChange={(e) => {
-                        setLimit(Number(e.target.value));
-                        setPage(1);
-                      }}
+        <div className="mt-6 w-full">
+          <DataTable>
+            <DataTableHead>
+              <DataTableRow>
+                <DataTableHeaderCell>Código</DataTableHeaderCell>
+                <DataTableHeaderCell>Descrição</DataTableHeaderCell>
+                <DataTableHeaderCell>Tipo</DataTableHeaderCell>
+                <DataTableHeaderCell className="text-right">Valor</DataTableHeaderCell>
+                <DataTableHeaderCell className="text-right">Qtd. máx.</DataTableHeaderCell>
+                <DataTableHeaderCell>Ativo</DataTableHeaderCell>
+                <DataTableHeaderCell />
+              </DataTableRow>
+            </DataTableHead>
+            <DataTableBody>
+              {couponsPages.results?.map((coupon) => (
+                <DataTableRow key={coupon.id}>
+                  <DataTableCell className="py-4">{coupon.code}</DataTableCell>
+                  <DataTableCell className="py-4">{coupon.description}</DataTableCell>
+                  <DataTableCell className="py-4">
+                    {coupon.type === 'PERCENTAGE' ? 'Porcentagem' : 'Fixo'}
+                  </DataTableCell>
+                  <DataTableCell className="py-4 text-right">
+                    {Number(coupon.value).toString()}
+                  </DataTableCell>
+                  <DataTableCell className="py-4 text-right">
+                    {coupon.maxRedemptions ?? '-'}
+                  </DataTableCell>
+                  <DataTableCell className="py-4">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={coupon.isActive}
+                      aria-label={coupon.isActive ? 'Desativar cupom' : 'Ativar cupom'}
+                      onClick={() =>
+                        Update(coupon.id, {
+                          isActive: !coupon.isActive,
+                          championshipId: coupon.championshipId,
+                        })
+                      }
+                      className={[
+                        'relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2',
+                        coupon.isActive ? 'bg-primary' : 'bg-slate-300',
+                      ].join(' ')}
                     >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                    </Select>
-                  </Th>
-                  <Th></Th>
-                  <Th></Th>
-                  <Th></Th>
-                  <Th></Th>
-                  <Th maxW='100px'>
-                    <Flex justify='end'>
-                      <HStack>
-                        {page === 1 && (
-                          <Text>
-                            {page * limit - (limit - 1)} -{' '}
-                            {Math.min(page * limit, couponsPages.count ?? 0)} de{' '}
-                            {couponsPages.count ?? 0}
-                          </Text>
-                        )}
-                        {page !== 1 && (
-                          <Text>
-                            {page * limit - (limit - 1)} -{' '}
-                            {page * limit - limit + currentTotal} de{' '}
-                            {couponsPages.count ?? 0}
-                          </Text>
-                        )}
-                        <Tooltip label='Página anterior' placement='top' hasArrow>
-                          <Button
-                            disabled={!couponsPages.previous || isLoading}
-                            variant='link'
-                            onClick={previousPage}
+                      <span
+                        aria-hidden
+                        className={[
+                          'absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform',
+                          coupon.isActive ? 'translate-x-5' : 'translate-x-0',
+                        ].join(' ')}
+                      />
+                    </button>
+                  </DataTableCell>
+                  <DataTableCell className="py-4">
+                    <div className="flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuButton aria-label="Opções">
+                          <MoreHorizontal size={18} />
+                        </DropdownMenuButton>
+                        <DropdownMenuList>
+                          <DropdownMenuItem onClick={() => openEdit(coupon)}>
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            danger
+                            onClick={() => Delete(coupon.id, coupon.championshipId)}
                           >
-                            <ChevronLeft
-                              color={couponsPages.previous ? 'black' : 'gray'}
-                              size={16}
-                            />
-                          </Button>
-                        </Tooltip>
-                        <Tooltip label='Próxima página' placement='top' hasArrow>
-                          <Button
-                            disabled={!couponsPages.next || isLoading}
-                            variant='link'
-                            onClick={nextPage}
-                          >
-                            <ChevronRight
-                              color={couponsPages.next ? 'black' : 'gray'}
-                              size={16}
-                            />
-                          </Button>
-                        </Tooltip>
-                      </HStack>
-                    </Flex>
-                  </Th>
-                </Tr>
-              </Tfoot>
-            </Table>
-          </TableContainer>
-        </Box>
+                            Deletar
+                          </DropdownMenuItem>
+                        </DropdownMenuList>
+                      </DropdownMenu>
+                    </div>
+                  </DataTableCell>
+                </DataTableRow>
+              ))}
+            </DataTableBody>
+          </DataTable>
+          <PaginationBar
+            page={page}
+            limit={limit}
+            count={couponsPages.count ?? 0}
+            currentTotal={currentTotal}
+            hasPrevious={!!couponsPages.previous}
+            hasNext={!!couponsPages.next}
+            isLoading={isLoading}
+            onLimitChange={(next) => {
+              setLimit(next);
+              setPage(1);
+            }}
+            onPrevious={previousPage}
+            onNext={nextPage}
+          />
+        </div>
       )}
-    </Box>
+    </div>
   );
 };
 
 export default Coupons;
-

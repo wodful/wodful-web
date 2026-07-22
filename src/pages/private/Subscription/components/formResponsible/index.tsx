@@ -1,17 +1,10 @@
+import { Button } from '@/components/ui/Button';
+import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
 import { UpdateSubscriptionDTO } from '@/data/interfaces/subscription';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
 import { regexOnlyNumber } from '@/utils/documentVerification';
 import { validationMessages } from '@/utils/messages';
-import {
-  Button,
-  ButtonGroup,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -63,99 +56,70 @@ const FormResponsible = ({ subId, onClose }: UpdateModalProps) => {
   ]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <VStack align='start' w='100%' spacing={6} pb={6} flexDirection='column'>
-        <Text as='b'>Dados do responsável</Text>
-        <FormControl isInvalid={!!errors.responsibleName}>
-          <FormLabel htmlFor='responsibleName' m={0}>
-            Nome
-          </FormLabel>
-          <Input
-            as='input'
-            id='responsibleName'
-            placeholder='Nome do responsável'
-            {...register('responsibleName', {
-              required: validationMessages['required'],
-              minLength: { value: 4, message: validationMessages['minLength'] },
-              maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-            })}
-          />
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
+      <p className="font-bold text-slate-900">Dados do responsável</p>
+      <FormField id="responsibleName" label="Nome" error={errors.responsibleName?.message}>
+        <Input
+          id="responsibleName"
+          placeholder="Nome do responsável"
+          invalid={!!errors.responsibleName}
+          {...register('responsibleName', {
+            required: validationMessages['required'],
+            minLength: { value: 4, message: validationMessages['minLength'] },
+            maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+          })}
+        />
+      </FormField>
+      <FormField id="responsibleEmail" label="E-mail" error={errors.responsibleEmail?.message}>
+        <Input
+          id="responsibleEmail"
+          placeholder="E-mail do responsável"
+          invalid={!!errors.responsibleEmail}
+          {...register('responsibleEmail', {
+            required: validationMessages['required'],
+            minLength: { value: 4, message: validationMessages['minLength'] },
+            maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+            pattern: {
+              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+              message: validationMessages['invalidField'],
+            },
+          })}
+        />
+      </FormField>
+      <FormField id="responsiblePhone" label="Telefone" error={errors.responsiblePhone?.message}>
+        <Input
+          id="responsiblePhone"
+          placeholder="Telefone do responsável"
+          invalid={!!errors.responsiblePhone}
+          {...register('responsiblePhone', {
+            required: validationMessages['required'],
+            minLength: { value: 10, message: validationMessages['minLength'] },
+            maxLength: { value: 15, message: validationMessages['maxLengthSm'] },
+            value: formatDisplayPhone,
+            onChange(event) {
+              formatPhone(event.target.value);
+            },
+          })}
+        />
+      </FormField>
 
-          <FormErrorMessage>
-            {errors.responsibleName && errors.responsibleName.message}
-          </FormErrorMessage>
-        </FormControl>
-        <FormControl isInvalid={!!errors.responsibleEmail}>
-          <FormLabel htmlFor='email' m={0}>
-            E-mail
-          </FormLabel>
-          <Input
-            as='input'
-            id='responsibleEmail'
-            placeholder='E-mail do responsável'
-            {...register('responsibleEmail', {
-              required: validationMessages['required'],
-              minLength: { value: 4, message: validationMessages['minLength'] },
-              maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: validationMessages['invalidField'],
-              },
-            })}
-          />
+      <p className="font-bold text-slate-900">Dados do Atleta</p>
 
-          <FormErrorMessage>
-            {errors.responsibleEmail && errors.responsibleEmail.message}
-          </FormErrorMessage>
-        </FormControl>
-        <FormControl isInvalid={!!errors.responsiblePhone}>
-          <FormLabel htmlFor='responsiblePhone' m={0}>
-            Telefone
-          </FormLabel>
-          <Input
-            id='responsiblePhone'
-            placeholder='Telefone do responsável'
-            {...register('responsiblePhone', {
-              required: validationMessages['required'],
-              minLength: { value: 10, message: validationMessages['minLength'] },
-              maxLength: { value: 15, message: validationMessages['maxLengthSm'] },
-              value: formatDisplayPhone,
-              onChange(event) {
-                formatPhone(event.target.value);
-              },
-            })}
-          />
-
-          <FormErrorMessage>
-            {errors.responsiblePhone && errors.responsiblePhone.message}
-          </FormErrorMessage>
-        </FormControl>
-
-        <Text as='b'>Dados do Atleta</Text>
-
-        <FormControl isInvalid={!!errors.nickname}>
-          <FormLabel htmlFor='nickname' mb={2}>
-            {'Nome do time ou apelido'}
-          </FormLabel>
-          <Input
-            as='input'
-            id='nickname'
-            placeholder={'Informe o nome do time ou apelido'}
-            {...register('nickname', {
-              required: validationMessages['required'],
-              minLength: { value: 4, message: validationMessages['minLength'] },
-              maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-            })}
-          />
-
-          <FormErrorMessage>{errors.nickname && errors.nickname.message}</FormErrorMessage>
-        </FormControl>
-        <ButtonGroup flexDirection='column' alignItems='end' gap={6} w='100%'>
-          <Button colorScheme='teal' w='100%' mt={4} type='submit' disabled={!isValid}>
-            Editar
-          </Button>
-        </ButtonGroup>
-      </VStack>
+      <FormField id="nickname" label="Nome do time ou apelido" error={errors.nickname?.message}>
+        <Input
+          id="nickname"
+          placeholder="Informe o nome do time ou apelido"
+          invalid={!!errors.nickname}
+          {...register('nickname', {
+            required: validationMessages['required'],
+            minLength: { value: 4, message: validationMessages['minLength'] },
+            maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+          })}
+        />
+      </FormField>
+      <Button type="submit" variant="primary" disabled={!isValid} className="w-full">
+        Editar
+      </Button>
     </form>
   );
 };

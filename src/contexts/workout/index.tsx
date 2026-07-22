@@ -3,7 +3,7 @@ import { IPageResponse } from '@/data/interfaces/pageResponse';
 import { IPublicWorkout, IWorkout, IWorkoutDTO } from '@/data/interfaces/workout';
 import { WorkoutService } from '@/services/Workout';
 import { workoutMessages } from '@/utils/messages';
-import { useToast } from '@chakra-ui/react';
+import { useToast } from '@/components/ui/Toast';
 import { createContext, useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
 

@@ -3,7 +3,7 @@ import { IPageResponse } from '@/data/interfaces/pageResponse';
 import { ITicket, TicketDTO } from '@/data/interfaces/ticket';
 import { TicketService } from '@/services/Ticket';
 import { ticketMessages } from '@/utils/messages';
-import { useToast } from '@chakra-ui/react';
+import { useToast } from '@/components/ui/Toast';
 import { createContext, useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
 

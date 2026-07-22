@@ -1,21 +1,13 @@
+import { Button } from '@/components/ui/Button';
+import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { ICreateResultRequestDTO } from '@/data/interfaces/result';
 import useCategoryData from '@/hooks/useCategoryData';
 import useResultData from '@/hooks/useResultData';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
 import useWorkoutData from '@/hooks/useWorkoutData';
 import { validationMessages } from '@/utils/messages';
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  Select,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
@@ -85,139 +77,129 @@ const ResultForm = ({ onClose, oldResultId }: IFormResultProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <VStack align='start' w='100%' spacing={6} pb={4} flexDirection='column'>
-        {oldResultId && (
-          <>
-            <Box>
-              <Text as='b'>Categoria</Text>
-              <Text mt='8px'>{result.Workout?.Category?.name}</Text>
-            </Box>
-            <Box>
-              <Text as='b'>Prova</Text>
-              <Text mt='8px'>{result.Workout?.name}</Text>
-            </Box>
-            <Box>
-              <Text as='b'>{!isTeam ? 'Apelido' : 'Time'}</Text>
-              <Text mt='8px'>{result.Subscription?.nickname}</Text>
-            </Box>
-          </>
-        )}
-        {!oldResultId && (
-          <>
-            <FormControl isInvalid={!!errors.categoryId}>
-              <FormLabel>Categoria</FormLabel>
-              <Select
-                as='select'
-                id='categoryId'
-                placeholder='Selecione a categoria'
-                {...register('categoryId', {
-                  required: validationMessages['required'],
-                  onChange: (e) => {
-                    setIsTeam(
-                      categories.find((selected) => selected.id === e.target.value)?.isTeam ||
-                        false,
-                    );
-                    setValue('workoutId', '');
-                    setValue('subscriptionId', '');
-                    ListAllByCategory(e.target.value);
-                    ListByCategory(e.target.value);
-                  },
-                })}
-              >
-                {categories?.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </Select>
-              <FormErrorMessage>{errors.categoryId && errors.categoryId.message}</FormErrorMessage>
-            </FormControl>
-            <FormControl isInvalid={!!errors.workoutId}>
-              <FormLabel>Prova</FormLabel>
-              <Select
-                as='select'
-                id='workoutId'
-                placeholder='Selecione a prova'
-                {...register('workoutId', {
-                  required: validationMessages['required'],
-                  onChange: (event) => {
-                    setWorkoutType(
-                      workouts.find((selected) => selected.id === event.target.value)
-                        ?.workoutType || 'AMRAP',
-                    );
-                    setValue('subscriptionId', '');
-                    if (selectedCategoryId) {
-                      ListAllByCategory(selectedCategoryId, event.target.value);
-                    }
-                  },
-                })}
-              >
-                {workouts?.map((workout) => (
-                  <option key={workout.id} value={workout.id}>
-                    {workout.name}
-                  </option>
-                ))}
-              </Select>
-              <FormErrorMessage>{errors.workoutId && errors.workoutId.message}</FormErrorMessage>
-            </FormControl>
-            <FormControl isInvalid={!!errors.subscriptionId}>
-              <FormLabel>{isTeam ? 'Equipe' : 'Atleta'}</FormLabel>
-              <Select
-                as='select'
-                id='subscriptionId'
-                placeholder={isTeam ? 'Selecione uma equipe' : 'Selecione um atleta'}
-                {...register('subscriptionId', {
-                  required: validationMessages['required'],
-                })}
-              >
-                {subscriptions?.map((subscription) => (
-                  <option key={subscription.id} value={subscription.id}>
-                    {subscription.nickname}
-                  </option>
-                ))}
-              </Select>
-              <FormErrorMessage>
-                {errors.subscriptionId && errors.subscriptionId.message}
-              </FormErrorMessage>
-              {!errors.subscriptionId && selectedCategoryId && selectedWorkoutId && (
-                <Text mt={2} color='gray.500' fontSize='sm'>
-                  Pendentes: {subscriptions?.length || 0}
-                </Text>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6 pb-4">
+      {oldResultId && (
+        <>
+          <div>
+            <p className="font-bold text-slate-900">Categoria</p>
+            <p className="mt-2 text-slate-700">{result.Workout?.Category?.name}</p>
+          </div>
+          <div>
+            <p className="font-bold text-slate-900">Prova</p>
+            <p className="mt-2 text-slate-700">{result.Workout?.name}</p>
+          </div>
+          <div>
+            <p className="font-bold text-slate-900">{!isTeam ? 'Apelido' : 'Time'}</p>
+            <p className="mt-2 text-slate-700">{result.Subscription?.nickname}</p>
+          </div>
+        </>
+      )}
+      {!oldResultId && (
+        <>
+          <FormField id="categoryId" label="Categoria" error={errors.categoryId?.message}>
+            <Select
+              id="categoryId"
+              invalid={!!errors.categoryId}
+              {...register('categoryId', {
+                required: validationMessages['required'],
+                onChange: (e) => {
+                  setIsTeam(
+                    categories.find((selected) => selected.id === e.target.value)?.isTeam ||
+                      false,
+                  );
+                  setValue('workoutId', '');
+                  setValue('subscriptionId', '');
+                  ListAllByCategory(e.target.value);
+                  ListByCategory(e.target.value);
+                },
+              })}
+            >
+              <option value="">Selecione a categoria</option>
+              {categories?.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField id="workoutId" label="Prova" error={errors.workoutId?.message}>
+            <Select
+              id="workoutId"
+              invalid={!!errors.workoutId}
+              {...register('workoutId', {
+                required: validationMessages['required'],
+                onChange: (event) => {
+                  setWorkoutType(
+                    workouts.find((selected) => selected.id === event.target.value)
+                      ?.workoutType || 'AMRAP',
+                  );
+                  setValue('subscriptionId', '');
+                  if (selectedCategoryId) {
+                    ListAllByCategory(selectedCategoryId, event.target.value);
+                  }
+                },
+              })}
+            >
+              <option value="">Selecione a prova</option>
+              {workouts?.map((workout) => (
+                <option key={workout.id} value={workout.id}>
+                  {workout.name}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField
+            id="subscriptionId"
+            label={isTeam ? 'Equipe' : 'Atleta'}
+            error={errors.subscriptionId?.message}
+          >
+            <Select
+              id="subscriptionId"
+              invalid={!!errors.subscriptionId}
+              {...register('subscriptionId', {
+                required: validationMessages['required'],
+              })}
+            >
+              <option value="">
+                {isTeam ? 'Selecione uma equipe' : 'Selecione um atleta'}
+              </option>
+              {subscriptions?.map((subscription) => (
+                <option key={subscription.id} value={subscription.id}>
+                  {subscription.nickname}
+                </option>
+              ))}
+            </Select>
+            {!errors.subscriptionId && selectedCategoryId && selectedWorkoutId && (
+              <p className="mt-2 text-sm text-slate-500">
+                Pendentes: {subscriptions?.length || 0}
+              </p>
+            )}
+            {!errors.subscriptionId &&
+              selectedCategoryId &&
+              selectedWorkoutId &&
+              subscriptions?.length === 0 && (
+                <p className="mt-2 text-sm text-slate-500">
+                  Todos {isTeam ? 'as equipes' : 'os atletas'} ja tem resultado nesta prova.
+                </p>
               )}
-              {!errors.subscriptionId &&
-                selectedCategoryId &&
-                selectedWorkoutId &&
-                subscriptions?.length === 0 && (
-                  <Text mt={2} color='gray.500' fontSize='sm'>
-                    Todos {isTeam ? 'as equipes' : 'os atletas'} ja tem resultado nesta prova.
-                  </Text>
-                )}
-            </FormControl>
-          </>
-        )}
-        <FormControl isInvalid={!!errors.result}>
-          <FormLabel htmlFor='result' m={0}>
-            Resultado
-          </FormLabel>
-          <Input
-            as='input'
-            id='result'
-            type={`${workoutType !== 'FORTIME' ? 'number' : 'time'}`}
-            placeholder='Resultado'
-            {...register('result', {
-              required: validationMessages['required'],
-            })}
-          />
-          <FormErrorMessage>{errors.result && errors.result.message}</FormErrorMessage>
-        </FormControl>
+          </FormField>
+        </>
+      )}
+      <FormField id="result" label="Resultado" error={errors.result?.message}>
+        <Input
+          id="result"
+          type={`${workoutType !== 'FORTIME' ? 'number' : 'time'}`}
+          placeholder="Resultado"
+          invalid={!!errors.result}
+          {...register('result', {
+            required: validationMessages['required'],
+          })}
+        />
+      </FormField>
 
-        <ButtonGroup flexDirection='column' alignItems='end' gap={6} w='100%'>
-          <Button colorScheme='teal' w='100%' mt={4} type='submit' disabled={!isValid}>
-            {oldResultId ? 'Editar' : 'Adicionar'}
-          </Button>
-        </ButtonGroup>
-      </VStack>
+      <Button type="submit" variant="primary" disabled={!isValid} className="mt-2 w-full">
+        {oldResultId ? 'Editar' : 'Adicionar'}
+      </Button>
     </form>
   );
 };

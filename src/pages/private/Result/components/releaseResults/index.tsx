@@ -1,19 +1,11 @@
+import { Button } from '@/components/ui/Button';
+import { FormField } from '@/components/ui/FormField';
+import { Select } from '@/components/ui/Select';
 import useCategoryData from '@/hooks/useCategoryData';
 import useResultData from '@/hooks/useResultData';
 import useWorkoutData from '@/hooks/useWorkoutData';
 import { validationMessages } from '@/utils/messages';
-import {
-  Alert,
-  AlertIcon,
-  Button,
-  ButtonGroup,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Select,
-  VStack,
-} from '@chakra-ui/react';
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 interface IFormResultProps {
@@ -53,7 +45,7 @@ const ReleaseResultsForm = ({ onClose: _onClose }: IFormResultProps) => {
     setAlertMessage(isRelease);
   };
 
-  const handleIsResultReleased = (event: any) => {
+  const handleIsResultReleased = (event: ChangeEvent<HTMLSelectElement>) => {
     GetIsReleasedResult(event.target.value)
       .catch(() => {
         setError('workoutId', { message: 'Resultados não encontrados!' }), setAlertMessage(false);
@@ -68,68 +60,61 @@ const ReleaseResultsForm = ({ onClose: _onClose }: IFormResultProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <VStack align='start' w='100%' spacing={6} pb={4} flexDirection='column'>
-        <>
-          <FormControl isInvalid={!!errors.categoryId}>
-            <FormLabel>Categoria</FormLabel>
-            <Select
-              as='select'
-              id='categoryId'
-              placeholder='Selecione a categoria'
-              {...register('categoryId', {
-                required: validationMessages['required'],
-                onChange: (e) => {
-                  ListByCategory(e.target.value);
-                },
-              })}
-            >
-              {categories?.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </Select>
-            <FormErrorMessage>{errors.categoryId && errors.categoryId.message}</FormErrorMessage>
-          </FormControl>
-          <FormControl isInvalid={!!errors.workoutId}>
-            <FormLabel>Prova</FormLabel>
-            <Select
-              as='select'
-              id='workoutId'
-              disabled={!watch('categoryId')}
-              placeholder='Selecione a prova'
-              {...register('workoutId', {
-                required: validationMessages['required'],
-                onChange: (event) => handleIsResultReleased(event),
-              })}
-            >
-              {workouts?.map((workout) => (
-                <option key={workout.id} value={workout.id}>
-                  {workout.name}
-                </option>
-              ))}
-            </Select>
-            <FormErrorMessage>{errors.workoutId && errors.workoutId.message}</FormErrorMessage>
-          </FormControl>
-        </>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6 pb-4">
+      <FormField id="categoryId" label="Categoria" error={errors.categoryId?.message}>
+        <Select
+          id="categoryId"
+          invalid={!!errors.categoryId}
+          {...register('categoryId', {
+            required: validationMessages['required'],
+            onChange: (e) => {
+              ListByCategory(e.target.value);
+            },
+          })}
+        >
+          <option value="">Selecione a categoria</option>
+          {categories?.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </Select>
+      </FormField>
+      <FormField id="workoutId" label="Prova" error={errors.workoutId?.message}>
+        <Select
+          id="workoutId"
+          disabled={!watch('categoryId')}
+          invalid={!!errors.workoutId}
+          {...register('workoutId', {
+            required: validationMessages['required'],
+            onChange: (event) => handleIsResultReleased(event),
+          })}
+        >
+          <option value="">Selecione a prova</option>
+          {workouts?.map((workout) => (
+            <option key={workout.id} value={workout.id}>
+              {workout.name}
+            </option>
+          ))}
+        </Select>
+      </FormField>
 
-        {alertMessage && (
-          <Alert status='warning'>
-            <AlertIcon />
-            <p>
-              Os resultados desta prova já estão disponíveis para os atletas, deseja
-              <b> ocultar </b> novamente?
-            </p>
-          </Alert>
-        )}
+      {alertMessage && (
+        <div
+          className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+          role="alert"
+        >
+          <p>
+            Os resultados desta prova já estão disponíveis para os atletas, deseja
+            <strong> ocultar </strong>
+            novamente?
+          </p>
+        </div>
+      )}
 
-        <ButtonGroup flexDirection='column' alignItems='end' gap={6} w='100%'>
-          <Button colorScheme='teal' w='100%' mt={4} type='submit' disabled={!isValid}>
-            {!alertMessage ? 'Liberar' : 'Ocultar'}
-          </Button>
-        </ButtonGroup>
-      </VStack>
+      <Button type="submit" variant="primary" disabled={!isValid} className="mt-2 w-full">
+        {!alertMessage ? 'Liberar' : 'Ocultar'}
+      </Button>
     </form>
   );
 };

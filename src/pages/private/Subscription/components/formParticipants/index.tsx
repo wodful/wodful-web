@@ -1,20 +1,11 @@
+import { Button } from '@/components/ui/Button';
+import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
 import { IParticipantDTO } from '@/data/interfaces/participant';
 import { IParticipantForm } from '@/data/interfaces/subscription';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
 import { isValidDocument, regexOnlyNumber } from '@/utils/documentVerification';
 import { validationMessages } from '@/utils/messages';
-import {
-  Button,
-  ButtonGroup,
-  Divider,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  HStack,
-  Input,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -66,66 +57,53 @@ const FormSubscriptionParticipants = ({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <VStack align='start' w='100%' spacing={6} pb={6} flexDirection='column'>
-        {indexes.length == 1 && <Text as='b'>Dados do participante</Text>}
-        <FormControl isInvalid={!!errors.nickname}>
-          <FormLabel htmlFor='nickname' mb={2}>
-            {indexes.length > 1 ? 'Nome do time' : 'Apelido'}
-          </FormLabel>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
+      <div className="flex w-full flex-col gap-5">
+        {indexes.length == 1 && <p className="font-bold text-slate-900">Dados do participante</p>}
+        <FormField id="nickname" label={indexes.length > 1 ? 'Nome do time' : 'Apelido'} error={errors.nickname?.message}>
           <Input
-            as='input'
-            id='nickname'
+            id="nickname"
             placeholder={indexes.length > 1 ? 'Informe o nome do time' : 'Apelido do participante'}
+            invalid={!!errors.nickname}
             {...register('nickname', {
               required: validationMessages['required'],
               minLength: { value: 4, message: validationMessages['minLength'] },
               maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
             })}
           />
-
-          <FormErrorMessage>{errors.nickname && errors.nickname.message}</FormErrorMessage>
-        </FormControl>
-        {indexes.length > 1 && <Text as='b'>Dados dos participantes</Text>}
-      </VStack>
+        </FormField>
+        {indexes.length > 1 && <p className="font-bold text-slate-900">Dados dos participantes</p>}
+      </div>
       {indexes.map((index) => {
         const participants = `participants[${index}]`;
         return (
-          <VStack key={index} w='100%' spacing={6} pb={6} flexDirection='column'>
-            <FormControl isInvalid={!!errors.participants && !!errors.participants![index]?.name}>
-              <FormLabel htmlFor={`${participants}.name`} mb={2}>
-                {indexes.length > 1 ? `Atleta ${index + 1}` : 'Nome'}
-              </FormLabel>
+          <div key={index} className="flex w-full flex-col gap-5">
+            <FormField
+              id={`${participants}.name`}
+              label={indexes.length > 1 ? `Atleta ${index + 1}` : 'Nome'}
+              error={errors.participants?.[index]?.name?.message}
+            >
               <Input
-                as='input'
                 id={`${participants}.name`}
-                placeholder='Nome do participante'
+                placeholder="Nome do participante"
+                invalid={!!errors.participants?.[index]?.name}
                 {...register(`participants.${index}.name`, {
                   required: validationMessages['required'],
                   minLength: { value: 4, message: validationMessages['minLength'] },
                   maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
                 })}
               />
-
-              <FormErrorMessage>
-                {errors.participants &&
-                  errors.participants![index]?.name &&
-                  errors.participants![index]?.name?.message}
-              </FormErrorMessage>
-            </FormControl>
-            <HStack width='100%' align='baseline' gap={4}>
-              <FormControl
-                isInvalid={
-                  !!errors.participants && !!errors.participants![index]?.identificationCode
-                }
+            </FormField>
+            <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2">
+              <FormField
+                id={`${participants}.identificationCode`}
+                label="Documento"
+                error={errors.participants?.[index]?.identificationCode?.message}
               >
-                <FormLabel htmlFor={`${participants}.identificationCode`} mb={2}>
-                  Documento
-                </FormLabel>
                 <Input
-                  as='input'
                   id={`${participants}.identificationCode`}
-                  placeholder='Informe o CPF'
+                  placeholder="Informe o CPF"
+                  invalid={!!errors.participants?.[index]?.identificationCode}
                   {...register(`participants.${index}.identificationCode`, {
                     required: validationMessages['required'],
                     minLength: { value: 9, message: validationMessages['minLength'] },
@@ -137,102 +115,66 @@ const FormSubscriptionParticipants = ({
                     },
                   })}
                 />
-
-                <FormErrorMessage>
-                  {errors.participants &&
-                    errors.participants![index]?.identificationCode &&
-                    errors.participants[index]?.identificationCode?.message}
-                </FormErrorMessage>
-              </FormControl>
-              <FormControl
-                isInvalid={!!errors.participants && !!errors.participants![index]?.tShirtSize}
-                w='50%'
+              </FormField>
+              <FormField
+                id={`${participants}.tShirtSize`}
+                label="Camiseta"
+                error={errors.participants?.[index]?.tShirtSize?.message}
               >
-                <FormLabel htmlFor={`${participants}.tShirtSize`} mb={2}>
-                  Camiseta
-                </FormLabel>
                 <Input
-                  as='input'
                   id={`${participants}.tShirtSize`}
-                  placeholder='Tamanho'
+                  placeholder="Tamanho"
+                  invalid={!!errors.participants?.[index]?.tShirtSize}
                   {...register(`participants.${index}.tShirtSize`, {
                     required: validationMessages['required'],
                     minLength: { value: 1, message: validationMessages['minLength'] },
                     maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
                   })}
                 />
-
-                <FormErrorMessage>
-                  {errors.participants &&
-                    errors.participants![index]?.tShirtSize &&
-                    errors.participants[index]?.tShirtSize?.message}
-                </FormErrorMessage>
-              </FormControl>
-            </HStack>
-            <HStack width='100%' align='baseline' gap={4}>
-              <FormControl isInvalid={!!errors.participants && !!errors.participants![index]?.city}>
-                <FormLabel htmlFor={`${participants}.city`} mb={2}>
-                  Cidade
-                </FormLabel>
+              </FormField>
+            </div>
+            <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2">
+              <FormField
+                id={`${participants}.city`}
+                label="Cidade"
+                error={errors.participants?.[index]?.city?.message}
+              >
                 <Input
-                  as='input'
                   id={`${participants}.city`}
-                  placeholder='Cidade do participante'
+                  placeholder="Cidade do participante"
+                  invalid={!!errors.participants?.[index]?.city}
                   {...register(`participants.${index}.city`, {
                     required: validationMessages['required'],
                     minLength: { value: 4, message: validationMessages['minLength'] },
                     maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
                   })}
                 />
-
-                <FormErrorMessage>
-                  {errors.participants &&
-                    errors.participants![index]?.city &&
-                    errors.participants[index]?.city?.message}
-                </FormErrorMessage>
-              </FormControl>
-              <FormControl
-                isInvalid={!!errors.participants && !!errors.participants![index]?.affiliation}
+              </FormField>
+              <FormField
+                id={`${participants}.affiliation`}
+                label="Box"
+                error={errors.participants?.[index]?.affiliation?.message}
               >
-                <FormLabel htmlFor={`${participants}.affiliation`} mb={2}>
-                  Box
-                </FormLabel>
                 <Input
-                  as='input'
                   id={`${participants}.affiliation`}
-                  placeholder='Box do participante'
+                  placeholder="Box do participante"
+                  invalid={!!errors.participants?.[index]?.affiliation}
                   {...register(`participants.${index}.affiliation`, {
                     required: validationMessages['required'],
                     minLength: { value: 3, message: validationMessages['minLength'] },
                     maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
                   })}
                 />
+              </FormField>
+            </div>
 
-                <FormErrorMessage>
-                  {errors.participants &&
-                    errors.participants![index]?.affiliation &&
-                    errors.participants[index]?.affiliation?.message}
-                </FormErrorMessage>
-              </FormControl>
-            </HStack>
-
-            {index + 1 != indexes.length && <Divider />}
-          </VStack>
+            {index + 1 != indexes.length && <hr className="border-slate-200" />}
+          </div>
         );
       })}
-      <ButtonGroup
-        backgroundColor={'white'}
-        flexDirection='column'
-        alignItems='end'
-        gap={6}
-        w='100%'
-        position='sticky'
-        bottom={0}
-      >
-        <Button colorScheme='teal' w='100%' mt={4} mb={4} type='submit' disabled={!isValid}>
-          Adicionar
-        </Button>
-      </ButtonGroup>
+      <Button type="submit" variant="primary" disabled={!isValid} className="sticky bottom-0 w-full">
+        Adicionar
+      </Button>
     </form>
   );
 };
