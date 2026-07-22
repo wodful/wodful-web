@@ -3,10 +3,13 @@ import type { ReactNode, TableHTMLAttributes } from 'react';
 export function DataTable({
   children,
   className = '',
+  containerClassName = '',
   ...props
-}: TableHTMLAttributes<HTMLTableElement>) {
+}: TableHTMLAttributes<HTMLTableElement> & { containerClassName?: string }) {
   return (
-    <div className="w-full overflow-x-auto rounded-surface border border-slate-200 bg-white">
+    <div
+      className={`w-full overflow-x-auto rounded-surface border border-slate-200 bg-white ${containerClassName}`}
+    >
       <table className={`min-w-full border-collapse text-left text-sm ${className}`} {...props}>
         {children}
       </table>

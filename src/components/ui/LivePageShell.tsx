@@ -8,9 +8,15 @@ type LivePageShellProps = {
 };
 
 /** Shared chrome for Ao vivo pages (Cronograma, Resultados, Leaderboard). */
-export function LivePageShell({ title, description, actions, children }: LivePageShellProps) {
+export function LivePageShell({
+  title,
+  description,
+  actions,
+  children,
+  className = '',
+}: LivePageShellProps & { className?: string }) {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+    <div className={`mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 ${className}`}>
       <header className="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">Ao vivo</p>

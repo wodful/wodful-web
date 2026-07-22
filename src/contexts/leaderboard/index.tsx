@@ -34,7 +34,7 @@ export const LeaderboardProvider = ({ children }: LeaderboardProps) => {
   );
 
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(20);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const ListPaginated = useCallback(
