@@ -16,7 +16,7 @@ export function LivePageShell({
   className = '',
 }: LivePageShellProps & { className?: string }) {
   return (
-    <div className={`mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 ${className}`}>
+    <div className={`mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 ${className}`}>
       <header className="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">Ao vivo</p>

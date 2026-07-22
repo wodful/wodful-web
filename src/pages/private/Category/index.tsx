@@ -57,6 +57,7 @@ const Category = () => {
           onClose={onClose}
         >
           <FormCategory
+            key={category?.id ?? 'create'}
             id={id as string}
             onClose={onClose}
             oldCategory={category}
