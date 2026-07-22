@@ -5,12 +5,14 @@ type EventNavGroupSectionProps = {
   group: EventNavGroup;
   items: EventNavItem[];
   championshipId: string;
+  onNavigate?: () => void;
 };
 
 export function EventNavGroupSection({
   group,
   items,
   championshipId,
+  onNavigate,
 }: EventNavGroupSectionProps) {
   if (!items.length) return null;
 
@@ -22,7 +24,11 @@ export function EventNavGroupSection({
       <ul className="space-y-0.5">
         {items.map((item) => (
           <li key={item.id}>
-            <EventNavItemLink item={item} championshipId={championshipId} />
+            <EventNavItemLink
+              item={item}
+              championshipId={championshipId}
+              onNavigate={onNavigate}
+            />
           </li>
         ))}
       </ul>

@@ -1,47 +1,82 @@
+import { useEffect, useState, type ChangeEvent, type ReactNode } from 'react';
+import { ChevronDown, ChevronUp, Edit2, Lock } from 'react-feather';
+import { SubmitHandler, useForm } from 'react-hook-form';
 import { ChampionshipDTO, IChampionship } from '@/data/interfaces/championship';
 import useChampionshipData from '@/hooks/useChampionshipData';
 import { validationMessages } from '@/utils/messages';
-import {
-  Button,
-  ButtonGroup,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  HStack,
-  Image,
-  Input,
-  Select,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 
-import { SubmitHandler, useForm } from 'react-hook-form';
+const RESULT_TYPE_LABEL: Record<string, string> = {
+  SCORE: 'Pontuação',
+  RANKING: 'Colocação',
+};
 
-interface IFormChampionshipProps {
-  onClose: () => void;
+type FormChampionshipProps = {
+  onClose?: () => void;
   oldChampionship?: IChampionship;
   resetChampionship: () => void;
+  onSaved?: (next: IChampionship) => void;
+};
+
+function FieldGroup({
+  title,
+  description,
+  children,
+  asCard,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  asCard: boolean;
+}) {
+  if (!asCard) {
+    return <div className="flex flex-col gap-4">{children}</div>;
+  }
+
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <header className="mb-4">
+        <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+        {description ? (
+          <p className="mt-0.5 text-sm text-slate-500">{description}</p>
+        ) : null}
+      </header>
+      <div className="flex flex-col gap-4">{children}</div>
+    </section>
+  );
 }
 
 const FormChampionship = ({
   onClose,
   oldChampionship,
   resetChampionship,
-}: IFormChampionshipProps) => {
+  onSaved,
+}: FormChampionshipProps) => {
   const { Create, Edit } = useChampionshipData();
-  const [file, setFile] = useState<string>('');
+  const [file, setFile] = useState('');
+  const [descriptionOpen, setDescriptionOpen] = useState(!oldChampionship);
+  const [codeEditing, setCodeEditing] = useState(!oldChampionship);
   const {
     handleSubmit,
     register,
     reset,
-    formState: { errors, isSubmitting },
+    watch,
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<ChampionshipDTO>({ mode: 'onChange' });
 
-  function handleChange(e: any) {
-    setFile(URL.createObjectURL(e.target.files[0]));
-  }
+  const isEdit = !!oldChampionship;
+  const lockedResultType = oldChampionship?.resultType;
+  const descriptionValue = watch('description') ?? '';
+  const accessCodeValue = watch('accessCode') ?? '';
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const next = event.target.files?.[0];
+    if (next) setFile(URL.createObjectURL(next));
+  };
 
   useEffect(() => {
     const startDate = oldChampionship?.startDate + '';
@@ -56,12 +91,14 @@ const FormChampionship = ({
         resultType: oldChampionship?.resultType,
         description: oldChampionship.description,
       });
+      setCodeEditing(false);
+      setDescriptionOpen(false);
     }
-  }, [oldChampionship]);
+  }, [oldChampionship, reset]);
 
   const onSubmit: SubmitHandler<ChampionshipDTO> = async (championship) => {
     if (oldChampionship) {
-      const editedChampionship = {
+      await Edit({
         championshipId: oldChampionship.id,
         name: championship.name,
         startDate: championship.startDate,
@@ -69,191 +106,327 @@ const FormChampionship = ({
         accessCode: championship.accessCode,
         address: championship.address,
         description: championship.description,
+      });
+
+      const next: IChampionship = {
+        ...oldChampionship,
+        name: championship.name,
+        startDate: championship.startDate as IChampionship['startDate'],
+        endDate: championship.endDate as IChampionship['endDate'],
+        accessCode: championship.accessCode.toUpperCase(),
+        address: championship.address,
+        description: championship.description,
       };
-      await Edit(editedChampionship);
+
+      reset({
+        startDate: championship.startDate,
+        endDate: championship.endDate,
+        accessCode: next.accessCode,
+        name: championship.name,
+        address: championship.address,
+        resultType: oldChampionship.resultType,
+        description: championship.description,
+      });
+      setCodeEditing(false);
+      setDescriptionOpen(false);
+      onSaved?.(next);
       resetChampionship();
-      onClose();
+      onClose?.();
       return;
     }
+
     const banner = championship.banner as FileList;
     championship.banner = banner[0];
     championship.accessCode = championship.accessCode.toUpperCase();
     await Create(championship);
-    onClose();
+    onClose?.();
   };
 
-  return (
-    <>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <VStack align='start' pb={4} spacing='24px'>
-          <VStack align='start' w='100%' flexDirection='column' gap='24px'>
-            <FormControl isInvalid={!!errors.name}>
-              <FormLabel mb={2}>Nome</FormLabel>
-              <Input
-                placeholder='Wodful games'
-                {...register('name', {
-                  required: validationMessages['required'],
-                  minLength: { value: 4, message: validationMessages['minLength'] },
-                  maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-                })}
-              />
-              <FormErrorMessage>{errors.name && errors.name.message}</FormErrorMessage>
-            </FormControl>
+  const nameField = (
+    <FormField id="champ-name" label="Nome" error={errors.name?.message}>
+      <Input
+        id="champ-name"
+        placeholder="Wodful games"
+        invalid={!!errors.name}
+        {...register('name', {
+          required: validationMessages['required'],
+          minLength: { value: 4, message: validationMessages['minLength'] },
+          maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+        })}
+      />
+    </FormField>
+  );
 
-            <HStack width='100%'>
-              <FormControl alignItems='start' isInvalid={!!errors.startDate}>
-                <FormLabel mb={2}>Data de início</FormLabel>
-                <Input
-                  type='date'
-                  placeholder='DD/MM/AAAA'
-                  {...register('startDate', {
-                    required: validationMessages['required'],
-                  })}
-                />
-                <FormErrorMessage>{errors.startDate && errors.startDate.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.endDate}>
-                <FormLabel mb={2}>Data de encerramento</FormLabel>
-                <Input
-                  type='date'
-                  placeholder='DD/MM/AAAA'
-                  {...register('endDate', {
-                    required: '* Campo obrigatório',
-                  })}
-                />
-                <FormErrorMessage>{errors.endDate && errors.endDate.message}</FormErrorMessage>
-              </FormControl>
-            </HStack>
-
-            <FormControl isInvalid={!!errors.address}>
-              <FormLabel mb={2}>Local</FormLabel>
-              <Input
-                placeholder='Rua wodful, 10 - Jardim wodful'
-                {...register('address', {
-                  required: validationMessages['required'],
-                  minLength: { value: 4, message: validationMessages['minLength'] },
-                  maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-                })}
-              />
-              <FormErrorMessage>{errors.address && errors.address.message}</FormErrorMessage>
-            </FormControl>
-
-            <FormControl isInvalid={!!errors.description}>
-              <FormLabel mb={2}>Descrição</FormLabel>
-              <Textarea
-                placeholder='Descrição do evento'
-                {...register('description', {
-                  required: validationMessages['required'],
-                  minLength: { value: 4, message: validationMessages['minLength'] },
-                  maxLength: { value: 1500, message: validationMessages['maxLengthSm'] },
-                })}
-              />
-              <FormErrorMessage>
-                {errors.description && errors.description.message}
-              </FormErrorMessage>
-            </FormControl>
-
-            <HStack display={'flex'} width='100%' justify={'space-around'} gap={'8px'}>
-              <FormControl isInvalid={!!errors.accessCode}>
-                <FormLabel mb={2}>Código do campeonato</FormLabel>
-                <Input
-                  textTransform='uppercase'
-                  placeholder='WODFULGAMES'
-                  {...register('accessCode', {
-                    required: validationMessages['required'],
-                    minLength: { value: 4, message: validationMessages['minLength'] },
-                    maxLength: { value: 20, message: validationMessages['maxLengthSm'] },
-                  })}
-                />
-                <FormErrorMessage>
-                  {errors.accessCode && errors.accessCode.message}
-                </FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.resultType}>
-                <FormLabel mb={2}>Tipo de resultado</FormLabel>
-                <Select
-                  {...register('resultType', { required: validationMessages['required'] })}
-                  placeholder='Selecione o tipo'
-                  disabled={!!oldChampionship?.resultType}
-                >
-                  <option value='SCORE'>Pontuação</option>
-                  <option value='RANKING'>Colocação</option>
-                </Select>
-                <FormErrorMessage>
-                  {errors.resultType && errors.resultType.message}
-                </FormErrorMessage>
-              </FormControl>
-            </HStack>
-
-            {!oldChampionship?.resultType && (
-              <FormControl isInvalid={!!errors.banner}>
-                <FormLabel mb={0}>Capa do campeonato</FormLabel>
-                <Text
-                  as={'span'}
-                  display={'flex'}
-                  gap={'4px'}
-                  align={'center'}
-                  fontSize='xs'
-                  mb={2}
-                >
-                  Resolução ideal para o banner:{' '}
-                  <Text as={'span'} fontSize='sm' fontWeight={'bold'}>
-                    880x360
-                  </Text>
-                </Text>
-
-                <Input
-                  p={1}
-                  type='file'
-                  multiple={false}
-                  accept='image/png, image/jpeg'
-                  {...register('banner', {
-                    required: validationMessages['required'],
-                    onChange: handleChange,
-                  })}
-                />
-
-                <HStack
-                  display={'flex'}
-                  width='100%'
-                  justify={'space-around'}
-                  mt={'2.5'}
-                  flexDirection={'column'}
-                  gap={'8px'}
-                >
-                  {file && (
-                    <Text as={'span'} fontSize='sm' fontWeight={'bold'}>
-                      Preview
-                    </Text>
-                  )}
-
-                  <Image src={file} />
-                  {/* <Trash
-                    width={'16px'}
-                    opacity='80%'
-                    cursor={'pointer'}
-                    color='red'
-                    onClick={() => {
-                      setFile('');
-                      setValue('banner', '');
-                    }}
-                  /> */}
-                </HStack>
-                <FormErrorMessage>{errors.banner && errors.banner.message}</FormErrorMessage>
-              </FormControl>
+  const descriptionField = (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor="champ-description" className="text-sm font-medium text-slate-700">
+          Descrição
+        </label>
+        {isEdit ? (
+          <button
+            type="button"
+            onClick={() => setDescriptionOpen((open) => !open)}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-primary"
+          >
+            {descriptionOpen ? 'Recolher' : descriptionValue ? 'Ver mais' : 'Adicionar'}
+            {descriptionOpen ? (
+              <ChevronUp size={14} aria-hidden />
+            ) : (
+              <ChevronDown size={14} aria-hidden />
             )}
+          </button>
+        ) : null}
+      </div>
 
-            <ButtonGroup flexDirection='column' alignItems='end' gap='12px' w='100%'>
-              <Button w='100%' isLoading={isSubmitting} colorScheme='teal' type='submit'>
-                {!oldChampionship ? 'Adicionar' : 'Editar'}
-              </Button>
-            </ButtonGroup>
-          </VStack>
-        </VStack>
+      {descriptionOpen || !isEdit ? (
+        <FormField id="champ-description" error={errors.description?.message}>
+          <Textarea
+            id="champ-description"
+            rows={isEdit ? 6 : 4}
+            placeholder="Descrição do evento"
+            invalid={!!errors.description}
+            {...register('description', {
+              required: validationMessages['required'],
+              minLength: { value: 4, message: validationMessages['minLength'] },
+              maxLength: { value: 1500, message: validationMessages['maxLengthSm'] },
+            })}
+          />
+        </FormField>
+      ) : (
+        <>
+          <input type="hidden" {...register('description')} />
+          <button
+            type="button"
+            onClick={() => setDescriptionOpen(true)}
+            className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-left transition hover:border-primary/30"
+          >
+            {descriptionValue ? (
+              <p className="line-clamp-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                {descriptionValue}
+              </p>
+            ) : (
+              <p className="text-sm text-slate-400">Nenhuma descrição — clique para editar.</p>
+            )}
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  const datesField = (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <FormField id="champ-start" label="Data de início" error={errors.startDate?.message}>
+        <Input
+          id="champ-start"
+          type="date"
+          invalid={!!errors.startDate}
+          {...register('startDate', { required: validationMessages['required'] })}
+        />
+      </FormField>
+      <FormField id="champ-end" label="Data de encerramento" error={errors.endDate?.message}>
+        <Input
+          id="champ-end"
+          type="date"
+          invalid={!!errors.endDate}
+          {...register('endDate', { required: '* Campo obrigatório' })}
+        />
+      </FormField>
+    </div>
+  );
+
+  const addressField = (
+    <FormField id="champ-address" label="Local" error={errors.address?.message}>
+      <Input
+        id="champ-address"
+        placeholder="Rua wodful, 10 - Jardim wodful"
+        invalid={!!errors.address}
+        {...register('address', {
+          required: validationMessages['required'],
+          minLength: { value: 4, message: validationMessages['minLength'] },
+          maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+        })}
+      />
+    </FormField>
+  );
+
+  const accessCodeField = (
+    <FormField
+      id="champ-code"
+      label="Código do campeonato"
+      hint="Usado no acesso público e no link de inscrição."
+      error={errors.accessCode?.message}
+    >
+      {isEdit && !codeEditing ? (
+        <div className="flex items-center gap-2">
+          <div className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5">
+            <Lock size={14} className="shrink-0 text-slate-400" aria-hidden />
+            <span className="truncate font-mono text-sm font-semibold uppercase tracking-wide text-slate-800">
+              {accessCodeValue || '—'}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCodeEditing(true)}
+            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-primary/40 hover:text-primary"
+          >
+            <Edit2 size={14} aria-hidden />
+            Alterar
+          </button>
+          <input type="hidden" {...register('accessCode')} />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <Input
+            id="champ-code"
+            placeholder="WODFULGAMES"
+            invalid={!!errors.accessCode}
+            className="uppercase tracking-wide"
+            {...register('accessCode', {
+              required: validationMessages['required'],
+              minLength: { value: 4, message: validationMessages['minLength'] },
+              maxLength: { value: 20, message: validationMessages['maxLengthSm'] },
+            })}
+          />
+          {isEdit ? (
+            <p className="text-xs leading-snug text-amber-700">
+              Alterar o código invalida links antigos de inscrição e acesso público.
+            </p>
+          ) : null}
+        </div>
+      )}
+    </FormField>
+  );
+
+  const resultTypeField = lockedResultType ? (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-sm font-medium text-slate-700">Tipo de resultado</span>
+      <div className="flex min-h-11 flex-wrap items-center gap-2">
+        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-sm font-semibold text-slate-800">
+          {RESULT_TYPE_LABEL[lockedResultType] ?? lockedResultType}
+        </span>
+      </div>
+      <p className="text-xs text-slate-500">Não pode ser alterado após a criação do evento.</p>
+      <input type="hidden" {...register('resultType')} />
+    </div>
+  ) : (
+    <FormField id="champ-result" label="Tipo de resultado" error={errors.resultType?.message}>
+      <Select
+        id="champ-result"
+        invalid={!!errors.resultType}
+        {...register('resultType', { required: validationMessages['required'] })}
+      >
+        <option value="">Selecione o tipo</option>
+        <option value="SCORE">Pontuação</option>
+        <option value="RANKING">Colocação</option>
+      </Select>
+    </FormField>
+  );
+
+  const bannerField = !lockedResultType ? (
+    <FormField
+      id="champ-banner"
+      label="Capa do campeonato"
+      hint="Resolução ideal 880×360."
+      error={errors.banner?.message as string | undefined}
+    >
+      <Input
+        id="champ-banner"
+        type="file"
+        accept="image/png, image/jpeg"
+        invalid={!!errors.banner}
+        className="py-2 file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary"
+        {...register('banner', {
+          required: validationMessages['required'],
+          onChange: handleChange,
+        })}
+      />
+      {file ? (
+        <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
+          <img src={file} alt="Preview do banner" className="max-h-40 w-full object-cover" />
+        </div>
+      ) : null}
+    </FormField>
+  ) : null;
+
+  const saveFooter = (
+    <div
+      className={[
+        'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
+        isEdit
+          ? 'sticky bottom-3 z-[1] rounded-xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur'
+          : 'border-t border-slate-100 pt-4',
+      ].join(' ')}
+    >
+      <div className="min-h-5 text-sm">
+        {isEdit && isDirty ? (
+          <span className="font-medium text-amber-700">Alterações não salvas</span>
+        ) : isEdit ? (
+          <span className="text-slate-400">Nenhuma alteração</span>
+        ) : null}
+      </div>
+      <Button
+        type="submit"
+        variant="primary"
+        isLoading={isSubmitting}
+        disabled={isEdit && !isDirty}
+        className="w-full sm:w-auto"
+      >
+        {!oldChampionship ? 'Adicionar' : 'Salvar alterações'}
+      </Button>
+    </div>
+  );
+
+  if (!isEdit) {
+    return (
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+        {nameField}
+        {datesField}
+        {addressField}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {accessCodeField}
+          {resultTypeField}
+        </div>
+        {descriptionField}
+        {bannerField}
+        {saveFooter}
       </form>
-    </>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <FieldGroup
+        asCard
+        title="Identidade"
+        description="Nome e descrição públicos do evento"
+      >
+        {nameField}
+        {descriptionField}
+      </FieldGroup>
+
+      <FieldGroup
+        asCard
+        title="Quando e onde"
+        description="Datas e local do campeonato"
+      >
+        {datesField}
+        {addressField}
+      </FieldGroup>
+
+      <FieldGroup
+        asCard
+        title="Acesso"
+        description="Código público e tipo de resultado"
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {accessCodeField}
+          {resultTypeField}
+        </div>
+      </FieldGroup>
+
+      {saveFooter}
+    </form>
   );
 };
 

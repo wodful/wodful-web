@@ -10,9 +10,10 @@ import {
   Users,
   UserCheck,
   List,
+  Settings,
 } from 'react-feather';
 
-export type EventNavGroupId = 'overview' | 'live' | 'setup' | 'people';
+export type EventNavGroupId = 'overview' | 'live' | 'setup' | 'people' | 'event';
 
 export type EventNavItemId =
   | 'home'
@@ -24,17 +25,16 @@ export type EventNavItemId =
   | 'tickets'
   | 'coupons'
   | 'subscriptions'
-  | 'participants';
+  | 'participants'
+  | 'settings';
 
 export type EventNavItem = {
   id: EventNavItemId;
   label: string;
   description: string;
-  /** Path segment under /championships/:id — empty string for home */
   pathSegment: string;
   Icon: Icon;
   group: EventNavGroupId;
-  /** Highlight on EventHome shortcut grid */
   featured?: boolean;
 };
 
@@ -47,6 +47,7 @@ export const EVENT_NAV_GROUPS: EventNavGroup[] = [
   { id: 'live', label: 'Ao vivo' },
   { id: 'setup', label: 'Setup' },
   { id: 'people', label: 'Pessoas' },
+  { id: 'event', label: 'Evento' },
 ];
 
 export const EVENT_NAV_ITEMS: EventNavItem[] = [
@@ -132,6 +133,14 @@ export const EVENT_NAV_ITEMS: EventNavItem[] = [
     pathSegment: 'participants',
     Icon: Users,
     group: 'people',
+  },
+  {
+    id: 'settings',
+    label: 'Configurações',
+    description: 'Dados do evento, visibilidade, camisetas e cronograma',
+    pathSegment: 'settings',
+    Icon: Settings,
+    group: 'event',
   },
 ];
 
