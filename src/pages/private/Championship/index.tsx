@@ -1,128 +1,98 @@
-import { Box, Button, Center, Flex, Heading, useDisclosure } from '@chakra-ui/react';
-import { Suspense, lazy, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState, type MutableRefObject } from 'react';
 
 import ComponentModal from '@/components/ComponentModal';
 import { EmptyList } from '@/components/EmptyList';
 import { Loader } from '@/components/Loader';
+import { Button } from '@/components/ui/Button';
 import { ChampionshipProvider } from '@/contexts/championship';
-import { IChampionship } from '@/data/interfaces/championship';
 import useChampionshipData from '@/hooks/useChampionshipData';
-import FormConfiguration from '../Configuration/form';
 
 const ListChampionship = lazy(() => import('./components/list'));
 const FormChampionship = lazy(() => import('./components/form'));
 
-const ChampionshipWithProvider = () => {
-  const { onClose } = useDisclosure();
-
-  return (
-    <ChampionshipProvider onClose={onClose}>
-      <Championship />
-    </ChampionshipProvider>
-  );
+type ChampionshipViewProps = {
+  closeModalRef: MutableRefObject<() => void>;
 };
 
-const Championship = () => {
-  const { championshipsPages } = useChampionshipData();
-  const [championship, setChampionship] = useState<IChampionship>();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+const ChampionshipView = ({ closeModalRef }: ChampionshipViewProps) => {
+  const { championshipsPages, ListPaginated } = useChampionshipData();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const [modalType, setModalType] = useState<'EDIT' | 'CREATE' | 'CONFIG'>('CREATE');
+  useEffect(() => {
+    ListPaginated();
+  }, [ListPaginated]);
 
-  const openEdit = (championshipObj: IChampionship) => {
-    setChampionship(championshipObj);
-    setModalType('EDIT');
-    onOpen();
-  };
+  const hasLoaded =
+    typeof championshipsPages.count === 'number' ||
+    Array.isArray(championshipsPages.results);
+  const hasElements = (championshipsPages.count ?? 0) > 0;
 
-  const openConfig = (championshipObj: IChampionship) => {
-    setChampionship(championshipObj);
-    setModalType('CONFIG');
-    onOpen();
-  };
+  const closeModal = () => setIsOpen(false);
+  closeModalRef.current = closeModal;
 
-  const openCreate = () => {
-    resetChampionship();
-    setModalType('CREATE');
-    onOpen();
-  };
-
-  const resetChampionship = () => {
-    setChampionship(undefined);
-  };
-
-  const hasElements: boolean = useMemo(() => championshipsPages.count !== 0, [championshipsPages]);
+  const openCreate = () => setIsOpen(true);
 
   return (
-    <Suspense fallback={<Loader title='Carregando ...' />}>
-      <Center as='main' role='main'>
-        <Box
-          w='100%'
-          display='flex'
-          flexDirection='column'
-          alignItems='center'
-          as='section'
-          px={10}
-        >
-          <Box w='100%' justifyContent='space-between' py={6} maxW='1200px'>
-            <Flex
-              direction={['column', 'row']}
-              gap={['16px', '0px']}
-              align='center'
-              justifyContent='space-between'
-            >
-              {hasElements && (
-                <>
-                  <Heading as='h4' size='md'>
-                    Seus eventos
-                  </Heading>
+    <Suspense fallback={<Loader title="Carregando ..." />}>
+      <main className="min-h-[calc(100vh-56px)] bg-slate-50" role="main">
+        <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+          {hasElements ? (
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                  Seus eventos
+                </h1>
+                <p className="mt-1 text-sm text-gray-500">
+                  Gerencie placar, cronograma e inscrições de cada campeonato.
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                onClick={openCreate}
+                className="w-full sm:w-auto"
+              >
+                Criar Evento
+              </Button>
+            </div>
+          ) : null}
 
-                  <Button size='lg' colorScheme='teal' onClick={openCreate}>
-                    Criar Evento
-                  </Button>
-                </>
-              )}
-            </Flex>
-          </Box>
+          <ComponentModal
+            modalHeader="Novo Evento"
+            size="xl"
+            isOpen={isOpen}
+            onClose={closeModal}
+          >
+            <FormChampionship
+              onClose={closeModal}
+              resetChampionship={() => undefined}
+            />
+          </ComponentModal>
 
-          {(modalType === 'EDIT' || modalType === 'CREATE') && (
-            <ComponentModal
-              modalHeader={championship ? 'Editar Evento' : 'Novo Evento'}
-              size='xl'
-              isOpen={isOpen}
-              onClose={onClose}
-            >
-              <FormChampionship
-                onClose={onClose}
-                oldChampionship={championship}
-                resetChampionship={resetChampionship}
-              />
-            </ComponentModal>
-          )}
-
-          {modalType === 'CONFIG' && (
-            <ComponentModal
-              modalHeader='Configurações do evento'
-              size='xl'
-              isOpen={isOpen}
-              onClose={onClose}
-            >
-              <FormConfiguration onClose={onClose} champId={championship?.id as string} />
-            </ComponentModal>
-          )}
-
-          {hasElements && <ListChampionship openEdit={openEdit} openConfig={openConfig} />}
-          {!hasElements && (
+          {!hasLoaded ? (
+            <Loader title="Carregando ..." />
+          ) : hasElements ? (
+            <ListChampionship />
+          ) : (
             <EmptyList
-              text='Você não possui um campeonato ainda!'
-              contentButton=' Crie um campeonato'
-              onClose={onOpen}
+              text="Você não possui um campeonato ainda! Crie o primeiro e compartilhe o placar com atletas."
+              contentButton="Crie um campeonato"
+              onClose={openCreate}
             />
           )}
-        </Box>
-      </Center>
+        </div>
+      </main>
     </Suspense>
   );
 };
 
-export default ChampionshipWithProvider;
+const ChampionshipPage = () => {
+  const closeModalRef = useRef<() => void>(() => undefined);
+
+  return (
+    <ChampionshipProvider onClose={() => closeModalRef.current()}>
+      <ChampionshipView closeModalRef={closeModalRef} />
+    </ChampionshipProvider>
+  );
+};
+
+export default ChampionshipPage;

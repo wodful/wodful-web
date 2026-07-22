@@ -5,6 +5,7 @@ import { EventShell } from '@/components/event/EventShell';
 import Category from '@/pages/private/Category';
 import Championship from '@/pages/private/Championship';
 import EventHome from '@/pages/private/EventHome';
+import EventSettings from '@/pages/private/EventSettings';
 import PrivateLeaderboard from '@/pages/private/Leaderboard';
 import Participants from '@/pages/private/Participants';
 import Result from '@/pages/private/Result';
@@ -34,6 +35,7 @@ const PrivateRoutes = () => {
           <Route path="subscriptions" element={<Subscription />} />
           <Route path="schedules" element={<Schedule />} />
           <Route path="coupons" element={<Coupons />} />
+          <Route path="settings" element={<EventSettings />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -8,8 +8,8 @@ export function EventShell() {
   if (!id) return null;
 
   return (
-    <div className="flex min-h-[calc(100vh-72px)] bg-slate-50 text-gray-900">
-      <div className="sticky top-0 hidden h-[calc(100vh-72px)] md:block">
+    <div className="flex min-h-[calc(100vh-56px)] bg-slate-50 text-gray-900">
+      <div className="sticky top-0 hidden h-[calc(100vh-56px)] md:block">
         <EventSidebar championshipId={id} />
       </div>
 
@@ -17,7 +17,7 @@ export function EventShell() {
         <div className="sticky top-0 z-10 md:hidden">
           <EventMobileNav championshipId={id} />
         </div>
-        <main className="min-w-0 flex-1 overflow-x-auto">
+        <main className="min-w-0 flex-1">
           <Outlet />
         </main>
       </div>

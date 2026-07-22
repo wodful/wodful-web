@@ -1,21 +1,21 @@
-import { Button, FormControl, FormLabel, HStack, Input, Stack, VStack } from '@chakra-ui/react';
 import { useState } from 'react';
-import { Plus } from 'react-feather';
-import Tag from '..';
+import { Plus, X } from 'react-feather';
+import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
 
-interface IShirtSizeManager {
+type ShirtSizeManagerProps = {
   sizes: string[];
   setSizes: (sizes: string[]) => void;
-}
+};
 
-const ShirtSizeManager = ({ sizes, setSizes }: IShirtSizeManager) => {
+const ShirtSizeManager = ({ sizes, setSizes }: ShirtSizeManagerProps) => {
   const [size, setSize] = useState('');
 
   const addSize = () => {
-    if (size && !sizes.includes(size)) {
-      setSizes([...sizes, size]);
-      setSize('');
-    }
+    const next = size.trim().toUpperCase();
+    if (!next || sizes.includes(next)) return;
+    setSizes([...sizes, next]);
+    setSize('');
   };
 
   const removeSize = (index: number) => {
@@ -23,29 +23,61 @@ const ShirtSizeManager = ({ sizes, setSizes }: IShirtSizeManager) => {
   };
 
   return (
-    <VStack align='start' w='100%'>
-      <HStack width='100%' align={'end'}>
-        <FormControl alignItems='center' justifyContent={'end'}>
-          <FormLabel mb={2}>Tamanhos</FormLabel>
+    <div className="flex w-full flex-col gap-3">
+      <FormField
+        id="shirt-size"
+        label="Tamanhos"
+        hint="Ex.: P, M, G. Pressione Enter para adicionar."
+      >
+        <div className="flex items-center gap-2">
           <Input
-            w={'100%'}
-            type='text'
+            id="shirt-size"
+            type="text"
             value={size}
-            onChange={(e) => setSize(e.target.value)}
-            placeholder='Adicione um tamanho'
+            onChange={(event) => setSize(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                addSize();
+              }
+            }}
+            placeholder="Adicione um tamanho"
+            className="flex-1"
           />
-        </FormControl>
-        <Button disabled={size === ''} colorScheme='teal' type='button' onClick={addSize}>
-          <Plus />
-        </Button>
-      </HStack>
+          <button
+            type="button"
+            disabled={!size.trim()}
+            onClick={addSize}
+            aria-label="Adicionar tamanho"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus size={18} aria-hidden />
+          </button>
+        </div>
+      </FormField>
 
-      <Stack flexWrap={'wrap'} direction={['row']} gap={'8px'} mt='1.0rem !important' w={'100%'}>
-        {sizes.map((s, index) => (
-          <Tag key={index} label={s} onRemove={() => removeSize(index)} />
-        ))}
-      </Stack>
-    </VStack>
+      {sizes.length ? (
+        <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+          {sizes.map((item, index) => (
+            <li key={`${item}-${index}`} className="list-none">
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                {item}
+                <button
+                  type="button"
+                  onClick={() => removeSize(index)}
+                  className="rounded-full p-0.5 transition hover:bg-white/20"
+                  aria-label={`Remover ${item}`}
+                >
+                  <X size={12} aria-hidden />
+                </button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-slate-400">Nenhum tamanho adicionado.</p>
+      )}
+    </div>
   );
 };
 

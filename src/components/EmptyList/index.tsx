@@ -1,31 +1,40 @@
-import { Box, Button, Link, Text } from '@chakra-ui/react';
+import { Link } from 'react-router-dom';
 import { FolderPlus } from 'react-feather';
-import { Link as RouterLink } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
 
-interface EmptyListProps {
+type EmptyListProps = {
   text: string;
   linkTo?: string;
   textLinkTo?: string;
   contentButton?: string;
+  /** Primary CTA click — kept as onClose for existing call sites */
   onClose?: () => void;
-}
-
-export const EmptyList = ({ contentButton, onClose, text, linkTo, textLinkTo }: EmptyListProps) => {
-  return (
-    <Box display='flex' flexDirection='column' alignItems='center' gap='8px' mt='20%'>
-      <FolderPlus size={50} opacity='80%' />
-      <Text>{text}</Text>
-      {contentButton && (
-        <Button width='100%' colorScheme='teal' onClick={onClose}>
-          {contentButton}
-        </Button>
-      )}
-
-      {linkTo && (
-        <Link as={RouterLink} color='teal.500' to={linkTo as string}>
-          {textLinkTo}
-        </Link>
-      )}
-    </Box>
-  );
 };
+
+export const EmptyList = ({
+  contentButton,
+  onClose,
+  text,
+  linkTo,
+  textLinkTo,
+}: EmptyListProps) => (
+  <div className="mx-auto mt-[15vh] flex max-w-sm flex-col items-center gap-3 px-4 text-center">
+    <FolderPlus size={48} className="text-gray-400" aria-hidden />
+    <p className="text-sm text-gray-600 sm:text-base">{text}</p>
+
+    {contentButton ? (
+      <Button variant="primary" onClick={onClose} className="mt-1 w-full">
+        {contentButton.trim()}
+      </Button>
+    ) : null}
+
+    {linkTo ? (
+      <Link
+        to={linkTo}
+        className="text-sm font-semibold text-primary no-underline hover:underline"
+      >
+        {textLinkTo}
+      </Link>
+    ) : null}
+  </div>
+);
