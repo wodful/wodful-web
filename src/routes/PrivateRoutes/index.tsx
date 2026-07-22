@@ -1,9 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { Header } from '@/components/Header';
-import { Navbar } from '@/components/Navbar';
+import { EventShell } from '@/components/event/EventShell';
 import Category from '@/pages/private/Category';
 import Championship from '@/pages/private/Championship';
+import EventHome from '@/pages/private/EventHome';
 import PrivateLeaderboard from '@/pages/private/Leaderboard';
 import Participants from '@/pages/private/Participants';
 import Result from '@/pages/private/Result';
@@ -18,22 +19,21 @@ const PrivateRoutes = () => {
     <BrowserRouter>
       <Header />
       <Routes>
-        <Route path='/' element={<Championship />} />
-        <Route path='/' element={<Navigate to='/championships' replace />} />
+        <Route path="/" element={<Championship />} />
+        <Route path="/championships" element={<Championship />} />
+        <Route path="/login" element={<Navigate to="/championships" replace />} />
 
-        <Route path='/championships' element={<Championship />} />
-        <Route path='/login' element={<Navigate to='/championships' replace />} />
-
-        <Route path='/championships/:id/' element={<Navbar />}>
-          <Route path='/championships/:id/leaderboards' element={<PrivateLeaderboard />} />
-          <Route path='/championships/:id/participants' element={<Participants />} />
-          <Route path='/championships/:id/categories' element={<Category />} />
-          <Route path='/championships/:id/tickets' element={<Ticket />} />
-          <Route path='/championships/:id/workouts' element={<Workout />} />
-          <Route path='/championships/:id/results' element={<Result />} />
-          <Route path='/championships/:id/subscriptions' element={<Subscription />} />
-          <Route path='/championships/:id/schedules' element={<Schedule />} />
-          <Route path='/championships/:id/coupons' element={<Coupons />} />
+        <Route path="/championships/:id" element={<EventShell />}>
+          <Route index element={<EventHome />} />
+          <Route path="leaderboards" element={<PrivateLeaderboard />} />
+          <Route path="participants" element={<Participants />} />
+          <Route path="categories" element={<Category />} />
+          <Route path="tickets" element={<Ticket />} />
+          <Route path="workouts" element={<Workout />} />
+          <Route path="results" element={<Result />} />
+          <Route path="subscriptions" element={<Subscription />} />
+          <Route path="schedules" element={<Schedule />} />
+          <Route path="coupons" element={<Coupons />} />
         </Route>
       </Routes>
     </BrowserRouter>
