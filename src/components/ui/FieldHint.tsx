@@ -9,7 +9,7 @@ export function FieldHint({ text }: FieldHintProps) {
   return (
     <button
       type="button"
-      className="inline-flex rounded-full p-0.5 text-primary/80 transition hover:bg-primary/10 hover:text-primary"
+      className="inline-flex rounded-control p-0.5 text-primary/80 transition hover:bg-primary/10 hover:text-primary"
       title={text}
       aria-label={text}
     >

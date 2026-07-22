@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { RefreshCw, Search, X } from 'react-feather';
 
 const iconButtonClass =
-  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-60';
+  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-control border border-gray-300 bg-white text-gray-600 transition hover:border-gray-400 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-60';
 
 type PublicFilterBarProps = {
   categoryControl: ReactNode;

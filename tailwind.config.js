@@ -6,17 +6,25 @@ export default {
       colors: {
         'blue-dark': '#060919',
         primary: {
-          DEFAULT: '#319795',
-          hover: '#2c7a7b',
+          DEFAULT: '#0D9488',
+          hover: '#0F766E',
         },
         muted: '#9CA3AF',
+      },
+      borderRadius: {
+        /** Inputs, buttons, small controls — modern, not pillowy */
+        control: '6px',
+        /** Cards, menus, modals, tables */
+        surface: '8px',
+        /** Badges, filter chips */
+        chip: '4px',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        cta: '0px 5px 1rem rgba(49, 151, 149, 0.25)',
-        glow: '0 0 60px rgba(49, 151, 149, 0.15)',
+        cta: '0px 5px 1rem rgba(13, 148, 136, 0.28)',
+        glow: '0 0 60px rgba(13, 148, 136, 0.18)',
         card: '0px 4px 6px -2px rgba(0, 0, 0, 0.05), 0px 10px 15px -3px rgba(0, 0, 0, 0.1)',
       },
       animation: {

@@ -6,8 +6,8 @@
 
 :root {
   --blue-dark: #060919;
-  --primary: #319795;
-  --primary-hover: #2c7a7b;
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
 }
 
 @layer base {

@@ -63,7 +63,7 @@ const ComponentModal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`relative z-10 flex max-h-[80%] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl ${sizeClasses[size]}`}
+        className={`relative z-10 flex max-h-[80%] w-full flex-col overflow-hidden rounded-surface bg-white shadow-xl ${sizeClasses[size]}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 id={titleId} className="text-lg font-semibold text-slate-900">
@@ -72,7 +72,7 @@ const ComponentModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-control text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             aria-label="Fechar modal"
           >
             <X size={18} aria-hidden />

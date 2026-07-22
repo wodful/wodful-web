@@ -36,7 +36,7 @@ export function EventMobileNav({ championshipId }: EventMobileNavProps) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-700 transition hover:bg-gray-100"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-control text-gray-700 transition hover:bg-gray-100"
           aria-expanded={open}
           aria-controls="event-mobile-drawer"
           aria-label="Abrir menu do evento"
@@ -76,7 +76,7 @@ export function EventMobileNav({ championshipId }: EventMobileNavProps) {
               <button
                 type="button"
                 onClick={close}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-600 transition hover:bg-gray-100"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-control text-gray-600 transition hover:bg-gray-100"
                 aria-label="Fechar menu"
               >
                 <X size={18} aria-hidden />

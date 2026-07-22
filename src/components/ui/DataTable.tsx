@@ -6,7 +6,7 @@ export function DataTable({
   ...props
 }: TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-slate-200 bg-white">
+    <div className="w-full overflow-x-auto rounded-surface border border-slate-200 bg-white">
       <table className={`min-w-full border-collapse text-left text-sm ${className}`} {...props}>
         {children}
       </table>
@@ -15,7 +15,7 @@ export function DataTable({
 }
 
 export function DataTableHead({ children }: { children: ReactNode }) {
-  return <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">{children}</thead>;
+  return <thead className="border-b border-slate-200 bg-slate-50">{children}</thead>;
 }
 
 export function DataTableBody({ children }: { children: ReactNode }) {
@@ -39,7 +39,11 @@ export function DataTableHeaderCell({
   children?: ReactNode;
   className?: string;
 }) {
-  return <th className={`px-4 py-3 font-semibold ${className}`}>{children}</th>;
+  return (
+    <th className={`px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 ${className}`}>
+      {children}
+    </th>
+  );
 }
 
 export function DataTableCell({

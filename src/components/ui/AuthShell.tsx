@@ -17,7 +17,7 @@ export const AuthShell = ({
   <div className="flex min-h-screen flex-col bg-white lg:flex-row">
     <aside className="relative flex shrink-0 flex-col justify-between overflow-hidden bg-blue-dark px-6 py-8 text-white sm:px-10 lg:w-[42%] lg:px-12 lg:py-12 xl:w-[40%]">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_20%_0%,rgba(49,151,149,0.22),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_20%_0%,rgba(13,148,136,0.24),transparent_55%)]"
         aria-hidden
       />
 

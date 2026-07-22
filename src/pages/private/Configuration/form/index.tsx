@@ -80,7 +80,7 @@ const FormConfiguration = ({
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
       {mode === 'all' ? (
         <div
-          className="flex gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1"
+          className="flex gap-1 rounded-surface border border-slate-200 bg-slate-50 p-1"
           role="tablist"
         >
           <button
@@ -89,7 +89,7 @@ const FormConfiguration = ({
             aria-selected={tab === 'kit'}
             onClick={() => setTab('kit')}
             className={[
-              'flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition',
+              'flex-1 rounded-control px-3 py-2 text-sm font-semibold transition',
               tab === 'kit'
                 ? 'bg-white text-primary shadow-sm'
                 : 'text-slate-500 hover:text-slate-800',
@@ -103,7 +103,7 @@ const FormConfiguration = ({
             aria-selected={tab === 'schedule'}
             onClick={() => setTab('schedule')}
             className={[
-              'flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition',
+              'flex-1 rounded-control px-3 py-2 text-sm font-semibold transition',
               tab === 'schedule'
                 ? 'bg-white text-primary shadow-sm'
                 : 'text-slate-500 hover:text-slate-800',
@@ -140,7 +140,7 @@ const FormConfiguration = ({
                   setValue('hasNameInTshirt', boolString(checked), { shouldDirty: true })
                 }
               />
-              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+              <div className="rounded-surface border border-slate-200 bg-white px-4 py-3.5">
                 <ShirtSizeManager sizes={sizes} setSizes={setSizes} />
               </div>
             </>

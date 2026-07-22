@@ -69,7 +69,7 @@ export const Header = () => {
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
-            className="inline-flex items-center gap-2 rounded-md px-1.5 py-1 text-sm font-semibold text-white transition hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-control px-1.5 py-1 text-sm font-semibold text-white transition hover:bg-white/10"
             aria-expanded={menuOpen}
             aria-haspopup="menu"
             aria-controls={menuId}
@@ -87,7 +87,7 @@ export const Header = () => {
             <div
               id={menuId}
               role="menu"
-              className="absolute right-0 mt-2 w-44 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-card"
+              className="absolute right-0 mt-2 w-44 overflow-hidden rounded-surface border border-gray-200 bg-white py-1 shadow-card"
             >
               <button
                 type="button"

@@ -14,7 +14,7 @@ export function EventShortcutCard({ item, championshipId }: EventShortcutCardPro
     <Link
       to={to}
       className={[
-        'group flex flex-col gap-2 rounded-xl border bg-white p-4 shadow-sm transition',
+        'group flex flex-col gap-2 rounded-surface border bg-white p-4 shadow-sm transition',
         'hover:border-primary/40 hover:shadow-card',
         item.featured
           ? 'border-primary/20 ring-1 ring-primary/10'
@@ -24,7 +24,7 @@ export function EventShortcutCard({ item, championshipId }: EventShortcutCardPro
       <div className="flex items-center gap-2.5">
         <span
           className={[
-            'inline-flex h-9 w-9 items-center justify-center rounded-lg',
+            'inline-flex h-9 w-9 items-center justify-center rounded-control',
             item.featured
               ? 'bg-primary/10 text-primary'
               : 'bg-gray-100 text-gray-600 group-hover:bg-primary/10 group-hover:text-primary',

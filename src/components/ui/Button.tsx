@@ -1,6 +1,13 @@
 import * as React from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'link' | 'ghost' | 'danger' | 'icon';
+type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'link'
+  | 'ghost'
+  | 'danger'
+  | 'dangerOutline'
+  | 'icon';
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
@@ -17,9 +24,13 @@ const variantClasses: Record<ButtonVariant, string> = {
   link: 'bg-transparent text-primary shadow-none hover:text-primary-hover hover:underline',
   ghost:
     'bg-transparent text-slate-700 shadow-none hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-primary',
+  /** Confirms / irreversible actions */
   danger:
-    'border border-red-200 bg-white text-red-600 hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-400',
-  icon: 'h-9 w-9 min-h-0 rounded-lg bg-transparent p-0 text-slate-600 shadow-none hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-primary',
+    'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2',
+  /** Inline destructive actions (table rows, banners) */
+  dangerOutline:
+    'border border-red-300 bg-white text-red-700 hover:border-red-400 hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2',
+  icon: 'h-9 w-9 min-h-0 rounded-control bg-transparent p-0 text-slate-600 shadow-none hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-primary',
 };
 
 export const Button = ({
@@ -36,7 +47,7 @@ export const Button = ({
     type={type}
     disabled={disabled || isLoading}
     aria-busy={isLoading || undefined}
-    className={`inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+    className={`inline-flex items-center justify-center gap-2 rounded-control text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
       variant === 'icon'
         ? ''
         : variant === 'link'

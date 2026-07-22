@@ -24,7 +24,7 @@ const ListPublicWorkouts = ({ search = '' }: ListPublicWorkoutsProps) => {
 
   if (!publicWorkouts?.length) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+      <div className="rounded-surface border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
         <p className="font-medium text-gray-800">Nenhuma prova nesta categoria</p>
         <p className="mt-1 text-sm text-gray-500">
           As provas aparecem aqui quando forem liberadas pelo organizador.
@@ -35,7 +35,7 @@ const ListPublicWorkouts = ({ search = '' }: ListPublicWorkoutsProps) => {
 
   if (!filtered.length) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+      <div className="rounded-surface border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
         <p className="font-medium text-gray-800">Nenhuma prova para a busca</p>
         <p className="mt-1 text-sm text-gray-500">
           Tente outro nome ou tipo de WOD.
@@ -45,7 +45,7 @@ const ListPublicWorkouts = ({ search = '' }: ListPublicWorkoutsProps) => {
   }
 
   return (
-    <ul className="list-none divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white p-0">
+    <ul className="list-none divide-y divide-gray-100 overflow-hidden rounded-surface border border-gray-200 bg-white p-0">
       {filtered.map((workout) => (
         <WorkoutRow
           key={workout.id}
@@ -86,11 +86,11 @@ function WorkoutRow({ workout, showPontuacao }: WorkoutRowProps) {
             {workout.name}
           </h2>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+            <span className="inline-flex rounded-control bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
               {workout.workoutType}
             </span>
             {showPontuacao ? (
-              <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+              <span className="inline-flex rounded-chip bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
                 {workout.worthHalfPoints ? '50 pts' : '100 pts'}
               </span>
             ) : null}

@@ -71,7 +71,7 @@ const ListPublicLeaderboard = ({ search = '' }: ListPublicLeaderboardProps) => {
 
   if (!publicLeaderboards?.length) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+      <div className="rounded-surface border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
         <p className="font-medium text-gray-800">Nenhum atleta nesta categoria</p>
         <p className="mt-1 text-sm text-gray-500">
           Os resultados aparecem aqui assim que forem publicados.
@@ -82,7 +82,7 @@ const ListPublicLeaderboard = ({ search = '' }: ListPublicLeaderboardProps) => {
 
   if (query && firstMatchIndex < 0) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+      <div className="rounded-surface border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
         <p className="font-medium text-gray-800">Nenhum resultado para a busca</p>
         <p className="mt-1 text-sm text-gray-500">
           Tente outro nome de atleta ou time.
@@ -92,7 +92,7 @@ const ListPublicLeaderboard = ({ search = '' }: ListPublicLeaderboardProps) => {
   }
 
   return (
-    <ul className="list-none divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white p-0">
+    <ul className="list-none divide-y divide-gray-100 overflow-hidden rounded-surface border border-gray-200 bg-white p-0">
       {sorted.map((leaderboard, index) => {
         const isMatch = entryMatches(leaderboard, query);
         const isFirstMatch = index === firstMatchIndex;
@@ -175,12 +175,12 @@ const LeaderboardRow = forwardRef<HTMLLIElement, LeaderboardRowProps>(
           onClick={() => setExpanded((open) => !open)}
         >
           {leaderboard.ranking === 0 ? (
-            <span className="inline-flex h-8 w-10 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-500">
+            <span className="inline-flex h-8 w-10 shrink-0 items-center justify-center rounded-control bg-gray-100 text-xs font-semibold text-gray-500">
               —
             </span>
           ) : (
             <span
-              className={`inline-flex h-8 w-10 shrink-0 items-center justify-center rounded-md text-sm font-bold tabular-nums ${podiumClass(
+              className={`inline-flex h-8 w-10 shrink-0 items-center justify-center rounded-control text-sm font-bold tabular-nums ${podiumClass(
                 leaderboard.ranking,
               )}`}
             >

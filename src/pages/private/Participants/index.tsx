@@ -109,7 +109,7 @@ const Participants = () => {
             </div>
             <DropdownMenu>
               <Tooltip label="Opções de exportação de relatórios">
-                <DropdownMenuButton className="!h-auto !w-auto gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                <DropdownMenuButton className="!h-auto !w-auto gap-2 rounded-control border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                   <MenuIcon size={18} aria-hidden />
                   Opções
                 </DropdownMenuButton>

@@ -45,7 +45,7 @@ export const ScheduleProvider = ({ children, onClose }: ScheduleProviderProps) =
   const [schedulePages, setSchedulePages] = useState<IPageResponse<ISchedule>>(
     {} as IPageResponse<ISchedule>,
   );
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(20);
   const [page, setPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [schedules, setSchedules] = useState<IPublicSchedule[]>([] as IPublicSchedule[]);

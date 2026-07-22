@@ -37,7 +37,7 @@ export const PublicModal = ({ isOpen, title, onClose, children }: PublicModalPro
         aria-label="Fechar"
         onClick={onClose}
       />
-      <div className="relative z-10 flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+      <div className="relative z-10 flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-surface bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <h2 id="public-modal-title" className="text-lg font-semibold text-gray-900">
             {title}
@@ -45,7 +45,7 @@ export const PublicModal = ({ isOpen, title, onClose, children }: PublicModalPro
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-control text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             aria-label="Fechar modal"
           >
             <X size={18} aria-hidden />

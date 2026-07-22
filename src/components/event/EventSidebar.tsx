@@ -12,7 +12,7 @@ export function EventSidebar({ championshipId }: EventSidebarProps) {
       <div className="border-b border-gray-100 px-3 py-3">
         <Link
           to="/championships"
-          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+          className="inline-flex items-center gap-1.5 rounded-control px-2 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
         >
           <ChevronLeft size={16} aria-hidden />
           Seus eventos

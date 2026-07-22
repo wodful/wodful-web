@@ -44,7 +44,7 @@ const ListChampionship = () => {
             type="button"
             disabled={!championshipsPages.previous || isLoading}
             onClick={() => setPage(page - 1)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-control transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Página anterior"
           >
             <ChevronLeft size={16} aria-hidden />
@@ -62,7 +62,7 @@ const ListChampionship = () => {
             type="button"
             disabled={!championshipsPages.next || isLoading}
             onClick={() => setPage(page + 1)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-control transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Próxima página"
           >
             <ChevronRight size={16} aria-hidden />

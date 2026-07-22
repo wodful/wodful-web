@@ -13,11 +13,16 @@ const DeleteData = ({ onClose, removedData, confirmDelete }: IDelete) => {
   };
 
   return (
-    <div className="flex w-full flex-col gap-6 pb-4">
+    <div className="flex w-full flex-col gap-5 pb-2">
       <p className="text-sm text-slate-700">Tem certeza que deseja remover {removedData}</p>
-      <Button variant="primary" className="w-full" onClick={deleteData}>
-        Remover
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button variant="danger" className="w-full" onClick={deleteData}>
+          Remover
+        </Button>
+        <Button variant="secondary" className="w-full" onClick={onClose}>
+          Cancelar
+        </Button>
+      </div>
     </div>
   );
 };

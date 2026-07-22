@@ -29,7 +29,7 @@ export const PublicHeader = () => {
           <button
             type="button"
             onClick={handleExit}
-            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-white/65 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex items-center gap-1.5 rounded-control px-2.5 py-1.5 text-sm font-medium text-white/65 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <LogOut size={15} className="shrink-0 sm:hidden" aria-hidden />
             <span className="sr-only sm:not-sr-only">Sair</span>

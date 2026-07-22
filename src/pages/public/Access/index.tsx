@@ -113,7 +113,7 @@ const Access = () => {
           </p>
           <Link
             to="/login"
-            className="inline-flex min-h-[44px] w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-800 transition hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex min-h-[44px] w-full items-center justify-center rounded-control border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-800 transition hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             Entrar na plataforma
           </Link>

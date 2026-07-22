@@ -100,7 +100,7 @@ const ListCardPublicSchedule = ({
 
   if (!schedules.length) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
+      <div className="flex flex-col items-center justify-center gap-3 rounded-surface border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
         <Clipboard size={56} className="text-gray-700" aria-hidden />
         <p className="font-semibold text-primary">Cronograma sem atividades!</p>
       </div>
@@ -109,7 +109,7 @@ const ListCardPublicSchedule = ({
 
   if (!filtered.length) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
+      <div className="rounded-surface border border-dashed border-gray-200 bg-white px-4 py-12 text-center">
         <p className="font-medium text-gray-800">Nenhuma bateria encontrada</p>
         <p className="mt-1 text-sm text-gray-500">
           Ajuste a categoria ou a busca e tente de novo.
@@ -125,7 +125,7 @@ const ListCardPublicSchedule = ({
           <h2 className="text-xs font-bold uppercase tracking-wider text-red-600">
             Ao vivo
           </h2>
-          <ul className="list-none divide-y divide-red-100 overflow-hidden rounded-xl border border-red-200 border-l-4 border-l-red-500 bg-white p-0">
+          <ul className="list-none divide-y divide-red-100 overflow-hidden rounded-surface border border-red-200 border-l-4 border-l-red-500 bg-white p-0">
             {liveBatteries.map((schedule) => (
               <ScheduleRow
                 key={schedule.id}
@@ -149,7 +149,7 @@ const ListCardPublicSchedule = ({
               Dirija-se à área de aquecimento.
             </p>
           </div>
-          <ul className="list-none divide-y divide-primary/10 overflow-hidden rounded-xl border border-primary/25 border-l-4 border-l-primary bg-white p-0">
+          <ul className="list-none divide-y divide-primary/10 overflow-hidden rounded-surface border border-primary/25 border-l-4 border-l-primary bg-white p-0">
             {warmupBatteries.map((schedule) => (
               <ScheduleRow
                 key={schedule.id}
@@ -168,7 +168,7 @@ const ListCardPublicSchedule = ({
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
             {group.label}
           </h2>
-          <ul className="list-none divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white p-0">
+          <ul className="list-none divide-y divide-gray-100 overflow-hidden rounded-surface border border-gray-200 bg-white p-0">
             {group.items.map((schedule) => (
               <ScheduleRow
                 key={schedule.id}
@@ -220,11 +220,11 @@ function ScheduleRow({
               </span>
             ) : null}
             {isWarmup ? (
-              <span className="inline-flex items-center rounded-full border border-primary/30 bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
+              <span className="inline-flex items-center rounded-chip border border-primary/30 bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
                 Aquecimento liberado
               </span>
             ) : null}
-            <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold capitalize text-gray-600">
+            <span className="inline-flex rounded-chip bg-gray-100 px-2 py-0.5 text-[11px] font-semibold capitalize text-gray-600">
               {schedule.category.name}
             </span>
           </div>
