@@ -118,7 +118,7 @@ const ListChampionship = ({ openEdit, openConfig }: IListChampionship) => {
           >
             <LinkOverlay
               as={ReactRouter}
-              to={`${championship.id}/leaderboards`}
+              to={`${championship.id}`}
               onClick={() => {
                 setCurrentChampionship(championship as IChampionship);
               }}
@@ -131,7 +131,7 @@ const ListChampionship = ({ openEdit, openConfig }: IListChampionship) => {
               <VStack gap='8px' align='start'>
                 <LinkOverlay
                   as={ReactRouter}
-                  to={`${championship.id}/leaderboards`}
+                  to={`${championship.id}`}
                   onClick={() => {
                     setCurrentChampionship(championship as IChampionship);
                   }}
