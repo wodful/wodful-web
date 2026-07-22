@@ -110,4 +110,19 @@ export class TicketService {
         throw new Error();
     }
   }
+
+  async setEnabled(id: string, enabled: boolean): Promise<ITicket> {
+    const { statusCode, body } = await this.httpClient.request({
+      method: 'patch',
+      url: `${this.path}/${id}/status`,
+      body: { enabled },
+    });
+
+    switch (statusCode) {
+      case HttpStatusCode.ok:
+        return body! as ITicket;
+      default:
+        throw new Error();
+    }
+  }
 }

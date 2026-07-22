@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { ITicket, TicketDTO } from '@/data/interfaces/ticket';
 import useCategoryData from '@/hooks/useCategoryData';
 import useTicketData from '@/hooks/useTicketData';
+import { datetimeLocalToIso, isoToDatetimeLocal } from '@/utils/datetimeLocal';
 import { validationMessages } from '@/utils/messages';
 import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -33,16 +34,6 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
     return num;
   };
 
-  const formatDateTimeLocal = (value?: Date | string) => {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '';
-
-    const tzOffsetMs = date.getTimezoneOffset() * 60000;
-    const localTime = new Date(date.getTime() - tzOffsetMs);
-    return localTime.toISOString().slice(0, 16);
-  };
-
   const {
     register,
     handleSubmit,
@@ -50,20 +41,24 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
   } = useForm<TicketDTO>({
     mode: 'onChange',
     defaultValues: {
-      categoryId: oldTicket?.category.id,
-      name: oldTicket?.name,
-      description: oldTicket?.description,
-      paymentLink: oldTicket?.paymentLink,
+      categoryId: oldTicket?.category?.id ?? '',
+      name: oldTicket?.name ?? '',
+      description: oldTicket?.description ?? '',
+      paymentLink: oldTicket?.paymentLink ?? '',
       price: oldTicket?.price,
       quantity: oldTicket?.quantity,
-      endDate: formatDateTimeLocal(oldTicket?.endDate),
-      startDate: formatDateTimeLocal(oldTicket?.startDate),
+      endDate: isoToDatetimeLocal(oldTicket?.endDate),
+      startDate: isoToDatetimeLocal(oldTicket?.startDate),
     },
   });
 
   const onSubmit: SubmitHandler<TicketDTO> = async (ticket) => {
     ticket.price = Number(ticket.price);
     ticket.quantity = Number(ticket.quantity);
+
+    const startDate = datetimeLocalToIso(String(ticket.startDate));
+    const endDate = datetimeLocalToIso(String(ticket.endDate));
+    const categoryId = oldTicket?.category?.id ?? ticket.categoryId;
 
     if (oldTicket) {
       const editedTicket = {
@@ -72,9 +67,9 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
         description: ticket.description,
         price: ticket.price,
         quantity: ticket.quantity,
-        endDate: ticket.endDate,
-        startDate: ticket.startDate,
-        categoryId: ticket.categoryId,
+        endDate,
+        startDate,
+        categoryId,
         paymentLink: ticket.paymentLink,
       };
       await Edit(editedTicket);
@@ -83,32 +78,39 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
       return;
     }
 
-    await Create(ticket);
+    await Create({ ...ticket, categoryId, startDate, endDate });
     onClose();
   };
 
   useEffect(() => {
-    List(id as string);
-  }, [List, id]);
+    if (!oldTicket && id) List(id);
+  }, [List, id, oldTicket]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-6">
       <FormField id="ticket-category" label="Categoria" error={errors.categoryId?.message}>
-        <Select
-          id="ticket-category"
-          disabled={!!oldTicket?.category.id}
-          invalid={!!errors.categoryId}
-          {...register('categoryId', { required: validationMessages['required'] })}
-        >
-          <option value="">Selecione a categoria</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </Select>
-      </FormField>
-
+        {oldTicket?.category ? (
+          <Input
+            id="ticket-category"
+            value={oldTicket.category.name}
+            disabled
+            readOnly
+            aria-label={`Categoria ${oldTicket.category.name}`}
+          />
+        ) : (
+          <Select
+            id="ticket-category"
+            invalid={!!errors.categoryId}
+            {...register('categoryId', { required: validationMessages['required'] })}
+          >
+            <option value="">Selecione a categoria</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </Select>
+        )}      </FormField>
       <FormField id="ticket-name" label="Nome" error={errors.name?.message}>
         <Input
           id="ticket-name"
@@ -202,6 +204,10 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
           />
         </FormField>
       </div>
+
+      <p className="text-xs text-slate-500">
+        Os horários seguem o fuso do seu navegador. O valor digitado (ex.: 12:00) é o mesmo na listagem.
+      </p>
 
       <Button type="submit" variant="primary" disabled={!isValid} className="mt-2 w-full">
         {oldTicket ? 'Editar' : 'Criar'}

@@ -10,18 +10,12 @@ import {
   DataTableHeaderCell,
   DataTableRow,
 } from '@/components/ui/DataTable';
-import {
-  DropdownMenu,
-  DropdownMenuButton,
-  DropdownMenuItem,
-  DropdownMenuList,
-} from '@/components/ui/DropdownMenu';
 import { PaginationBar } from '@/components/ui/PaginationBar';
+import { RowActions } from '@/components/ui/RowActions';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
 import { formatDate } from '@/utils/formatDate';
 import { subscriptionStatus } from '@/utils/messages';
 import { useEffect, useState } from 'react';
-import { MoreHorizontal } from 'react-feather';
 
 interface IListSubscription {
   id: string;
@@ -152,34 +146,29 @@ const ListSubscription = ({ id, categoryId, onEdit }: IListSubscription) => {
                 {formatDate(subscription.createdAt, 'dd/MM/yyyy HH:mm')}
               </DataTableCell>
               <DataTableCell className="py-4">
-                <div className="flex justify-end">
-                  <DropdownMenu>
-                    <DropdownMenuButton aria-label="Opções">
-                      <MoreHorizontal size={18} />
-                    </DropdownMenuButton>
-                    <DropdownMenuList side="top">
-                      <DropdownMenuItem
-                        onClick={() => changeSubscriptionStatus(subscription.id, 'approve')}
-                      >
-                        Aprovar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => changeSubscriptionStatus(subscription.id, 'decline')}
-                      >
-                        Recusar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEdit(subscription.id)}>Editar</DropdownMenuItem>
-                      {subscription.status === 'APPROVED' && (
-                        <DropdownMenuItem onClick={() => openResendEmail(subscription.id)}>
-                          Reenviar e-mail
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem danger onClick={() => openDelete(subscription.id)}>
-                        Deletar
-                      </DropdownMenuItem>
-                    </DropdownMenuList>
-                  </DropdownMenu>
-                </div>
+                <RowActions
+                  entityLabel={subscription.nickname}
+                  onEdit={() => onEdit(subscription.id)}
+                  onDelete={() => openDelete(subscription.id)}
+                  menuActions={[
+                    {
+                      label: 'Aprovar',
+                      onClick: () => changeSubscriptionStatus(subscription.id, 'approve'),
+                    },
+                    {
+                      label: 'Recusar',
+                      onClick: () => changeSubscriptionStatus(subscription.id, 'decline'),
+                    },
+                    ...(subscription.status === 'APPROVED'
+                      ? [
+                          {
+                            label: 'Reenviar e-mail',
+                            onClick: () => openResendEmail(subscription.id),
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
               </DataTableCell>
             </DataTableRow>
           ))}

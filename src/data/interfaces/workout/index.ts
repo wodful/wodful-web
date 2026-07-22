@@ -10,6 +10,7 @@ export interface IWorkout {
   id: string;
   name: string;
   workoutType: 'AMRAP' | 'EMOM' | 'FORTIME' | 'PR';
+  categoryId?: string;
   categoryName: string;
   worthHalfPoints?: boolean;
 }

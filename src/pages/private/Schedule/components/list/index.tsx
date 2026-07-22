@@ -1,5 +1,4 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { MoreHorizontal } from 'react-feather';
 
 import ComponentModal from '@/components/ComponentModal';
 import DeleteData from '@/components/Delete';
@@ -13,15 +12,10 @@ import {
   DataTableHeaderCell,
   DataTableRow,
 } from '@/components/ui/DataTable';
-import {
-  DropdownMenu,
-  DropdownMenuButton,
-  DropdownMenuItem,
-  DropdownMenuList,
-} from '@/components/ui/DropdownMenu';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FormField } from '@/components/ui/FormField';
 import { PaginationBar } from '@/components/ui/PaginationBar';
+import { RowActions } from '@/components/ui/RowActions';
 import { Select } from '@/components/ui/Select';
 import { IIsLiveDTO, IIsOverDTO, ISchedule } from '@/data/interfaces/schedule';
 import useScheduleData from '@/hooks/useScheduleData';
@@ -302,22 +296,13 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
                           </Button>
                         ) : null}
                         {status === 'next' || status === 'scheduled' ? (
-                          <DropdownMenu>
-                            <DropdownMenuButton aria-label="Mais opções">
-                              <MoreHorizontal size={18} />
-                            </DropdownMenuButton>
-                            <DropdownMenuList side="top">
-                              <DropdownMenuItem
-                                danger
-                                onClick={() => {
-                                  setScheduleId(schedule.id);
-                                  setIsOpen(true);
-                                }}
-                              >
-                                Deletar
-                              </DropdownMenuItem>
-                            </DropdownMenuList>
-                          </DropdownMenu>
+                          <RowActions
+                            entityLabel={`bateria ${schedule.heat}`}
+                            onDelete={() => {
+                              setScheduleId(schedule.id);
+                              setIsOpen(true);
+                            }}
+                          />
                         ) : null}
                       </div>
                     </DataTableCell>

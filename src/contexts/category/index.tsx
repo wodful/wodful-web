@@ -41,7 +41,7 @@ export const CategoryProvider = ({ children, onClose }: CategoryProviderProps) =
   const [categoriesPages, setCategoriesPages] = useState<IPageResponse<ICategory>>(
     {} as IPageResponse<ICategory>,
   );
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
   const [categories, setCategories] = useState<ICategory[]>([] as ICategory[]);
   const [publicCategories, setPublicCategories] = useState<IPublicCategory[]>(
@@ -94,7 +94,7 @@ export const CategoryProvider = ({ children, onClose }: CategoryProviderProps) =
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(championshipId);
+          List(championshipId);
           onClose!();
         })
         .catch(() => {
@@ -106,7 +106,7 @@ export const CategoryProvider = ({ children, onClose }: CategoryProviderProps) =
         })
         .finally(() => setIsLoading(false));
     },
-    [toast, ListPaginated, onClose],
+    [toast, List, onClose],
   );
 
   const Edit = useCallback(
@@ -127,7 +127,7 @@ export const CategoryProvider = ({ children, onClose }: CategoryProviderProps) =
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(championshipId);
+          List(championshipId);
           onClose!();
         })
         .catch(() => {
@@ -139,7 +139,7 @@ export const CategoryProvider = ({ children, onClose }: CategoryProviderProps) =
         })
         .finally(() => setIsLoading(false));
     },
-    [onClose, toast, ListPaginated],
+    [onClose, toast, List],
   );
 
   const Delete = useCallback(
@@ -153,7 +153,7 @@ export const CategoryProvider = ({ children, onClose }: CategoryProviderProps) =
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(String(id));
+          if (id) List(String(id));
         })
         .catch(() => {
           toast({
@@ -164,7 +164,7 @@ export const CategoryProvider = ({ children, onClose }: CategoryProviderProps) =
         })
         .finally(() => setIsLoading(false));
     },
-    [ListPaginated, id, toast],
+    [List, id, toast],
   );
 
   return (

@@ -1,8 +1,8 @@
 import { AxiosAdapter } from '@/adapters/AxiosAdapter';
 import ComponentModal from '@/components/ComponentModal';
-import { EmptyList } from '@/components/EmptyList';
 import { Loader } from '@/components/Loader';
-import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { SetupPageShell } from '@/components/ui/SetupPageShell';
 import { CategoryProvider } from '@/contexts/category';
 import { WorkoutProvider } from '@/contexts/workout';
 import { IChampionship } from '@/data/interfaces/championship';
@@ -26,12 +26,16 @@ const WorkoutWithProvider = () => (
 );
 
 const Workout = () => {
-  const { workoutsPages } = useWorkoutData();
+  const { List, workouts, isLoading } = useWorkoutData();
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const [resultType, setResultType] = useState<string | null>(null);
 
   const onClose = () => setIsOpen(false);
+
+  useEffect(() => {
+    if (id) List(id);
+  }, [List, id]);
 
   useEffect(() => {
     if (!id) return;
@@ -41,37 +45,34 @@ const Workout = () => {
       .catch(() => setResultType(null));
   }, [id]);
 
-  const hasElements: boolean = useMemo(() => workoutsPages.count !== 0, [workoutsPages]);
+  const hasElements = useMemo(() => workouts.length > 0, [workouts.length]);
   const isScoreType = resultType === 'SCORE';
 
   return (
     <Suspense fallback={<Loader title="Carregando ..." />}>
-      <div className="flex w-full flex-col items-center p-6">
-        {hasElements ? (
-          <div className="flex w-full items-center justify-between gap-3">
-            <h1 className="text-2xl font-bold text-slate-900">Lista de provas</h1>
-            <Button variant="primary" className="w-auto" onClick={() => setIsOpen(true)}>
-              Adicionar prova
-            </Button>
-          </div>
-        ) : null}
-
+      <SetupPageShell
+        title="Provas"
+        description="Cadastre as provas por categoria. Use o filtro para achar rápido em listas grandes."
+        actionLabel="Adicionar prova"
+        onAction={() => setIsOpen(true)}
+      >
         <ComponentModal modalHeader="Criar prova" size="lg" isOpen={isOpen} onClose={onClose}>
           <FormWorkout id={id as string} onClose={onClose} showHalfPointsOption={isScoreType} />
         </ComponentModal>
 
-        {hasElements ? (
-          <div className="mt-6 w-full">
-            <ListWorkout id={id as string} showPontuacaoColumn={isScoreType} />
-          </div>
+        {isLoading && !hasElements ? (
+          <Loader title="Carregando provas..." />
+        ) : hasElements ? (
+          <ListWorkout championshipId={id as string} showPontuacaoColumn={isScoreType} />
         ) : (
-          <EmptyList
-            text="Você não possui provas ainda!"
-            contentButton="Crie uma prova"
-            onClose={() => setIsOpen(true)}
+          <EmptyState
+            title="Nenhuma prova ainda"
+            description="Crie provas vinculadas às categorias do evento."
+            actionLabel="Criar prova"
+            onAction={() => setIsOpen(true)}
           />
         )}
-      </div>
+      </SetupPageShell>
     </Suspense>
   );
 };
