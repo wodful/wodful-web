@@ -45,7 +45,7 @@ export const WorkoutProvider = ({ children, onClose }: WorkoutProviderProps) => 
   const [workoutsPages, setWorkoutsPages] = useState<IPageResponse<IWorkout>>(
     {} as IPageResponse<IWorkout>,
   );
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
   const [workouts, setWorkouts] = useState<IWorkout[]>([] as IWorkout[]);
   const [publicWorkouts, setPublicWorkouts] = useState<IPublicWorkout[]>([] as IPublicWorkout[]);
@@ -114,7 +114,7 @@ export const WorkoutProvider = ({ children, onClose }: WorkoutProviderProps) => 
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(championshipId);
+          List(championshipId);
           onClose!();
         })
         .catch(() => {
@@ -126,7 +126,7 @@ export const WorkoutProvider = ({ children, onClose }: WorkoutProviderProps) => 
         })
         .finally(() => setIsLoading(false));
     },
-    [ListPaginated, onClose, toast],
+    [List, onClose, toast],
   );
 
   const Delete = useCallback(
@@ -140,11 +140,11 @@ export const WorkoutProvider = ({ children, onClose }: WorkoutProviderProps) => 
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(id as string);
+          if (id) List(id);
         })
         .finally(() => setIsLoading(false));
     },
-    [ListPaginated, id, toast],
+    [List, id, toast],
   );
 
   return (

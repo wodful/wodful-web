@@ -22,6 +22,7 @@ export interface TicketContextData {
   page: number;
   setPage: (value: number) => void;
   Delete: (id: string) => Promise<void>;
+  SetEnabled: (id: string, enabled: boolean) => Promise<void>;
   ListPaginated: (id: string) => Promise<void>;
   List: (id: string) => Promise<void>;
   ListEnabled: (id: string) => Promise<void>;
@@ -57,7 +58,7 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
   const [ticketsPages, setTicketsPages] = useState<IPageResponse<ITicket>>(
     {} as IPageResponse<ITicket>,
   );
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
   const [tickets, setTickets] = useState<ITicket[]>([] as ITicket[]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -131,7 +132,7 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(idPath as string);
+          if (idPath) List(idPath);
           onClose!();
         })
         .catch(() => {
@@ -143,7 +144,7 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
         })
         .finally(() => setIsLoading(false));
     },
-    [ListPaginated, onClose, toast, idPath],
+    [List, onClose, toast, idPath],
   );
 
   const Edit = useCallback(
@@ -177,7 +178,7 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(idPath as string);
+          if (idPath) List(idPath);
           onClose!();
         })
         .catch(() => {
@@ -189,7 +190,7 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
         })
         .finally(() => setIsLoading(false));
     },
-    [onClose, toast, ListPaginated, idPath],
+    [onClose, toast, List, idPath],
   );
 
   const Delete = useCallback(
@@ -203,7 +204,7 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(String(idPath));
+          if (idPath) List(idPath);
         })
         .catch(() => {
           toast({
@@ -214,7 +215,32 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
         })
         .finally(() => setIsLoading(false));
     },
-    [ListPaginated, idPath, toast],
+    [List, idPath, toast],
+  );
+
+  const SetEnabled = useCallback(
+    async (ticketId: string, enabled: boolean) => {
+      setIsLoading(true);
+      await new TicketService(axios)
+        .setEnabled(ticketId, enabled)
+        .then(() => {
+          toast({
+            title: enabled ? 'Ticket ativado' : 'Ticket desativado',
+            status: 'success',
+            isClosable: true,
+          });
+          if (idPath) List(idPath);
+        })
+        .catch(() => {
+          toast({
+            title: 'Não foi possível alterar o status do ticket',
+            status: 'error',
+            isClosable: true,
+          });
+        })
+        .finally(() => setIsLoading(false));
+    },
+    [List, idPath, toast],
   );
 
   return (
@@ -229,6 +255,7 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
         setLimit,
         setPage,
         Delete,
+        SetEnabled,
         Create,
         List,
         ListEnabled,

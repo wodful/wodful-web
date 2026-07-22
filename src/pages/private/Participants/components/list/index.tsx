@@ -8,18 +8,13 @@ import {
   DataTableHeaderCell,
   DataTableRow,
 } from '@/components/ui/DataTable';
-import {
-  DropdownMenu,
-  DropdownMenuButton,
-  DropdownMenuItem,
-  DropdownMenuList,
-} from '@/components/ui/DropdownMenu';
 import { PaginationBar } from '@/components/ui/PaginationBar';
+import { RowActions } from '@/components/ui/RowActions';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { IParticipant } from '@/data/interfaces/participant';
 import useParticipantData from '@/hooks/useParticipantData';
 import { useEffect, useState } from 'react';
-import { Info, MoreHorizontal } from 'react-feather';
+import { Info } from 'react-feather';
 import { useParams } from 'react-router-dom';
 
 function getInitials(name?: string) {
@@ -138,36 +133,28 @@ const ListParticipants = ({ participantOrTeamName, openModal }: IListParticipant
               </DataTableCell>
 
               <DataTableCell className="py-4">
-                <div className="flex justify-end">
-                  <DropdownMenu>
-                    <DropdownMenuButton aria-label="Opções">
-                      <MoreHorizontal size={18} />
-                    </DropdownMenuButton>
-                    <DropdownMenuList side="top">
-                      <DropdownMenuItem onClick={() => openModal('EDIT', participant)}>
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          !participant.medalTakenBy
-                            ? openModal('MEDAL', participant)
-                            : openDelete(participant.id, 'MEDAL')
-                        }
-                      >
-                        {!participant.medalTakenBy ? 'Retirar medalha' : 'Devolver medalha'}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          !participant.kitTakenBy
-                            ? openModal('KIT', participant)
-                            : openDelete(participant.id, 'KIT')
-                        }
-                      >
-                        {!participant.kitTakenBy ? 'Retirar kit' : 'Devolver kit'}
-                      </DropdownMenuItem>
-                    </DropdownMenuList>
-                  </DropdownMenu>
-                </div>
+                <RowActions
+                  entityLabel={participant.name}
+                  onEdit={() => openModal('EDIT', participant)}
+                  menuActions={[
+                    {
+                      label: !participant.medalTakenBy
+                        ? 'Retirar medalha'
+                        : 'Devolver medalha',
+                      onClick: () =>
+                        !participant.medalTakenBy
+                          ? openModal('MEDAL', participant)
+                          : openDelete(participant.id, 'MEDAL'),
+                    },
+                    {
+                      label: !participant.kitTakenBy ? 'Retirar kit' : 'Devolver kit',
+                      onClick: () =>
+                        !participant.kitTakenBy
+                          ? openModal('KIT', participant)
+                          : openDelete(participant.id, 'KIT'),
+                    },
+                  ]}
+                />
               </DataTableCell>
             </DataTableRow>
           ))}

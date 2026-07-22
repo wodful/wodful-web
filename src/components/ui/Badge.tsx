@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 
 type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger';
 
@@ -14,14 +14,16 @@ export function Badge({
   children,
   tone = 'neutral',
   className = '',
+  ...props
 }: {
   children: ReactNode;
   tone?: BadgeTone;
   className?: string;
-}) {
+} & HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
       className={`inline-flex items-center rounded-chip px-2 py-0.5 text-xs font-semibold ${toneClasses[tone]} ${className}`}
+      {...props}
     >
       {children}
     </span>

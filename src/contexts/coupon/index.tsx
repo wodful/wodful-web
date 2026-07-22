@@ -34,7 +34,7 @@ export const CouponProvider = ({ children }: CouponProviderProps) => {
   const [couponsPages, setCouponsPages] = useState<IPageResponse<ICoupon>>(
     {} as IPageResponse<ICoupon>,
   );
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -72,7 +72,7 @@ export const CouponProvider = ({ children }: CouponProviderProps) => {
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(data.championshipId);
+          List(data.championshipId);
         })
         .catch(() => {
           toast({
@@ -83,7 +83,7 @@ export const CouponProvider = ({ children }: CouponProviderProps) => {
         })
         .finally(() => setIsLoading(false));
     },
-    [ListPaginated, toast],
+    [List, toast],
   );
 
   const Update = useCallback(
@@ -98,7 +98,7 @@ export const CouponProvider = ({ children }: CouponProviderProps) => {
             isClosable: true,
           });
           if (data.championshipId) {
-            ListPaginated(data.championshipId);
+            List(data.championshipId);
           }
         })
         .catch(() => {
@@ -110,7 +110,7 @@ export const CouponProvider = ({ children }: CouponProviderProps) => {
         })
         .finally(() => setIsLoading(false));
     },
-    [ListPaginated, toast],
+    [List, toast],
   );
 
   const Delete = useCallback(
@@ -124,7 +124,7 @@ export const CouponProvider = ({ children }: CouponProviderProps) => {
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(championshipId);
+          List(championshipId);
         })
         .catch(() => {
           toast({
@@ -135,7 +135,7 @@ export const CouponProvider = ({ children }: CouponProviderProps) => {
         })
         .finally(() => setIsLoading(false));
     },
-    [ListPaginated, toast],
+    [List, toast],
   );
 
   return (

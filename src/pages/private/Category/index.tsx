@@ -1,11 +1,11 @@
 import ComponentModal from '@/components/ComponentModal';
-import { EmptyList } from '@/components/EmptyList';
 import { Loader } from '@/components/Loader';
-import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { SetupPageShell } from '@/components/ui/SetupPageShell';
 import { CategoryProvider } from '@/contexts/category';
 import { ICategory } from '@/data/interfaces/category';
 import useCategoryData from '@/hooks/useCategoryData';
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import FormCategory from './components/form';
 
@@ -20,8 +20,12 @@ const CategoryWithProvider = () => (
 const Category = () => {
   const [category, setCategory] = useState<ICategory>();
   const [isOpen, setIsOpen] = useState(false);
-  const { categoriesPages } = useCategoryData();
+  const { List, categories, isLoading } = useCategoryData();
   const { id } = useParams();
+
+  useEffect(() => {
+    if (id) List(id);
+  }, [List, id]);
 
   const openEdit = (categoryObj: ICategory) => {
     setCategory(categoryObj);
@@ -36,20 +40,16 @@ const Category = () => {
   };
 
   const onClose = () => setIsOpen(false);
-  const hasElements = useMemo(() => categoriesPages.count !== 0, [categoriesPages]);
+  const hasElements = useMemo(() => categories.length > 0, [categories.length]);
 
   return (
     <Suspense fallback={<Loader title="Carregando ..." />}>
-      <div className="flex w-full flex-col items-center p-6">
-        {hasElements ? (
-          <div className="flex w-full items-center justify-between gap-3">
-            <h1 className="text-2xl font-bold text-slate-900">Lista de categorias</h1>
-            <Button variant="primary" className="w-auto" onClick={openCreate}>
-              Adicionar categoria
-            </Button>
-          </div>
-        ) : null}
-
+      <SetupPageShell
+        title="Categorias"
+        description="Defina as categorias do evento (individual, dupla, time)."
+        actionLabel="Adicionar categoria"
+        onAction={openCreate}
+      >
         <ComponentModal
           modalHeader={category ? 'Editar categoria' : 'Criar categoria'}
           size="lg"
@@ -64,18 +64,19 @@ const Category = () => {
           />
         </ComponentModal>
 
-        {hasElements ? (
-          <div className="mt-6 w-full">
-            <ListCategory id={id as string} openEdit={openEdit} />
-          </div>
+        {isLoading && !hasElements ? (
+          <Loader title="Carregando categorias..." />
+        ) : hasElements ? (
+          <ListCategory openEdit={openEdit} />
         ) : (
-          <EmptyList
-            text="Você não possui categorias ainda!"
-            contentButton="Crie uma categoria"
-            onClose={openCreate}
+          <EmptyState
+            title="Nenhuma categoria ainda"
+            description="Crie a primeira categoria para organizar provas, tickets e ranking."
+            actionLabel="Criar categoria"
+            onAction={openCreate}
           />
         )}
-      </div>
+      </SetupPageShell>
     </Suspense>
   );
 };

@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Edit2, EyeOff, MoreHorizontal } from 'react-feather';
+import { EyeOff } from 'react-feather';
 
 import ComponentModal from '@/components/ComponentModal';
 import DeleteData from '@/components/Delete';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 import {
   DataTable,
   DataTableBody,
@@ -13,13 +12,8 @@ import {
   DataTableHeaderCell,
   DataTableRow,
 } from '@/components/ui/DataTable';
-import {
-  DropdownMenu,
-  DropdownMenuButton,
-  DropdownMenuItem,
-  DropdownMenuList,
-} from '@/components/ui/DropdownMenu';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { RowActions } from '@/components/ui/RowActions';
 import useResultData from '@/hooks/useResultData';
 
 export type ReleaseFilter = 'all' | 'released' | 'hidden';
@@ -174,34 +168,14 @@ const ListResults = ({
                   )}
                 </DataTableCell>
                 <DataTableCell className="py-3">
-                  <div className="flex items-center justify-end gap-1">
-                    <Button
-                      variant="icon"
-                      aria-label={`Editar ${result.nickname}`}
-                      onClick={() => openEdit(result.id)}
-                    >
-                      <Edit2 size={15} aria-hidden />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuButton aria-label="Mais opções">
-                        <MoreHorizontal size={18} />
-                      </DropdownMenuButton>
-                      <DropdownMenuList side="top">
-                        <DropdownMenuItem onClick={() => openEdit(result.id)}>
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          danger
-                          onClick={() => {
-                            setResultId(result.id);
-                            setIsOpen(true);
-                          }}
-                        >
-                          Deletar
-                        </DropdownMenuItem>
-                      </DropdownMenuList>
-                    </DropdownMenu>
-                  </div>
+                  <RowActions
+                    entityLabel={result.nickname}
+                    onEdit={() => openEdit(result.id)}
+                    onDelete={() => {
+                      setResultId(result.id);
+                      setIsOpen(true);
+                    }}
+                  />
                 </DataTableCell>
               </DataTableRow>
             );
