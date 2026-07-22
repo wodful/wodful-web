@@ -60,7 +60,7 @@ const Leaderboard = () => {
     <Suspense fallback={<Loader title="Carregando ..." />}>
       <LivePageShell
         title="Leaderboard"
-        description="Ranking da categoria, incluindo resultados ocultos."
+        description="Ranking da categoria com desempate automático — inclui resultados ocultos."
         className="!max-w-7xl"
       >
         {!hasCategories ? (
@@ -81,7 +81,7 @@ const Leaderboard = () => {
             <div className="rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-medium text-slate-700">Categoria</p>
-                <Tooltip label="Totais podem diferir do ranking público até a liberação em Resultados.">
+                <Tooltip label="Desempate: mais 1ºs, depois 2ºs, depois 3ºs. Totais podem diferir do ranking público até a liberação.">
                   <span className="inline-flex cursor-help items-center gap-1.5 rounded-chip bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
                     <EyeOff size={12} aria-hidden />
                     Inclui ocultos
