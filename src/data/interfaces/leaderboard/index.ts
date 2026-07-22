@@ -1,4 +1,12 @@
-import { IResult } from '../result';
+export interface ILeaderboardResult {
+  result: string;
+  points: number;
+  classification: number;
+  isReleased?: boolean;
+  workout: {
+    name: string;
+  };
+}
 
 export interface ILeaderboard {
   ranking: number;
@@ -7,7 +15,7 @@ export interface ILeaderboard {
   category: {
     name: string;
   };
-  results: IResult[];
+  results: ILeaderboardResult[];
 }
 
 export interface IPublicLeaderboard {
