@@ -52,11 +52,11 @@ const Workout = () => {
     <Suspense fallback={<Loader title="Carregando ..." />}>
       <SetupPageShell
         title="Provas"
-        description="Cadastre as provas por categoria. Use o filtro para achar rápido em listas grandes."
+        description="Cadastre provas por categoria. Selecione várias de uma vez e ajuste tipo e descrição de cada uma."
         actionLabel="Adicionar prova"
         onAction={() => setIsOpen(true)}
       >
-        <ComponentModal modalHeader="Criar prova" size="lg" isOpen={isOpen} onClose={onClose}>
+        <ComponentModal modalHeader="Criar prova" size="xl" isOpen={isOpen} onClose={onClose}>
           <FormWorkout id={id as string} onClose={onClose} showHalfPointsOption={isScoreType} />
         </ComponentModal>
 

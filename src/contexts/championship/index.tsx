@@ -93,7 +93,9 @@ export const ChampionshipProvider = ({ children, onClose }: ChampionshipProps) =
       .listAll(limit, page)
       .then((paginatedChampiships) => {
         setChampionshipsPages(paginatedChampiships as IPageResponse<IChampionship>);
+        setIsError(false);
       })
+      .catch(() => setIsError(true))
       .finally(() => setIsLoading(false));
   }, [page]);
 

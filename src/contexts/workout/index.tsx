@@ -34,6 +34,7 @@ export interface WorkoutContextData {
     categoryId,
     worthHalfPoints,
   }: IWorkoutDTO) => Promise<void>;
+  CreateMany: (workouts: IWorkoutDTO[]) => Promise<boolean>;
 }
 
 const WorkoutContext = createContext({} as WorkoutContextData);
@@ -115,7 +116,7 @@ export const WorkoutProvider = ({ children, onClose }: WorkoutProviderProps) => 
             isClosable: true,
           });
           List(championshipId);
-          onClose!();
+          onClose?.();
         })
         .catch(() => {
           toast({
@@ -127,6 +128,49 @@ export const WorkoutProvider = ({ children, onClose }: WorkoutProviderProps) => 
         .finally(() => setIsLoading(false));
     },
     [List, onClose, toast],
+  );
+
+  const CreateMany = useCallback(
+    async (workouts: IWorkoutDTO[]) => {
+      if (!workouts.length) return false;
+
+      setIsLoading(true);
+      const championshipId = workouts[0].championshipId;
+      const service = new WorkoutService(axios);
+      let created = 0;
+
+      try {
+        for (const workout of workouts) {
+          await service.create(workout);
+          created += 1;
+        }
+
+        toast({
+          title:
+            created === 1
+              ? workoutMessages['success']
+              : `${created} provas adicionadas com sucesso`,
+          status: 'success',
+          isClosable: true,
+        });
+        await List(championshipId);
+        return true;
+      } catch {
+        toast({
+          title:
+            created > 0
+              ? `Erro após criar ${created} de ${workouts.length} provas`
+              : workoutMessages['error'],
+          status: 'error',
+          isClosable: true,
+        });
+        if (created > 0) await List(championshipId);
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [List, toast],
   );
 
   const Delete = useCallback(
@@ -160,6 +204,7 @@ export const WorkoutProvider = ({ children, onClose }: WorkoutProviderProps) => 
         setLimit,
         setPage,
         Create,
+        CreateMany,
         List,
         ListPaginated,
         ListByCategory,

@@ -1,10 +1,10 @@
-import { HttpClient, HttpRequest, HttpResponse } from '@/data/interfaces/http';
+import { HttpClient, HttpRequest, HttpResponse, HttpStatusCode } from '@/data/interfaces/http';
 import wodfulApiPrivate from '@/services';
 import { AxiosResponse } from 'axios';
 
 export class AxiosAdapter implements HttpClient {
   async request(params: HttpRequest): Promise<HttpResponse<any>> {
-    let httpResponse: AxiosResponse<any>;
+    let httpResponse: AxiosResponse<any> | undefined;
 
     try {
       httpResponse = await wodfulApiPrivate.request({
@@ -14,7 +14,14 @@ export class AxiosAdapter implements HttpClient {
         headers: params.headers,
       });
     } catch (error: any) {
-      httpResponse = error.response;
+      httpResponse = error?.response;
+    }
+
+    if (!httpResponse) {
+      return {
+        statusCode: HttpStatusCode.serverError,
+        body: undefined,
+      };
     }
 
     return {
