@@ -1,51 +1,44 @@
 import ComponentModal from '@/components/ComponentModal';
 import DeleteData from '@/components/Delete';
+import { Badge } from '@/components/ui/Badge';
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable';
+import {
+  DropdownMenu,
+  DropdownMenuButton,
+  DropdownMenuItem,
+  DropdownMenuList,
+} from '@/components/ui/DropdownMenu';
+import { PaginationBar } from '@/components/ui/PaginationBar';
 import { ICategory } from '@/data/interfaces/category';
 import useCategoryData from '@/hooks/useCategoryData';
-import {
-  Button,
-  Flex,
-  HStack,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Select,
-  Table,
-  TableContainer,
-  Tag,
-  Tbody,
-  Td,
-  Text,
-  Tfoot,
-  Th,
-  Thead,
-  Tooltip,
-  Tr,
-  useDisclosure,
-} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'react-feather';
+import { MoreHorizontal } from 'react-feather';
+
 interface IListCategory {
   id: string;
   openEdit: (category: ICategory) => void;
 }
 
-const tagMembers: { [key: number]: { label: string; color: string } } = {
-  1: { label: 'Individual', color: 'blue' },
-  2: { label: 'Dupla', color: 'green' },
-  3: { label: 'Trio', color: 'cyan' },
-  4: { label: 'Time', color: 'teal' },
-  5: { label: 'Time', color: 'teal' },
-  6: { label: 'Time', color: 'teal' },
+const tagMembers: Record<number, { label: string; tone: 'primary' | 'success' | 'neutral' }> = {
+  1: { label: 'Individual', tone: 'primary' },
+  2: { label: 'Dupla', tone: 'success' },
+  3: { label: 'Trio', tone: 'primary' },
+  4: { label: 'Time', tone: 'neutral' },
+  5: { label: 'Time', tone: 'neutral' },
+  6: { label: 'Time', tone: 'neutral' },
 };
 
 const ListCategory = ({ id, openEdit }: IListCategory) => {
-  const [currentTotal, setCurrentTotal] = useState<number>(0);
-  const [categoryId, setCategoryId] = useState<string>('');
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [currentTotal, setCurrentTotal] = useState(0);
+  const [categoryId, setCategoryId] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
 
   const { ListPaginated, categoriesPages, page, limit, setLimit, setPage, isLoading, Delete } =
     useCategoryData();
@@ -58,138 +51,77 @@ const ListCategory = ({ id, openEdit }: IListCategory) => {
     setCurrentTotal(categoriesPages.results?.length);
   }, [categoriesPages.results?.length]);
 
-  const previousPage = () => {
-    setPage(page - 1);
-  };
-
-  const openDelete = (id: string) => {
-    setCategoryId(id);
-    onOpen();
-  };
-
-  const confirmDelete = () => {
-    Delete(categoryId);
-  };
-
-  const nextPage = () => {
-    setPage(page + 1);
+  const openDelete = (deleteId: string) => {
+    setCategoryId(deleteId);
+    setIsOpen(true);
   };
 
   return (
     <>
-      <ComponentModal modalHeader='Remover categoria' size='sm' isOpen={isOpen} onClose={onClose}>
-        <DeleteData onClose={onClose} removedData='a categoria' confirmDelete={confirmDelete} />
+      <ComponentModal
+        modalHeader="Remover categoria"
+        size="sm"
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      >
+        <DeleteData
+          onClose={() => setIsOpen(false)}
+          removedData="a categoria"
+          confirmDelete={() => Delete(categoryId)}
+        />
       </ComponentModal>
 
-      <TableContainer border='1px' borderColor='gray.100' fontSize='sm' color='#2D3748'>
-        <Table variant='simple'>
-          <Thead bg='gray.50' border='1px' borderColor='gray.100'>
-            <Tr>
-              <Th>
-                <Text as='b'>Categoria</Text>
-              </Th>
-              <Th>
-                <Text as='b'>Formato</Text>
-              </Th>
-              <Th></Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {categoriesPages.results?.map((category) => (
-              <Tr key={category.id}>
-                <Td p={6}>{category.name}</Td>
-                <Td p={6}>
-                  <Tag
-                    size='md'
-                    key='md'
-                    variant='solid'
-                    colorScheme={tagMembers[category.members].color}
-                  >
-                    {tagMembers[category.members].label}
-                  </Tag>
-                </Td>
-                <Td p={6}>
-                  <Flex justify='end'>
-                    <Menu>
-                      <MenuButton
-                        as={IconButton}
-                        aria-label='Options'
-                        icon={<MoreHorizontal />}
-                        variant='none'
-                      />
-                      <MenuList>
-                        <MenuItem onClick={() => openEdit(category)}>Editar</MenuItem>
-                        <MenuItem onClick={() => openDelete(category.id)}>Deletar</MenuItem>
-                      </MenuList>
-                    </Menu>
-                  </Flex>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-          <Tfoot>
-            <Tr>
-              <Th display='flex' flexDirection='row'>
-                <Flex align='center' mr={2}>
-                  Linhas por página
-                </Flex>
-
-                <Select
-                  w='75px'
-                  onChange={(event) => {
-                    setLimit(Number(event.target.value));
-                    setPage(Number(1));
-                  }}
-                >
-                  <option value='5'>5</option>
-                  <option value='10'>10</option>
-                  <option value='20'>20</option>
-                </Select>
-              </Th>
-              <Th></Th>
-              <Th>
-                <Flex justify='end'>
-                  <HStack>
-                    {page === 1 && (
-                      <Text>
-                        {page * limit - (limit - 1)} - {page * limit} de {categoriesPages.count}
-                      </Text>
-                    )}
-
-                    {page !== 1 && (
-                      <Text>
-                        {page * limit - (limit - 1)} - {page * limit - limit + currentTotal} de{' '}
-                        {categoriesPages.count}
-                      </Text>
-                    )}
-                    <Tooltip label='Página anterior' placement='top' hasArrow>
-                      <Button
-                        disabled={!categoriesPages.previous || isLoading}
-                        variant='link'
-                        onClick={previousPage}
-                      >
-                        <ChevronLeft
-                          color={categoriesPages.previous ? 'black' : 'gray'}
-                          size={16}
-                        />
-                      </Button>
-                    </Tooltip>
-                    <Tooltip label='Próxima página' placement='top' hasArrow>
-                      <Button
-                        disabled={!categoriesPages.next || isLoading}
-                        variant='link'
-                        onClick={nextPage}
-                      >
-                        <ChevronRight color={categoriesPages.next ? 'black' : 'gray'} size={16} />
-                      </Button>
-                    </Tooltip>
-                  </HStack>
-                </Flex>
-              </Th>
-            </Tr>
-          </Tfoot>
-        </Table>
-      </TableContainer>
+      <DataTable>
+        <DataTableHead>
+          <DataTableRow>
+            <DataTableHeaderCell>Categoria</DataTableHeaderCell>
+            <DataTableHeaderCell>Formato</DataTableHeaderCell>
+            <DataTableHeaderCell />
+          </DataTableRow>
+        </DataTableHead>
+        <DataTableBody>
+          {categoriesPages.results?.map((category) => (
+            <DataTableRow key={category.id}>
+              <DataTableCell className="py-4">{category.name}</DataTableCell>
+              <DataTableCell className="py-4">
+                <Badge tone={tagMembers[category.members]?.tone ?? 'neutral'}>
+                  {tagMembers[category.members]?.label ?? category.members}
+                </Badge>
+              </DataTableCell>
+              <DataTableCell className="py-4">
+                <div className="flex justify-end">
+                  <DropdownMenu>
+                    <DropdownMenuButton aria-label="Opções">
+                      <MoreHorizontal size={18} />
+                    </DropdownMenuButton>
+                    <DropdownMenuList>
+                      <DropdownMenuItem onClick={() => openEdit(category)}>Editar</DropdownMenuItem>
+                      <DropdownMenuItem danger onClick={() => openDelete(category.id)}>
+                        Deletar
+                      </DropdownMenuItem>
+                    </DropdownMenuList>
+                  </DropdownMenu>
+                </div>
+              </DataTableCell>
+            </DataTableRow>
+          ))}
+        </DataTableBody>
+      </DataTable>
+      <PaginationBar
+        page={page}
+        limit={limit}
+        count={categoriesPages.count ?? 0}
+        currentTotal={currentTotal ?? 0}
+        hasPrevious={!!categoriesPages.previous}
+        hasNext={!!categoriesPages.next}
+        isLoading={isLoading}
+        onLimitChange={(next) => {
+          setLimit(next);
+          setPage(1);
+        }}
+        onPrevious={() => setPage(page - 1)}
+        onNext={() => setPage(page + 1)}
+      />
     </>
   );
 };

@@ -2,6 +2,15 @@ import { ChangeEvent, lazy, Suspense, useCallback, useEffect, useState } from 'r
 
 import ComponentModal from '@/components/ComponentModal';
 import { Loader } from '@/components/Loader';
+import { Button } from '@/components/ui/Button';
+import {
+  DropdownMenu,
+  DropdownMenuButton,
+  DropdownMenuItem,
+  DropdownMenuList,
+} from '@/components/ui/DropdownMenu';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { CategoryProvider } from '@/contexts/category';
 import { ResultProvider } from '@/contexts/result';
 import { SubscriptionProvider } from '@/contexts/subscription';
@@ -9,22 +18,6 @@ import { WorkoutProvider } from '@/contexts/workout';
 import useCategoryData from '@/hooks/useCategoryData';
 import useResultData from '@/hooks/useResultData';
 import useWorkoutData from '@/hooks/useWorkoutData';
-import {
-  Box,
-  Button,
-  Flex,
-  HStack,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Select,
-  Text,
-  useDisclosure,
-} from '@chakra-ui/react';
 import { Menu as MenuIcon, Search } from 'react-feather';
 import { useParams } from 'react-router-dom';
 
@@ -32,21 +25,17 @@ const ResultForm = lazy(() => import('./components/form'));
 const ListResults = lazy(() => import('./components/list'));
 const ReleaseResultsForm = lazy(() => import('./components/releaseResults'));
 
-const ResultWithProvider = () => {
-  const { onClose } = useDisclosure();
-
-  return (
-    <ResultProvider onClose={onClose}>
-      <CategoryProvider>
-        <WorkoutProvider>
-          <SubscriptionProvider>
-            <Result />
-          </SubscriptionProvider>
-        </WorkoutProvider>
-      </CategoryProvider>
-    </ResultProvider>
-  );
-};
+const ResultWithProvider = () => (
+  <ResultProvider onClose={() => undefined}>
+    <CategoryProvider>
+      <WorkoutProvider>
+        <SubscriptionProvider>
+          <Result />
+        </SubscriptionProvider>
+      </WorkoutProvider>
+    </CategoryProvider>
+  </ResultProvider>
+);
 
 const Result = () => {
   const { id } = useParams();
@@ -55,7 +44,7 @@ const Result = () => {
   const [categoryId, setCategoryId] = useState<string>('');
   const [workoutId, setWorkoutId] = useState<string>('');
   const [isOpenReleaseResults, setIsOpenReleaseResults] = useState<boolean>(false);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   const { List: CategoryList, categories } = useCategoryData();
   const { ListPaginated: ListResultsData, ListPaginatedByWorkout } = useResultData();
   const { workouts, ListByCategory: ListWorkouts } = useWorkoutData();
@@ -68,20 +57,17 @@ const Result = () => {
 
   const openCreate = () => {
     setResultId(undefined);
-    onOpen();
+    setIsOpen(true);
   };
 
   const openReleaseResults = () => {
     setIsOpenReleaseResults(true);
   };
 
-  const openEdit = useCallback(
-    (id: string) => {
-      setResultId(id);
-      onOpen();
-    },
-    [onOpen],
-  );
+  const openEdit = useCallback((editId: string) => {
+    setResultId(editId);
+    setIsOpen(true);
+  }, []);
 
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
     const name = event.target.value;
@@ -120,9 +106,9 @@ const Result = () => {
 
   const handleChangeWorkout = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
-      const workoutId = event.target.value;
+      const nextWorkoutId = event.target.value;
       if (categoryId) {
-        setWorkoutId(workoutId);
+        setWorkoutId(nextWorkoutId);
         ListPaginatedByWorkout(categoryId, event.target.value);
       }
     },
@@ -130,64 +116,45 @@ const Result = () => {
   );
 
   return (
-    <Suspense fallback={<Loader title='Carregando ...' />}>
-      <Box
-        as='main'
-        role='main'
-        w='100%'
-        display='flex'
-        flexDirection='column'
-        alignItems='center'
-        p={6}
-      >
-        <HStack
-          as='section'
-          role='textbox'
-          flexDirection={['column', 'column', 'column', 'row']}
-          w='100%'
-          alignItems={['flex-start', 'flex-start', 'flex-start', 'flex-end']}
-          gap={['1rem', '1rem', '1rem', 'none']}
-          justifyContent='space-between'
+    <Suspense fallback={<Loader title="Carregando ..." />}>
+      <main className="flex w-full flex-col items-center p-6" role="main">
+        <section
+          className="flex w-full flex-col items-start justify-between gap-4 lg:flex-row lg:items-end"
+          role="textbox"
         >
-          <Flex as='article' role='textbox' direction='column' gap='0.75rem'>
-            <Text fontSize='2xl' as='b' role='heading'>
+          <article className="flex flex-col gap-3" role="textbox">
+            <h1 className="text-2xl font-bold text-slate-900" role="heading">
               Resultados
-            </Text>
-            <Text
-              as='b'
-              role='textbox'
-              fontSize='0.75rem'
-              color='gray.500'
-              border='1px'
-              borderColor='gray.500'
-              borderRadius='4px'
-              padding='2px 8px'
-              textTransform='capitalize'
+            </h1>
+            <span
+              className="inline-flex w-fit rounded border border-slate-500 px-2 py-0.5 text-xs font-bold capitalize text-slate-500"
+              role="textbox"
             >
               Categoria: {selectedCategory}
-            </Text>
-          </Flex>
-          <Flex as='article' gap='1rem'>
-            <InputGroup>
-              <InputLeftElement>
-                <Search size={20} color='gray' />
-              </InputLeftElement>
+            </span>
+          </article>
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
+            <div className="relative min-w-0 flex-1 sm:min-w-[200px]">
+              <Search
+                size={20}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                aria-hidden
+              />
               <Input
+                className="!pl-10"
                 onChange={handleOnChange}
                 disabled={!categories.length || !categoryId}
-                as='input'
-                w='100%'
-                placeholder='Buscar participante'
+                placeholder="Buscar participante"
               />
-            </InputGroup>
+            </div>
             <Select
-              as='select'
+              className="min-w-[180px]"
               disabled={!categories.length || !categoryId}
-              id='workout'
+              id="workout"
               value={workoutId}
-              placeholder='Selecione uma prova'
               onChange={(event) => handleChangeWorkout(event)}
             >
+              <option value="">Selecione uma prova</option>
               {workouts?.map((workout) => (
                 <option key={workout.id} value={workout.id}>
                   {workout.name}
@@ -195,69 +162,58 @@ const Result = () => {
               ))}
             </Select>
             <Select
-              as='select'
-              id='category'
-              placeholder='Selecione a categoria'
+              className="min-w-[180px]"
+              id="category"
               value={categoryId}
               onChange={(event) => handleChangeCategory(event)}
             >
+              <option value="">Selecione a categoria</option>
               {categories?.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
               ))}
             </Select>
-            <Flex as='article' gap='1rem'>
-              <Menu>
-                <MenuButton
-                  w={'100%'}
-                  color={'white'}
-                  textColor={'#2D3748'}
-                  variant='outline'
-                  as={Button}
-                  leftIcon={<MenuIcon size={20} />}
-                >
-                  Opções
-                </MenuButton>
-                <MenuList>
-                  <MenuItem
-                    display={'flex'}
-                    alignItems={'center'}
-                    gap={'8px'}
-                    onClick={() => openReleaseResults()}
-                  >
-                    Liberar / Ocultar resultados
-                  </MenuItem>
-                </MenuList>
-              </Menu>
-            </Flex>
-
-            <Button minW='170px' colorScheme='teal' size='md' onClick={openCreate}>
+            <DropdownMenu>
+              <DropdownMenuButton
+                aria-label="Opções"
+                className="!h-11 !w-auto gap-2 px-4 text-sm font-semibold text-slate-700"
+              >
+                <MenuIcon size={20} aria-hidden />
+                Opções
+              </DropdownMenuButton>
+              <DropdownMenuList>
+                <DropdownMenuItem onClick={() => openReleaseResults()}>
+                  Liberar / Ocultar resultados
+                </DropdownMenuItem>
+              </DropdownMenuList>
+            </DropdownMenu>
+            <Button variant="primary" className="min-w-[170px] w-full sm:w-auto" onClick={openCreate}>
               Adicionar resultado
             </Button>
-          </Flex>
-        </HStack>
+          </div>
+        </section>
         <ComponentModal
           modalHeader={resultId ? 'Editar resultado' : 'Adicionar resultado'}
-          size='lg'
+          size="lg"
           isOpen={isOpen}
-          onClose={onClose}
+          onClose={() => setIsOpen(false)}
         >
-          <ResultForm onClose={onClose} oldResultId={resultId} />
+          <ResultForm onClose={() => setIsOpen(false)} oldResultId={resultId} />
         </ComponentModal>
 
         <ComponentModal
-          modalHeader={'Liberar / Ocultar resultados'}
-          size='lg'
+          modalHeader="Liberar / Ocultar resultados"
+          size="lg"
           isOpen={isOpenReleaseResults}
           onClose={() => setIsOpenReleaseResults(false)}
         >
           <ReleaseResultsForm onClose={() => setIsOpenReleaseResults(false)} />
         </ComponentModal>
-        <Box as='section' w='100%' marginTop={6}>
+        <section className="mt-6 w-full">
           <ListResults openEdit={openEdit} categoryId={categoryId} />
-        </Box>
-      </Box>
+        </section>
+      </main>
     </Suspense>
   );
 };

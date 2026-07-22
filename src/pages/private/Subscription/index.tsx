@@ -1,12 +1,12 @@
 import ComponentModal from '@/components/ComponentModal';
 import { Loader } from '@/components/Loader';
+import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { CategoryProvider } from '@/contexts/category';
-
 import { SubscriptionProvider } from '@/contexts/subscription';
 import { TicketProvider } from '@/contexts/ticket';
 import useCategoryData from '@/hooks/useCategoryData';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
-import { Box, Button, Flex, HStack, Select, Text, useDisclosure } from '@chakra-ui/react';
 import { ChangeEvent, Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import FormSubscriptionParticipants from './components/formParticipants';
@@ -15,13 +15,13 @@ import FormSubscription from './components/formSubscription';
 
 const ListSubscription = lazy(() => import('./components/list'));
 
-const SubscriptionWithProvider = () => {
-  const { onClose } = useDisclosure();
+const noopClose = () => undefined;
 
+const SubscriptionWithProvider = () => {
   return (
     <CategoryProvider>
-      <TicketProvider onClose={onClose}>
-        <SubscriptionProvider onClose={onClose}>
+      <TicketProvider onClose={noopClose}>
+        <SubscriptionProvider onClose={noopClose}>
           <Subscription />
         </SubscriptionProvider>
       </TicketProvider>
@@ -36,11 +36,14 @@ const Subscription = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [participantsNumber, setParticipantsNumber] = useState<number>(0);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const { id } = useParams();
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const { ListPaginated } = useSubscriptionData();
   const { List: CategoryList, categories } = useCategoryData();
+
+  const onClose = () => setIsOpen(false);
+  const onOpen = () => setIsOpen(true);
 
   function handleSubscriptionInfo(step: number, participantsNumber: number) {
     setParticipantsNumber(participantsNumber);
@@ -59,8 +62,8 @@ const Subscription = () => {
     onOpen();
   };
 
-  const openEdit = (subscriptionId: string) => {
-    setSubscriptionId(subscriptionId);
+  const openEdit = (subId: string) => {
+    setSubscriptionId(subId);
     setIsEditing(true);
     onOpen();
   };
@@ -86,55 +89,41 @@ const Subscription = () => {
   }, [CategoryList, id]);
 
   return (
-    <Suspense fallback={<Loader title='Carregando ...' />}>
-      <Box w='100%' display='flex' flexDirection='column' alignItems='center' p={6}>
-        <>
-          <HStack w='100%' justifyContent='space-between'>
-            <Flex as='article' role='textbox' direction='column' gap='0.75rem'>
-              <Text fontSize='2xl' as='b' role='heading'>
-                Inscrições
-              </Text>
-              <Text
-                as='b'
-                role='textbox'
-                fontSize='0.75rem'
-                color='gray.500'
-                border='1px'
-                borderColor='gray.500'
-                borderRadius='4px'
-                padding='2px 8px'
-                textTransform='capitalize'
-              >
-                Categoria: {selectedCategory}
-              </Text>
-            </Flex>
-            <Flex as='article' gap='1rem' alignSelf='flex-end'>
-              <Select
-                as='select'
-                id='category'
-                value={categoryId}
-                placeholder='Selecionar categoria'
-                onChange={(event) => handleChangeCategory(event)}
-              >
-                {categories?.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </Select>
-              <Button minW='170px' colorScheme='teal' size='md' onClick={openCreate}>
-                Adicionar inscrição
-              </Button>
-            </Flex>
-          </HStack>
-          <Box w='100%' marginTop={6}>
-            <ListSubscription id={id as string} categoryId={categoryId} onEdit={openEdit} />
-          </Box>
-        </>
+    <Suspense fallback={<Loader title="Carregando ..." />}>
+      <div className="flex w-full flex-col items-center p-6">
+        <div className="flex w-full items-center justify-between gap-3">
+          <article className="flex flex-col gap-3">
+            <h1 className="text-2xl font-bold text-slate-900">Inscrições</h1>
+            <span className="inline-flex w-fit rounded border border-slate-400 px-2 py-0.5 text-xs font-bold capitalize text-slate-500">
+              Categoria: {selectedCategory}
+            </span>
+          </article>
+          <div className="flex items-end gap-4 self-end">
+            <Select
+              id="category"
+              value={categoryId}
+              onChange={(event) => handleChangeCategory(event)}
+              className="min-w-[200px]"
+            >
+              <option value="">Selecionar categoria</option>
+              {categories?.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </Select>
+            <Button variant="primary" className="w-auto min-w-[170px]" onClick={openCreate}>
+              Adicionar inscrição
+            </Button>
+          </div>
+        </div>
+        <div className="mt-6 w-full">
+          <ListSubscription id={id as string} categoryId={categoryId} onEdit={openEdit} />
+        </div>
 
         <ComponentModal
           modalHeader={`${isEditing ? 'Editar' : 'Adicionar'} inscrição`}
-          size='lg'
+          size="lg"
           isOpen={isOpen}
           onClose={() => {
             handleSubscriptionInfo(0, 0);
@@ -153,7 +142,7 @@ const Subscription = () => {
             />
           )}
         </ComponentModal>
-      </Box>
+      </div>
     </Suspense>
   );
 };

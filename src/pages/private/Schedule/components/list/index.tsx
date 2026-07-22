@@ -1,32 +1,27 @@
 import ComponentModal from '@/components/ComponentModal';
 import DeleteData from '@/components/Delete';
+import { Badge } from '@/components/ui/Badge';
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable';
+import {
+  DropdownMenu,
+  DropdownMenuButton,
+  DropdownMenuItem,
+  DropdownMenuList,
+} from '@/components/ui/DropdownMenu';
+import { PaginationBar } from '@/components/ui/PaginationBar';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { IIsLiveDTO, IIsOverDTO } from '@/data/interfaces/schedule';
 import useScheduleData from '@/hooks/useScheduleData';
 import { incrementAndFormatDate } from '@/utils/formatDate';
-import {
-  Button,
-  Flex,
-  HStack,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Select,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Tfoot,
-  Th,
-  Thead,
-  Tooltip,
-  Tr,
-  useDisclosure,
-} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, MoreHorizontal, Radio } from 'react-feather';
+import { MoreHorizontal, Radio } from 'react-feather';
 
 interface IListSchedule {
   championshipId: string;
@@ -49,12 +44,11 @@ const ListSchedule = ({ championshipId }: IListSchedule) => {
   } = useScheduleData();
 
   const [scheduleId, setScheduleId] = useState<string>('');
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
 
   const openDelete = (id: string) => {
     setScheduleId(id);
-    onOpen();
+    setIsOpen(true);
   };
 
   const confirmDelete = () => {
@@ -99,181 +93,120 @@ const ListSchedule = ({ championshipId }: IListSchedule) => {
 
   return (
     <>
-      <ComponentModal modalHeader='Remover cronograma' size='sm' isOpen={isOpen} onClose={onClose}>
-        <DeleteData onClose={onClose} removedData='o cronograma' confirmDelete={confirmDelete} />
+      <ComponentModal modalHeader='Remover cronograma' size='sm' isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <DeleteData onClose={() => setIsOpen(false)} removedData='o cronograma' confirmDelete={confirmDelete} />
       </ComponentModal>
 
-      <TableContainer border='1px' borderColor='gray.100' fontSize='sm' color='#2D3748'>
-        <Table variant='simple'>
-          <Thead bg='gray.50' border='1px' borderColor='gray.100'>
-            <Tr>
-              <Th>
-                <Text as='b'>DATA</Text>
-              </Th>
-              <Th>
-                <Text as='b'>HORÁRIO</Text>
-              </Th>
-              <Th>
-                <Text as='b'>CATEGORIA</Text>
-              </Th>
-              <Th>
-                <Text as='b'>PROVA</Text>
-              </Th>
-              <Th>
-                <Text as='b'>BATERIA</Text>
-              </Th>
-              <Th>
-                <Text as='b'>BAIA</Text>
-              </Th>
-              <Th></Th>
-            </Tr>
-          </Thead>
+      <DataTable className='text-sm text-slate-800'>
+        <DataTableHead>
+          <DataTableRow>
+            <DataTableHeaderCell>DATA</DataTableHeaderCell>
+            <DataTableHeaderCell>HORÁRIO</DataTableHeaderCell>
+            <DataTableHeaderCell>CATEGORIA</DataTableHeaderCell>
+            <DataTableHeaderCell>PROVA</DataTableHeaderCell>
+            <DataTableHeaderCell>BATERIA</DataTableHeaderCell>
+            <DataTableHeaderCell>BAIA</DataTableHeaderCell>
+            <DataTableHeaderCell />
+          </DataTableRow>
+        </DataTableHead>
 
-          <Tbody>
-            {schedulePages.results?.map((schedule) => (
-              <Tr bg={schedule.isOver ? 'gray.200' : ''} key={schedule.id}>
-                <Td textTransform='capitalize'>
-                  <Text as={schedule.isOver ? 'del' : 'p'}>
-                    {incrementAndFormatDate(schedule.date)}
-                  </Text>
-                </Td>
+        <DataTableBody>
+          {schedulePages.results?.map((schedule) => (
+            <DataTableRow key={schedule.id} className={schedule.isOver ? 'bg-slate-200' : ''}>
+              <DataTableCell className='capitalize'>
+                {schedule.isOver ? (
+                  <del>{incrementAndFormatDate(schedule.date)}</del>
+                ) : (
+                  incrementAndFormatDate(schedule.date)
+                )}
+              </DataTableCell>
 
-                <Td textTransform='capitalize'>
-                  <Text as={schedule.isOver ? 'del' : 'p'}>{schedule.hour}</Text>
-                </Td>
+              <DataTableCell className='capitalize'>
+                {schedule.isOver ? <del>{schedule.hour}</del> : schedule.hour}
+              </DataTableCell>
 
-                <Td textTransform='capitalize'>
-                  <Text as={schedule.isOver ? 'del' : 'p'}>{schedule.category.name}</Text>
-                </Td>
+              <DataTableCell className='capitalize'>
+                {schedule.isOver ? <del>{schedule.category.name}</del> : schedule.category.name}
+              </DataTableCell>
 
-                <Td textTransform='capitalize'>
-                  <Text as={schedule.isOver ? 'del' : 'p'}>{schedule.workout.name}</Text>
-                </Td>
+              <DataTableCell className='capitalize'>
+                {schedule.isOver ? <del>{schedule.workout.name}</del> : schedule.workout.name}
+              </DataTableCell>
 
-                <Td textTransform='capitalize'>
-                  <Text as={schedule.isOver ? 'del' : 'p'}>{schedule.heat}</Text>
-                </Td>
+              <DataTableCell className='capitalize'>
+                {schedule.isOver ? <del>{schedule.heat}</del> : schedule.heat}
+              </DataTableCell>
 
-                <Td>
-                  <Text as={schedule.isOver ? 'del' : 'p'}>{schedule.laneQuantity}</Text>
-                </Td>
-                <Td p={6}>
-                  <Flex justify='end' align='center'>
-                    <Menu>
-                      {schedule.isLive && (
-                        <Tooltip label='Ao vivo' placement='top' hasArrow>
-                          <Text p='0px 5px' fontSize='12px' color='red.500'>
-                            <Radio />
-                          </Text>
-                        </Tooltip>
+              <DataTableCell>
+                {schedule.isOver ? <del>{schedule.laneQuantity}</del> : schedule.laneQuantity}
+              </DataTableCell>
+
+              <DataTableCell className='py-6'>
+                <div className='flex items-center justify-end gap-1'>
+                  {schedule.isLive && (
+                    <Tooltip label='Ao vivo'>
+                      <Badge tone='danger' className='gap-1 rounded-md px-1.5'>
+                        <Radio size={12} />
+                      </Badge>
+                    </Tooltip>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuButton aria-label='Opções'>
+                      <MoreHorizontal size={18} />
+                    </DropdownMenuButton>
+                    <DropdownMenuList>
+                      {!schedule.isLive && !schedule.isOver && (
+                        <>
+                          <DropdownMenuItem onClick={() => handleIsLive(schedule.id, true)}>
+                            Iniciar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem danger onClick={() => openDelete(schedule.id)}>
+                            Deletar
+                          </DropdownMenuItem>
+                        </>
                       )}
-                      <MenuButton
-                        as={IconButton}
-                        aria-label='Options'
-                        icon={<MoreHorizontal />}
-                        variant='none'
-                      />
 
-                      <MenuList>
-                        {!schedule.isLive && !schedule.isOver && (
-                          <>
-                            <MenuItem onClick={() => handleIsLive(schedule.id, true)}>
-                              Iniciar
-                            </MenuItem>
-                            <MenuItem onClick={() => openDelete(schedule.id)}>Deletar</MenuItem>
-                          </>
-                        )}
+                      {schedule.isLive && (
+                        <>
+                          <DropdownMenuItem onClick={() => handleIsLive(schedule.id, false)}>
+                            Parar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleIsOver(schedule.id, true)}>
+                            Encerrar
+                          </DropdownMenuItem>
+                        </>
+                      )}
 
-                        {schedule.isLive && (
-                          <>
-                            <MenuItem onClick={() => handleIsLive(schedule.id, false)}>
-                              Parar
-                            </MenuItem>
-                            <MenuItem onClick={() => handleIsOver(schedule.id, true)}>
-                              Encerrar
-                            </MenuItem>
-                          </>
-                        )}
+                      {schedule.isOver && (
+                        <DropdownMenuItem onClick={() => handleIsOver(schedule.id, false)}>
+                          Reabrir
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuList>
+                  </DropdownMenu>
+                </div>
+              </DataTableCell>
+            </DataTableRow>
+          ))}
+        </DataTableBody>
+      </DataTable>
 
-                        {schedule.isOver && (
-                          <>
-                            <MenuItem onClick={() => handleIsOver(schedule.id, false)}>
-                              Reabrir
-                            </MenuItem>
-                          </>
-                        )}
-                      </MenuList>
-                    </Menu>
-                  </Flex>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-          <Tfoot>
-            <Tr>
-              <Th display='flex' flexDirection='row'>
-                <Flex align='center' mr={2}>
-                  Linhas por página
-                </Flex>
-
-                <Select
-                  w='75px'
-                  onChange={(event) => {
-                    setLimit(Number(event.target.value));
-                    setPage(Number(1));
-                  }}
-                >
-                  <option value='5'>5</option>
-                  <option value='10'>10</option>
-                  <option value='20'>20</option>
-                  <option value='40'>40</option>
-                </Select>
-              </Th>
-              <Th />
-              <Th />
-              <Th />
-              <Th />
-              <Th />
-              <Th>
-                <Flex justify='end'>
-                  <HStack>
-                    {page === 1 && (
-                      <Text>
-                        {page * limit - (limit - 1)} - {page * limit} de {schedulePages.count}
-                      </Text>
-                    )}
-
-                    {page !== 1 && (
-                      <Text>
-                        {page * limit - (limit - 1)} - {page * limit - limit + currentTotal} de{' '}
-                        {schedulePages.count}
-                      </Text>
-                    )}
-                    <Tooltip label='Página anterior' placement='top' hasArrow>
-                      <Button
-                        disabled={!schedulePages.previous || isLoading}
-                        variant='link'
-                        onClick={previousPage}
-                      >
-                        <ChevronLeft color={schedulePages.previous ? 'black' : 'gray'} size={16} />
-                      </Button>
-                    </Tooltip>
-                    <Tooltip label='Próxima página' placement='top' hasArrow>
-                      <Button
-                        disabled={!schedulePages.next || isLoading}
-                        variant='link'
-                        onClick={nextPage}
-                      >
-                        <ChevronRight color={schedulePages.next ? 'black' : 'gray'} size={16} />
-                      </Button>
-                    </Tooltip>
-                  </HStack>
-                </Flex>
-              </Th>
-            </Tr>
-          </Tfoot>
-        </Table>
-      </TableContainer>
+      <PaginationBar
+        page={page}
+        limit={limit}
+        count={schedulePages.count ?? 0}
+        currentTotal={currentTotal}
+        hasPrevious={!!schedulePages.previous}
+        hasNext={!!schedulePages.next}
+        isLoading={isLoading}
+        limitOptions={[5, 10, 20, 40]}
+        onLimitChange={(next) => {
+          setLimit(next);
+          setPage(1);
+        }}
+        onPrevious={previousPage}
+        onNext={nextPage}
+      />
     </>
   );
 };

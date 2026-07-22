@@ -20,12 +20,8 @@
     "cy:e2e": "start-server-and-test dev http-get://localhost:3000 cy:open-e2e"
   },
   "dependencies": {
-    "@chakra-ui/react": "^2.3.5",
-    "@emotion/react": "11",
-    "@emotion/styled": "11",
     "axios": "^1.1.2",
     "date-fns": "^2.29.3",
-    "framer-motion": "6",
     "react": "^18.2.0",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18.2.0",

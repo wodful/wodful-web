@@ -10,7 +10,7 @@ import { IConfigurationForm } from '@/pages/private/Configuration/form';
 import { ChampionshipService } from '@/services/Championship';
 import { ConfigurationService } from '@/services/Configuration';
 import { championshipMessages } from '@/utils/messages';
-import { useToast } from '@chakra-ui/react';
+import { useToast } from '@/components/ui/Toast';
 import { createContext, useCallback, useState } from 'react';
 
 interface ChampionshipProps {

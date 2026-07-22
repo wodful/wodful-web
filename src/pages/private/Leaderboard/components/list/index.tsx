@@ -1,23 +1,15 @@
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable';
+import { PaginationBar } from '@/components/ui/PaginationBar';
 import useCategoryData from '@/hooks/useCategoryData';
 import useLeaderboardData from '@/hooks/useLeaderboardData';
-import {
-  Button,
-  Flex,
-  HStack,
-  Select,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Tfoot,
-  Th,
-  Thead,
-  Tooltip,
-  Tr,
-} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'react-feather';
 
 interface IListLeaderboard {
   champ: string;
@@ -48,140 +40,74 @@ const ListLeaderboard = ({ champ, category }: IListLeaderboard) => {
   };
 
   return (
-    <TableContainer border='1px' borderColor='gray.100' fontSize='sm' color='#2D3748'>
-      <Table variant='simple'>
-        <Thead bg='gray.50' border='1px' borderColor='gray.100'>
-          <Tr>
-            <Th>
-              <Text as='b'>PARTICIPANTES</Text>
-            </Th>
-            <Th>
-              <Text as='b'>CATEGORIA</Text>
-            </Th>
-            <Th>
-              <Text as='b'>COLOCAÇÃO</Text>
-            </Th>
-            <Th>
-              <Text as='b'>PONTUAÇÃO GERAL</Text>
-            </Th>
-          </Tr>
-        </Thead>
-        <Tbody>
+    <>
+      <DataTable className='text-sm text-slate-800'>
+        <DataTableHead>
+          <DataTableRow>
+            <DataTableHeaderCell>PARTICIPANTES</DataTableHeaderCell>
+            <DataTableHeaderCell>CATEGORIA</DataTableHeaderCell>
+            <DataTableHeaderCell>COLOCAÇÃO</DataTableHeaderCell>
+            <DataTableHeaderCell>PONTUAÇÃO GERAL</DataTableHeaderCell>
+          </DataTableRow>
+        </DataTableHead>
+        <DataTableBody>
           {categories?.length && !leaderboardPages.results && (
-            <Tr>
-              <Td />
-              <Td p={6} textAlign='center'>
+            <DataTableRow>
+              <DataTableCell />
+              <DataTableCell className='py-6 text-center' colSpan={2}>
                 Busque por uma categoria
-              </Td>
-              <Td />
-              <Td />
-            </Tr>
+              </DataTableCell>
+              <DataTableCell />
+            </DataTableRow>
           )}
 
           {leaderboardPages.results?.length === 0 && (
-            <Tr>
-              <Td />
-              <Td p={6} textAlign='right'>
+            <DataTableRow>
+              <DataTableCell />
+              <DataTableCell className='py-6 text-right' colSpan={2}>
                 Sua categoria não tem inscrições ainda.
-              </Td>
-              <Td />
-
-              <Td />
-            </Tr>
+              </DataTableCell>
+              <DataTableCell />
+            </DataTableRow>
           )}
 
           {leaderboardPages.results?.map((leaderboard) => (
-            <Tr key={`${leaderboard.nickname}_${leaderboard.generalScore}`}>
-              <Td p={6} textTransform='capitalize'>
-                {leaderboard.nickname}
-              </Td>
-              <Td p={6} textTransform='capitalize'>
-                {leaderboard.category.name}
-              </Td>
-              <Td p={6} textTransform='capitalize'>
+            <DataTableRow key={`${leaderboard.nickname}_${leaderboard.generalScore}`}>
+              <DataTableCell className='py-6 capitalize'>{leaderboard.nickname}</DataTableCell>
+              <DataTableCell className='py-6 capitalize'>{leaderboard.category.name}</DataTableCell>
+              <DataTableCell className='py-6 capitalize'>
                 {leaderboard.ranking === 0 ? 'Sem ranking' : `${leaderboard.ranking}° Lugar`}
-              </Td>
-              <Td p={6} textTransform='capitalize'>
+              </DataTableCell>
+              <DataTableCell className='py-6 capitalize'>
                 {leaderboard.generalScore === 0
                   ? 'Sem pontuação'
                   : `${leaderboard.generalScore} ${
                       leaderboard.generalScore === 1 ? 'Ponto' : 'Pontos'
                     }`}
-              </Td>
-            </Tr>
+              </DataTableCell>
+            </DataTableRow>
           ))}
-        </Tbody>
-        <Tfoot>
-          {leaderboardPages.results?.length && (
-            <>
-              <Tr>
-                <Th display='flex' flexDirection='row'>
-                  <Flex align='center' mr={2}>
-                    Linhas por página
-                  </Flex>
+        </DataTableBody>
+      </DataTable>
 
-                  <Select
-                    w='75px'
-                    onChange={(event) => {
-                      setLimit(Number(event.target.value));
-                      setPage(Number(1));
-                    }}
-                  >
-                    <option value='5'>5</option>
-                    <option value='10'>10</option>
-                    <option value='20'>20</option>
-                  </Select>
-                </Th>
-                <Th />
-                <Th />
-                <Th>
-                  <Flex justify='end'>
-                    <HStack>
-                      {page === 1 && (
-                        <Text>
-                          {page * limit - (limit - 1)} - {page * limit} de {leaderboardPages.count}
-                        </Text>
-                      )}
-
-                      {page !== 1 && (
-                        <Text>
-                          {page * limit - (limit - 1)} - {page * limit - limit + currentTotal} de{' '}
-                          {leaderboardPages.count}
-                        </Text>
-                      )}
-                      <Tooltip label='Página anterior' placement='top' hasArrow>
-                        <Button
-                          disabled={!leaderboardPages.previous || isLoading}
-                          variant='link'
-                          onClick={previousPage}
-                        >
-                          <ChevronLeft
-                            color={leaderboardPages.previous ? 'black' : 'gray'}
-                            size={16}
-                          />
-                        </Button>
-                      </Tooltip>
-                      <Tooltip label='Próxima página' placement='top' hasArrow>
-                        <Button
-                          disabled={!leaderboardPages.next || isLoading}
-                          variant='link'
-                          onClick={nextPage}
-                        >
-                          <ChevronRight
-                            color={leaderboardPages.next ? 'black' : 'gray'}
-                            size={16}
-                          />
-                        </Button>
-                      </Tooltip>
-                    </HStack>
-                  </Flex>
-                </Th>
-              </Tr>
-            </>
-          )}
-        </Tfoot>
-      </Table>
-    </TableContainer>
+      {leaderboardPages.results?.length ? (
+        <PaginationBar
+          page={page}
+          limit={limit}
+          count={leaderboardPages.count ?? 0}
+          currentTotal={currentTotal}
+          hasPrevious={!!leaderboardPages.previous}
+          hasNext={!!leaderboardPages.next}
+          isLoading={isLoading}
+          onLimitChange={(next) => {
+            setLimit(next);
+            setPage(1);
+          }}
+          onPrevious={previousPage}
+          onNext={nextPage}
+        />
+      ) : null}
+    </>
   );
 };
 

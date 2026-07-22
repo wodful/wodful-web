@@ -9,7 +9,7 @@ import {
 } from '@/data/interfaces/subscription';
 import { SubscriptionService } from '@/services/Subscription';
 import { subscriptionMessages } from '@/utils/messages';
-import { useToast } from '@chakra-ui/react';
+import { useToast } from '@/components/ui/Toast';
 import { createContext, useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
 

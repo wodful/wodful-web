@@ -1,6 +1,14 @@
 import ComponentModal from '@/components/ComponentModal';
 import { EmptyList } from '@/components/EmptyList';
 import { Loader } from '@/components/Loader';
+import { Button } from '@/components/ui/Button';
+import {
+  DropdownMenu,
+  DropdownMenuButton,
+  DropdownMenuItem,
+  DropdownMenuList,
+} from '@/components/ui/DropdownMenu';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { CategoryProvider } from '@/contexts/category';
 import { ChampionshipProvider } from '@/contexts/championship';
 import { ScheduleProvider } from '@/contexts/schedule';
@@ -8,47 +16,28 @@ import { WorkoutProvider } from '@/contexts/workout';
 import { IConfiguration } from '@/data/interfaces/configuration';
 import useChampionshipData from '@/hooks/useChampionshipData';
 import useScheduleData from '@/hooks/useScheduleData';
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Flex,
-  HStack,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Text,
-  Tooltip,
-  useDisclosure,
-  VStack,
-} from '@chakra-ui/react';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Circle, Menu as MenuIcon } from 'react-feather';
 import { useParams } from 'react-router-dom';
 import ScheduleForm from './components/form';
 import ListSchedule from './components/list';
 
-const ScheduleWithProvider = () => {
-  const { onClose } = useDisclosure();
-
-  return (
-    <ScheduleProvider onClose={onClose}>
-      <ChampionshipProvider onClose={onClose}>
-        <CategoryProvider>
-          <WorkoutProvider>
-            <Schedule />
-          </WorkoutProvider>
-        </CategoryProvider>
-      </ChampionshipProvider>
-    </ScheduleProvider>
-  );
-};
+const ScheduleWithProvider = () => (
+  <ScheduleProvider onClose={() => undefined}>
+    <ChampionshipProvider onClose={() => undefined}>
+      <CategoryProvider>
+        <WorkoutProvider>
+          <Schedule />
+        </WorkoutProvider>
+      </CategoryProvider>
+    </ChampionshipProvider>
+  </ScheduleProvider>
+);
 
 const Schedule = () => {
   const { id } = useParams();
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   const [isOpenOption, setIsOpenOption] = useState<boolean>(false);
   const [isAuto, setIsAuto] = useState('false');
 
@@ -82,60 +71,46 @@ const Schedule = () => {
 
   return (
     <Suspense fallback={<Loader title='Carregando ...' />}>
-      <Box
-        as='main'
-        role='main'
-        w='100%'
-        display='flex'
-        flexDirection='column'
-        alignItems='center'
-        p={6}
-      >
+      <main className='flex w-full flex-col items-center p-6' role='main'>
         {hasElements && (
           <>
-            <HStack as='section' role='textbox' w='100%' justifyContent='space-between'>
-              <Flex as='article' role='textbox' direction='column' gap='0.75rem'>
-                <Text fontSize='2xl' as='b' role='heading'>
+            <section className='flex w-full items-center justify-between gap-3' role='textbox'>
+              <article className='flex flex-col gap-3' role='textbox'>
+                <h1 className='text-2xl font-bold text-slate-900' role='heading'>
                   Cronograma
-                </Text>
-              </Flex>
-              <Flex as='article' gap='1rem'>
-                <Menu>
-                  <MenuButton
-                    w={'100%'}
-                    color={'white'}
-                    textColor={'#2D3748'}
-                    variant='outline'
-                    as={Button}
-                    leftIcon={<MenuIcon size={20} />}
+                </h1>
+              </article>
+              <article className='flex items-center gap-4'>
+                <DropdownMenu>
+                  <DropdownMenuButton
+                    aria-label='Opções'
+                    className='!h-auto !w-auto min-w-0 gap-2 border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 hover:border-primary/40 hover:text-primary'
                   >
+                    <MenuIcon size={20} />
                     Opções
-                  </MenuButton>
-                  <MenuList>
-                    <MenuItem
-                      display={'flex'}
-                      alignItems={'center'}
-                      gap={'8px'}
-                      onClick={() => setIsOpenOption(true)}
-                    >
-                      {isAuto === 'true' ? (
-                        <Tooltip label='Ativada' placement='top' hasArrow>
-                          <Circle fill='#E53E3E' size={12} color='#E53E3E' />
-                        </Tooltip>
-                      ) : null}
-                      Ordenação automática
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-                <Button minW='170px' w='100%' colorScheme='teal' size='md' onClick={onOpen}>
+                  </DropdownMenuButton>
+                  <DropdownMenuList align='right'>
+                    <DropdownMenuItem onClick={() => setIsOpenOption(true)}>
+                      <span className='flex items-center gap-2'>
+                        {isAuto === 'true' ? (
+                          <Tooltip label='Ativada'>
+                            <Circle fill='#E53E3E' size={12} color='#E53E3E' />
+                          </Tooltip>
+                        ) : null}
+                        Ordenação automática
+                      </span>
+                    </DropdownMenuItem>
+                  </DropdownMenuList>
+                </DropdownMenu>
+                <Button variant='primary' className='min-w-[170px] w-auto' onClick={() => setIsOpen(true)}>
                   Adicionar atividade
                 </Button>
-              </Flex>
-            </HStack>
+              </article>
+            </section>
 
-            <Box as='section' w='100%' marginTop={6}>
+            <section className='mt-6 w-full'>
               <ListSchedule championshipId={id as string} />
-            </Box>
+            </section>
           </>
         )}
 
@@ -145,44 +120,39 @@ const Schedule = () => {
           isOpen={isOpenOption}
           onClose={() => setIsOpenOption(false)}
         >
-          <VStack align='start' w='100%' spacing={6} pb={4} flexDirection='column'>
-            <HStack w='100%'>
-              <Text fontSize='14px'>
-                {`Tem certeza que deseja ${
-                  isAuto === 'false' ? 'ativar' : 'desativar'
-                } a ordenação automática do cronograma?`}
-              </Text>
-            </HStack>
-            <ButtonGroup flexDirection='column' alignItems='end' gap={6} w='100%'>
-              <Button
-                colorScheme='teal'
-                w='100%'
-                mt={4}
-                onClick={() => handleToggleIsAutomatic(isAuto)}
-              >
-                {`${isAuto === 'false' ? 'Ativar' : 'Desativar'}`}
-              </Button>
-            </ButtonGroup>
-          </VStack>
+          <div className='flex w-full flex-col gap-6 pb-4'>
+            <p className='text-sm text-slate-700'>
+              {`Tem certeza que deseja ${
+                isAuto === 'false' ? 'ativar' : 'desativar'
+              } a ordenação automática do cronograma?`}
+            </p>
+            <Button
+              variant='primary'
+              className='mt-4 w-full'
+              onClick={() => handleToggleIsAutomatic(isAuto)}
+            >
+              {`${isAuto === 'false' ? 'Ativar' : 'Desativar'}`}
+            </Button>
+          </div>
         </ComponentModal>
 
         <ComponentModal
           modalHeader='Adicionar atividade ao cronograma'
           size='lg'
           isOpen={isOpen}
-          onClose={onClose}
+          onClose={() => setIsOpen(false)}
         >
-          <ScheduleForm onClose={onClose} />
+          <ScheduleForm onClose={() => setIsOpen(false)} />
         </ComponentModal>
 
         {!hasElements && (
           <EmptyList
             text='Você não possui um cronograma ainda!'
             contentButton='Crie um cronograma'
-            onClose={onOpen}
+            onClose={() => setIsOpen(true)}
           />
         )}
-      </Box>
+      </main>
     </Suspense>
   );
 };

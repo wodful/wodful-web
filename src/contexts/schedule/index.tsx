@@ -1,6 +1,6 @@
 import { IPublicSchedule } from '@/data/interfaces/schedule';
 import { PublicScheduleService } from '@/services/Public/Schedule';
-import { useToast } from '@chakra-ui/react';
+import { useToast } from '@/components/ui/Toast';
 import { createContext, useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
 

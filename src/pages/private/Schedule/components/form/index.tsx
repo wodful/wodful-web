@@ -1,23 +1,17 @@
+import { Button } from '@/components/ui/Button';
+import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { ICreateScheduleRequestDTO } from '@/data/interfaces/schedule';
 import useCategoryData from '@/hooks/useCategoryData';
 import useScheduleData from '@/hooks/useScheduleData';
 import useWorkoutData from '@/hooks/useWorkoutData';
 import { incrementAndFormatDate } from '@/utils/formatDate';
 import { validationMessages } from '@/utils/messages';
-import {
-  Button,
-  ButtonGroup,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  HStack,
-  Input,
-  Select,
-  VStack,
-} from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
+
 interface IFormScheduleProps {
   onClose: () => void;
 }
@@ -57,103 +51,96 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <VStack align='start' w='100%' spacing={6} pb={6} flexDirection='column'>
-        <FormControl isInvalid={!!errors.categoryId}>
-          <FormLabel>Categoria</FormLabel>
-          <Select
-            as='select'
-            id='category'
-            placeholder='Selecione a categoria'
-            {...register('categoryId', {
-              required: validationMessages['required'],
-              onChange: () => {
-                handleWorkout(getValues('categoryId'));
-              },
-            })}
-          >
-            {categories?.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </Select>
-          <FormErrorMessage>{errors.categoryId && errors.categoryId.message}</FormErrorMessage>
-        </FormControl>
+    <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 pb-6'>
+      <FormField id='schedule-category' label='Categoria' error={errors.categoryId?.message}>
+        <Select
+          id='schedule-category'
+          invalid={!!errors.categoryId}
+          {...register('categoryId', {
+            required: validationMessages['required'],
+            onChange: () => {
+              handleWorkout(getValues('categoryId'));
+            },
+          })}
+        >
+          <option value=''>Selecione a categoria</option>
+          {categories?.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </Select>
+      </FormField>
 
-        <FormControl isInvalid={!!errors.workoutId}>
-          <FormLabel>Nome da Prova</FormLabel>
-          <Select
-            as='select'
-            id='workout'
-            placeholder='Selecione a prova'
-            {...register('workoutId', { required: validationMessages['required'] })}
-            disabled={!workouts.length}
-          >
-            {workouts?.map((workout) => (
-              <option key={workout.id} value={workout.id}>
-                {workout.name}
-              </option>
-            ))}
-          </Select>
-          <FormErrorMessage>{errors.workoutId && errors.workoutId.message}</FormErrorMessage>
-        </FormControl>
+      <FormField id='schedule-workout' label='Nome da Prova' error={errors.workoutId?.message}>
+        <Select
+          id='schedule-workout'
+          invalid={!!errors.workoutId}
+          disabled={!workouts.length}
+          {...register('workoutId', { required: validationMessages['required'] })}
+        >
+          <option value=''>Selecione a prova</option>
+          {workouts?.map((workout) => (
+            <option key={workout.id} value={workout.id}>
+              {workout.name}
+            </option>
+          ))}
+        </Select>
+      </FormField>
 
-        <HStack width='100%'>
-          <FormControl isInvalid={!!errors.date}>
-            <FormLabel>Data de início</FormLabel>
-            <Input
-              type='date'
-              placeholder='DD/MM/AAAA'
-              {...register('date', { required: validationMessages['required'] })}
-            />
-            <FormErrorMessage>{errors.date && errors.date.message}</FormErrorMessage>
-          </FormControl>
+      <div className='grid w-full grid-cols-1 gap-6 sm:grid-cols-2'>
+        <FormField id='schedule-date' label='Data de início' error={errors.date?.message}>
+          <Input
+            id='schedule-date'
+            type='date'
+            placeholder='DD/MM/AAAA'
+            invalid={!!errors.date}
+            {...register('date', { required: validationMessages['required'] })}
+          />
+        </FormField>
 
-          <FormControl isInvalid={!!errors.hour}>
-            <FormLabel>Horário de início</FormLabel>
-            <Input
-              type='time'
-              placeholder='HH:MM'
-              {...register('hour', { required: validationMessages['required'] })}
-            />
-            <FormErrorMessage>{errors.hour && errors.hour.message}</FormErrorMessage>
-          </FormControl>
-        </HStack>
+        <FormField id='schedule-hour' label='Horário de início' error={errors.hour?.message}>
+          <Input
+            id='schedule-hour'
+            type='time'
+            placeholder='HH:MM'
+            invalid={!!errors.hour}
+            {...register('hour', { required: validationMessages['required'] })}
+          />
+        </FormField>
+      </div>
 
-        <FormControl isInvalid={!!errors.heat}>
-          <FormLabel>Bateria</FormLabel>
-          <Select as='select' {...register('heat', { required: validationMessages['required'] })}>
-            {NUMBERS_1_TO_15.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </Select>
-          <FormErrorMessage>{errors.heat && errors.heat.message}</FormErrorMessage>
-        </FormControl>
+      <FormField id='schedule-heat' label='Bateria' error={errors.heat?.message}>
+        <Select
+          id='schedule-heat'
+          invalid={!!errors.heat}
+          {...register('heat', { required: validationMessages['required'] })}
+        >
+          {NUMBERS_1_TO_15.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </Select>
+      </FormField>
 
-        <FormControl isInvalid={!!errors.laneQuantity}>
-          <FormLabel>Número de baias</FormLabel>
-          <Select
-            as='select'
-            {...register('laneQuantity', { required: validationMessages['required'] })}
-          >
-            {NUMBERS_1_TO_15.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </Select>
-          <FormErrorMessage>{errors.laneQuantity && errors.laneQuantity.message}</FormErrorMessage>
-        </FormControl>
+      <FormField id='schedule-lanes' label='Número de baias' error={errors.laneQuantity?.message}>
+        <Select
+          id='schedule-lanes'
+          invalid={!!errors.laneQuantity}
+          {...register('laneQuantity', { required: validationMessages['required'] })}
+        >
+          {NUMBERS_1_TO_15.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </Select>
+      </FormField>
 
-        <ButtonGroup flexDirection='column' alignItems='end' gap={6} w='100%'>
-          <Button colorScheme='teal' w='100%' mt={4} type='submit' disabled={!isValid}>
-            Adicionar
-          </Button>
-        </ButtonGroup>
-      </VStack>
+      <Button type='submit' variant='primary' className='mt-4 w-full' disabled={!isValid}>
+        Adicionar
+      </Button>
     </form>
   );
 };

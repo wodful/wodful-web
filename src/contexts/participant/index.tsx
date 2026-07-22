@@ -3,7 +3,7 @@ import { IPageResponse } from '@/data/interfaces/pageResponse';
 import { IParticipant, IParticipants } from '@/data/interfaces/participant';
 import { ParticipantsService } from '@/services/Participants';
 import { participantMessages } from '@/utils/messages';
-import { useToast } from '@chakra-ui/react';
+import { useToast } from '@/components/ui/Toast';
 import { createContext, useCallback, useState } from 'react';
 
 interface TicketProviderProps {

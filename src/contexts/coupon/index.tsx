@@ -2,7 +2,7 @@ import { AxiosAdapter } from '@/adapters/AxiosAdapter';
 import { IPageResponse } from '@/data/interfaces/pageResponse';
 import { ICoupon, CouponDTO } from '@/data/interfaces/coupon';
 import { CouponService } from '@/services/Coupon';
-import { useToast } from '@chakra-ui/react';
+import { useToast } from '@/components/ui/Toast';
 import { createContext, useCallback, useState } from 'react';
 
 interface CouponProviderProps {

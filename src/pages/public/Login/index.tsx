@@ -129,7 +129,7 @@ const Login = () => {
             loadingLabel="Entrando…"
             disabled={isEmpty || isLoading}
             data-cy="button-continuar"
-            className="mt-2"
+            className="mt-2 w-full"
           >
             Continuar
           </Button>

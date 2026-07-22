@@ -98,7 +98,7 @@ const Access = () => {
             type="submit"
             isLoading={isLoading}
             disabled={isEmpty || isLoading}
-            className="mt-2"
+            className="mt-2 w-full"
           >
             Continuar
           </Button>

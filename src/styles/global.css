@@ -16,7 +16,19 @@
   }
 
   body {
-    @apply font-sans antialiased text-gray-900;
+    @apply m-0 min-h-screen bg-white font-sans text-gray-900 antialiased;
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+  img {
+    @apply max-w-full;
   }
 
   :focus-visible {
@@ -36,7 +48,6 @@
 }
 
 @keyframes scheduleLivePulse {
-
   0%,
   100% {
     opacity: 1;

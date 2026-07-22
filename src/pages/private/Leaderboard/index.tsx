@@ -2,13 +2,14 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { EmptyList } from '@/components/EmptyList';
 import { Loader } from '@/components/Loader';
+import { Badge } from '@/components/ui/Badge';
+import { Select } from '@/components/ui/Select';
 import { CategoryProvider } from '@/contexts/category';
 import { LeaderboardProvider } from '@/contexts/leaderboard';
 import { SubscriptionProvider } from '@/contexts/subscription';
 import { WorkoutProvider } from '@/contexts/workout';
 import useCategoryData from '@/hooks/useCategoryData';
 import useLeaderboardData from '@/hooks/useLeaderboardData';
-import { Box, Flex, HStack, Select, Text } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 
 const ListLeaderboard = lazy(() => import('./components/list'));
@@ -43,40 +44,24 @@ const Leaderboard = () => {
 
   return (
     <Suspense fallback={<Loader title='Carregando ...' />}>
-      <Box
-        as='main'
-        role='main'
-        w='100%'
-        display='flex'
-        flexDirection='column'
-        alignItems='center'
-        p={6}
-      >
+      <main className='flex w-full flex-col items-center p-6' role='main'>
         {hasElements && (
-          <HStack as='section' role='textbox' w='100%' justifyContent='space-between'>
-            <Flex as='article' role='textbox' direction='column' gap='0.75rem'>
-              <Text fontSize='2xl' as='b' role='heading'>
+          <section className='flex w-full items-center justify-between gap-3' role='textbox'>
+            <article className='flex flex-col gap-3' role='textbox'>
+              <h1 className='text-2xl font-bold text-slate-900' role='heading'>
                 Leaderboard
-              </Text>
-              <Text
-                as='b'
-                role='textbox'
-                fontSize='0.75rem'
-                color='gray.500'
-                border='1px'
-                borderColor='gray.500'
-                borderRadius='4px'
-                padding='2px 8px'
-                textTransform='capitalize'
+              </h1>
+              <Badge
+                tone='neutral'
+                className='w-fit rounded border border-slate-400 px-2 py-0.5 text-xs capitalize'
               >
                 Categoria: {selectedCategory}
-              </Text>
-            </Flex>
-            <Flex as='article' gap='1rem'>
+              </Badge>
+            </article>
+            <article className='flex items-center gap-4'>
               <Select
-                as='select'
                 id='category'
-                placeholder='Selecione a categoria'
+                className='min-w-[200px]'
                 onChange={(event) => {
                   if (event.target.value) {
                     ListPaginated(String(id), event.target.value);
@@ -87,20 +72,21 @@ const Leaderboard = () => {
                   }
                 }}
               >
+                <option value=''>Selecione a categoria</option>
                 {categories?.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
                 ))}
               </Select>
-            </Flex>
-          </HStack>
+            </article>
+          </section>
         )}
 
         {hasElements && (
-          <Box as='section' w='100%' marginTop={6}>
+          <section className='mt-6 w-full'>
             <ListLeaderboard category={categoryId as string} champ={id as string} />
-          </Box>
+          </section>
         )}
 
         {!hasElements && (
@@ -110,7 +96,7 @@ const Leaderboard = () => {
             textLinkTo='Comece seu campeonato aqui.'
           />
         )}
-      </Box>
+      </main>
     </Suspense>
   );
 };
