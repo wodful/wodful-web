@@ -157,7 +157,7 @@ const ListSubscription = ({ id, categoryId, onEdit }: IListSubscription) => {
                     <DropdownMenuButton aria-label="Opções">
                       <MoreHorizontal size={18} />
                     </DropdownMenuButton>
-                    <DropdownMenuList>
+                    <DropdownMenuList side="top">
                       <DropdownMenuItem
                         onClick={() => changeSubscriptionStatus(subscription.id, 'approve')}
                       >

@@ -1,6 +1,6 @@
 import { ChangeEvent, lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Eye, EyeOff, Search } from 'react-feather';
+import { Search } from 'react-feather';
 
 import ComponentModal from '@/components/ComponentModal';
 import { Loader } from '@/components/Loader';
@@ -19,6 +19,7 @@ import useCategoryData from '@/hooks/useCategoryData';
 import useResultData from '@/hooks/useResultData';
 import useWorkoutData from '@/hooks/useWorkoutData';
 import { readLiveFilters, writeLiveFilters } from '@/utils/liveFilters';
+import { ResultEntryPanel } from './components/ResultEntryPanel';
 import ListResults, { type ReleaseFilter } from './components/list';
 
 const ResultForm = lazy(() => import('./components/form'));
@@ -43,7 +44,7 @@ const Result = () => {
   const [workoutId, setWorkoutId] = useState('');
   const [releaseFilter, setReleaseFilter] = useState<ReleaseFilter>('all');
   const [searchValue, setSearchValue] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [confirmReleaseOpen, setConfirmReleaseOpen] = useState(false);
   const [workoutReleased, setWorkoutReleased] = useState<boolean | null>(null);
   const [releasing, setReleasing] = useState(false);
@@ -108,7 +109,7 @@ const Result = () => {
     return () => {
       cancelled = true;
     };
-  }, [GetIsReleasedResult, workoutId, resultPages]);
+  }, [GetIsReleasedResult, workoutId]);
 
   const selectWorkout = useCallback(
     (nextWorkoutId: string) => {
@@ -124,14 +125,9 @@ const Result = () => {
     [ListPaginatedByWorkout, ListResultsData, categoryId, id],
   );
 
-  const openCreate = () => {
-    setResultId(undefined);
-    setIsOpen(true);
-  };
-
   const openEdit = useCallback((editId: string) => {
     setResultId(editId);
-    setIsOpen(true);
+    setEditOpen(true);
   }, []);
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -196,85 +192,56 @@ const Result = () => {
     }
   };
 
-  const selectedCategoryName =
-    categories.find((c) => c.id === categoryId)?.name ?? null;
-
-  const selectedWorkoutName = workouts.find((w) => w.id === workoutId)?.name;
+  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const selectedCategoryName = selectedCategory?.name ?? null;
+  const selectedWorkout = workouts.find((w) => w.id === workoutId);
+  const selectedWorkoutName = selectedWorkout?.name;
 
   const hiddenCount = useMemo(
     () => resultPages?.filter((r) => !r.isReleased).length ?? 0,
     [resultPages],
   );
 
-  const releaseButtonLabel =
-    workoutReleased === true
-      ? `Ocultar · ${selectedWorkoutName}`
-      : workoutReleased === false
-        ? `Liberar · ${selectedWorkoutName}`
-        : selectedWorkoutName
-          ? `Liberar / ocultar · ${selectedWorkoutName}`
-          : 'Liberar / ocultar · selecione a prova';
+  const releasedCount = useMemo(
+    () => resultPages?.filter((r) => r.isReleased).length ?? 0,
+    [resultPages],
+  );
 
   return (
     <Suspense fallback={<Loader title="Carregando ..." />}>
       <LivePageShell
         title="Resultados"
-        description="Lance scores por categoria e prova. Libere quando o público puder ver."
-        actions={
-          <Button variant="primary" disabled={!categoryId} onClick={openCreate}>
-            Adicionar resultado
-          </Button>
-        }
+        description="Lance e libere os resultados do evento."
       >
-        <div className="mb-4 space-y-3 rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mb-4 space-y-4 rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
+          <div>
             <FormField id="result-category" label="Categoria">
-              <Select
-                id="result-category"
-                value={categoryId}
-                onChange={handleChangeCategory}
-              >
-                <option value="">Selecione a categoria</option>
-                {categories?.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </Select>
-            </FormField>
-            <FormField
-              id="result-search"
-              label="Buscar participante"
-              hint="Mínimo de 3 letras."
-            >
-              <div className="relative">
-                <Search
-                  size={16}
-                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                  aria-hidden
-                />
-                <Input
-                  id="result-search"
-                  className="!pl-10"
-                  value={searchValue}
-                  onChange={handleSearchChange}
-                  disabled={!categoryId}
-                  placeholder="Nome do participante"
-                />
+              <div className="w-full sm:max-w-xs">
+                <Select
+                  id="result-category"
+                  value={categoryId}
+                  onChange={handleChangeCategory}
+                >
+                  <option value="">Selecione a categoria</option>
+                  {categories?.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
               </div>
-              {searchValue.length > 0 && searchValue.length < 3 ? (
-                <p className="mt-1 text-xs text-amber-700">
-                  Digite mais {3 - searchValue.length} letra(s) para buscar.
-                </p>
-              ) : null}
             </FormField>
           </div>
 
           {categoryId ? (
-            <div className="border-t border-slate-100 pt-3">
+            <div>
               <p className="mb-2 text-sm font-medium text-slate-700">Prova</p>
               {workouts.length ? (
-                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por prova">
+                <div
+                  className="flex flex-wrap gap-1.5"
+                  role="group"
+                  aria-label="Filtrar por prova"
+                >
                   <button
                     type="button"
                     onClick={() => selectWorkout('')}
@@ -312,48 +279,67 @@ const Result = () => {
             </div>
           ) : null}
 
-          {categoryId ? (
-            <div className="flex flex-col gap-3 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-1.5">
-                {(
-                  [
-                    ['all', 'Todos'],
-                    ['released', 'Liberados'],
-                    ['hidden', 'Ocultos'],
-                  ] as const
-                ).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setReleaseFilter(value)}
-                    className={[
-                      'rounded-chip px-3 py-1 text-xs font-semibold transition',
-                      releaseFilter === value
-                        ? 'bg-slate-800 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-                    ].join(' ')}
-                  >
-                    {label}
-                    {value === 'hidden' && hiddenCount > 0 ? ` (${hiddenCount})` : ''}
-                  </button>
-                ))}
-              </div>
-              <Button
-                variant="secondary"
-                className="!min-h-9 !px-3 !py-1.5 !text-xs"
-                aria-label={releaseButtonLabel}
-                onClick={openReleaseAction}
-              >
-                {workoutReleased ? (
-                  <EyeOff size={14} aria-hidden />
-                ) : (
-                  <Eye size={14} aria-hidden />
-                )}
-                {releaseButtonLabel}
-              </Button>
-            </div>
+          {categoryId && workoutId ? (
+            <ResultEntryPanel
+              categoryId={categoryId}
+              workoutId={workoutId}
+              workoutName={selectedWorkoutName}
+              workoutType={selectedWorkout?.workoutType}
+              isTeam={selectedCategory?.isTeam}
+              isReleased={workoutReleased}
+              onRelease={openReleaseAction}
+            />
+          ) : categoryId ? (
+            <p className="rounded-surface border border-dashed border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm text-slate-600">
+              Selecione uma prova para lançar resultados.
+            </p>
           ) : null}
         </div>
+
+        {categoryId ? (
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(
+                [
+                  ['all', 'Todos'],
+                  ['released', 'Liberados'],
+                  ['hidden', 'Ocultos'],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setReleaseFilter(value)}
+                  className={[
+                    'rounded-chip px-3 py-1 text-xs font-semibold transition',
+                    releaseFilter === value
+                      ? 'bg-slate-800 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                  ].join(' ')}
+                >
+                  {label}
+                  {value === 'released' && releasedCount > 0 ? ` (${releasedCount})` : ''}
+                  {value === 'hidden' && hiddenCount > 0 ? ` (${hiddenCount})` : ''}
+                </button>
+              ))}
+            </div>
+            <div className="relative w-full sm:max-w-xs">
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                aria-hidden
+              />
+              <Input
+                id="result-search"
+                className="!pl-10"
+                value={searchValue}
+                onChange={handleSearchChange}
+                placeholder="Buscar na tabela…"
+                aria-label="Buscar na tabela"
+              />
+            </div>
+          </div>
+        ) : null}
 
         {!categories.length ? (
           <EmptyState
@@ -384,12 +370,23 @@ const Result = () => {
         )}
 
         <ComponentModal
-          modalHeader={resultId ? 'Editar resultado' : 'Adicionar resultado'}
-          size="lg"
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
+          modalHeader="Editar resultado"
+          size="md"
+          isOpen={editOpen && !!resultId}
+          onClose={() => {
+            setEditOpen(false);
+            setResultId(undefined);
+          }}
         >
-          <ResultForm onClose={() => setIsOpen(false)} oldResultId={resultId} />
+          {resultId ? (
+            <ResultForm
+              onClose={() => {
+                setEditOpen(false);
+                setResultId(undefined);
+              }}
+              oldResultId={resultId}
+            />
+          ) : null}
         </ComponentModal>
 
         <ComponentModal

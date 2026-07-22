@@ -108,7 +108,7 @@ const ListTicket = ({ openEdit }: IListTicketProps) => {
                     <DropdownMenuButton aria-label="Opções">
                       <MoreHorizontal size={18} />
                     </DropdownMenuButton>
-                    <DropdownMenuList>
+                    <DropdownMenuList side="top">
                       <DropdownMenuItem onClick={() => openEdit(ticket)}>Editar</DropdownMenuItem>
                       <DropdownMenuItem danger onClick={() => openDelete(ticket.id)}>
                         Deletar

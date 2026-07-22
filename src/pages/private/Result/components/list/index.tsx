@@ -186,7 +186,7 @@ const ListResults = ({
                       <DropdownMenuButton aria-label="Mais opções">
                         <MoreHorizontal size={18} />
                       </DropdownMenuButton>
-                      <DropdownMenuList>
+                      <DropdownMenuList side="top">
                         <DropdownMenuItem onClick={() => openEdit(result.id)}>
                           Editar
                         </DropdownMenuItem>

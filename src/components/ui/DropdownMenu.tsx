@@ -1,30 +1,44 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 type DropdownMenuContextValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
   menuId: string;
+  triggerRef: RefObject<HTMLButtonElement>;
+  menuRef: RefObject<HTMLDivElement>;
 };
 
 const DropdownMenuContext = createContext<DropdownMenuContextValue | null>(null);
+
+const MENU_GAP = 6;
+const MENU_MIN_WIDTH = 160;
 
 export function DropdownMenu({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
@@ -38,7 +52,7 @@ export function DropdownMenu({ children }: { children: ReactNode }) {
   }, [open]);
 
   return (
-    <DropdownMenuContext.Provider value={{ open, setOpen, menuId }}>
+    <DropdownMenuContext.Provider value={{ open, setOpen, menuId, triggerRef, menuRef }}>
       <div ref={rootRef} className="relative inline-flex">
         {children}
       </div>
@@ -61,9 +75,10 @@ export function DropdownMenuButton({
   className?: string;
   'aria-label'?: string;
 }) {
-  const { open, setOpen, menuId } = useDropdownMenu();
+  const { open, setOpen, menuId, triggerRef } = useDropdownMenu();
   return (
     <button
+      ref={triggerRef}
       type="button"
       aria-haspopup="menu"
       aria-expanded={open}
@@ -77,25 +92,104 @@ export function DropdownMenuButton({
   );
 }
 
+type MenuCoords = {
+  top: number;
+  left: number;
+  ready: boolean;
+};
+
 export function DropdownMenuList({
   children,
   align = 'right',
+  /** Prefer opening above the trigger (better inside short tables). */
+  side = 'auto',
 }: {
   children: ReactNode;
   align?: 'left' | 'right';
+  side?: 'auto' | 'top' | 'bottom';
 }) {
-  const { open, menuId } = useDropdownMenu();
-  if (!open) return null;
-  return (
+  const { open, menuId, triggerRef, menuRef } = useDropdownMenu();
+  const [coords, setCoords] = useState<MenuCoords>({ top: 0, left: 0, ready: false });
+
+  const updatePosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    const list = menuRef.current;
+    if (!trigger || !list) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const menuWidth = Math.max(list.offsetWidth || MENU_MIN_WIDTH, MENU_MIN_WIDTH);
+    const menuHeight = list.offsetHeight || list.scrollHeight || 88;
+
+    const spaceBelow = window.innerHeight - rect.bottom - MENU_GAP;
+    const spaceAbove = rect.top - MENU_GAP;
+
+    let placeTop = side === 'top';
+    if (side === 'auto') {
+      placeTop = spaceBelow < menuHeight && spaceAbove >= spaceBelow;
+    } else if (side === 'bottom') {
+      placeTop = false;
+    }
+
+    // When space is tight below (common with few table rows near page end), prefer top.
+    if (side === 'auto' && spaceBelow < menuHeight + 8) {
+      placeTop = true;
+    }
+
+    let top = placeTop ? rect.top - menuHeight - MENU_GAP : rect.bottom + MENU_GAP;
+    top = Math.min(Math.max(8, top), window.innerHeight - menuHeight - 8);
+
+    let left = align === 'right' ? rect.right - menuWidth : rect.left;
+    left = Math.min(Math.max(8, left), window.innerWidth - menuWidth - 8);
+
+    setCoords({ top, left, ready: true });
+  }, [align, menuRef, side, triggerRef]);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setCoords({ top: 0, left: 0, ready: false });
+      return;
+    }
+
+    updatePosition();
+    const frame = requestAnimationFrame(() => {
+      updatePosition();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open, updatePosition, children]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onReposition = () => updatePosition();
+    window.addEventListener('resize', onReposition);
+    // capture: reposition when any scroll container moves
+    window.addEventListener('scroll', onReposition, true);
+    return () => {
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
+  }, [open, updatePosition]);
+
+  if (!open || typeof document === 'undefined') return null;
+
+  return createPortal(
     <div
+      ref={menuRef}
       id={menuId}
       role="menu"
-      className={`absolute z-30 mt-1 min-w-[10rem] rounded-surface border border-slate-200 bg-white py-1 shadow-lg ${
-        align === 'right' ? 'right-0' : 'left-0'
-      }`}
+      style={{
+        position: 'fixed',
+        top: coords.top,
+        left: coords.left,
+        zIndex: 1000,
+        minWidth: MENU_MIN_WIDTH,
+        opacity: coords.ready ? 1 : 0,
+        pointerEvents: coords.ready ? 'auto' : 'none',
+      }}
+      className="rounded-surface border border-slate-200 bg-white py-1 shadow-lg"
     >
       {children}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
