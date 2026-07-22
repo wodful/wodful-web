@@ -107,7 +107,7 @@ const ListWorkout = ({ id, showPontuacaoColumn = false }: IListWorkout) => {
                     <DropdownMenuButton aria-label="Opções">
                       <MoreHorizontal size={18} />
                     </DropdownMenuButton>
-                    <DropdownMenuList>
+                    <DropdownMenuList side="top">
                       <DropdownMenuItem danger onClick={() => openDelete(workout.id)}>
                         Deletar
                       </DropdownMenuItem>

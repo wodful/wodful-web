@@ -306,7 +306,7 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
                             <DropdownMenuButton aria-label="Mais opções">
                               <MoreHorizontal size={18} />
                             </DropdownMenuButton>
-                            <DropdownMenuList>
+                            <DropdownMenuList side="top">
                               <DropdownMenuItem
                                 danger
                                 onClick={() => {

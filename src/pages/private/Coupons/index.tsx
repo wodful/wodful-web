@@ -274,7 +274,7 @@ const Coupons = () => {
                         <DropdownMenuButton aria-label="Opções">
                           <MoreHorizontal size={18} />
                         </DropdownMenuButton>
-                        <DropdownMenuList>
+                        <DropdownMenuList side="top">
                           <DropdownMenuItem onClick={() => openEdit(coupon)}>
                             Editar
                           </DropdownMenuItem>

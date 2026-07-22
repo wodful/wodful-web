@@ -143,7 +143,7 @@ const ListParticipants = ({ participantOrTeamName, openModal }: IListParticipant
                     <DropdownMenuButton aria-label="Opções">
                       <MoreHorizontal size={18} />
                     </DropdownMenuButton>
-                    <DropdownMenuList>
+                    <DropdownMenuList side="top">
                       <DropdownMenuItem onClick={() => openModal('EDIT', participant)}>
                         Editar
                       </DropdownMenuItem>

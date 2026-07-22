@@ -27,7 +27,7 @@ export interface ResultContextData {
   setLimit: (value: number) => void;
   setPage: (value: number) => void;
   Delete: (id: string, categoryId: string) => Promise<void>;
-  Create: (data: ICreateResultRequestDTO) => void;
+  Create: (data: ICreateResultRequestDTO, options?: { silent?: boolean }) => Promise<boolean>;
   Get: (id: string) => Promise<void>;
   GetIsReleasedResult: (workoutId: string) => Promise<{ isReleased: boolean }>;
   Edit: (data: IEditResultDTO) => void;
@@ -110,26 +110,32 @@ export const ResultProvider = ({ children }: ResultProps) => {
   }, [currentCategoryId, currentWorkoutId, currentSearch, ListPaginated, ListPaginatedByWorkout]);
 
   const Create = useCallback(
-    async ({ workoutId, subscriptionId, result, categoryId }: ICreateResultRequestDTO) => {
+    async (
+      { workoutId, subscriptionId, result, categoryId }: ICreateResultRequestDTO,
+      options?: { silent?: boolean },
+    ) => {
       setIsLoading(true);
-      await new ResultService(axios)
-        .create({ workoutId, subscriptionId, result, categoryId })
-        .then(() => {
+      try {
+        await new ResultService(axios).create({ workoutId, subscriptionId, result, categoryId });
+        if (!options?.silent) {
           toast({
             title: resultMessages['success'],
             status: 'success',
             isClosable: true,
           });
-          ListPaginatedByWorkout(categoryId, workoutId);
-        })
-        .catch(() => {
-          toast({
-            title: resultMessages['error'],
-            status: 'error',
-            isClosable: true,
-          });
-        })
-        .finally(() => setIsLoading(false));
+        }
+        await ListPaginatedByWorkout(categoryId, workoutId);
+        return true;
+      } catch {
+        toast({
+          title: resultMessages['error'],
+          status: 'error',
+          isClosable: true,
+        });
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
     },
     [ListPaginatedByWorkout, toast],
   );

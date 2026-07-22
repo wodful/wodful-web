@@ -94,7 +94,7 @@ const ListCategory = ({ id, openEdit }: IListCategory) => {
                     <DropdownMenuButton aria-label="Opções">
                       <MoreHorizontal size={18} />
                     </DropdownMenuButton>
-                    <DropdownMenuList>
+                    <DropdownMenuList side="top">
                       <DropdownMenuItem onClick={() => openEdit(category)}>Editar</DropdownMenuItem>
                       <DropdownMenuItem danger onClick={() => openDelete(category.id)}>
                         Deletar
