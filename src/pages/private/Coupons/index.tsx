@@ -1,4 +1,4 @@
-import ComponentModal from '@/components/ComponentModal';
+import ComponentModal, { ModalFooter } from '@/components/ComponentModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -152,13 +152,14 @@ const Coupons = () => {
       onAction={openCreate}
     >
       <ComponentModal
-        modalHeader={editingCoupon ? 'Editar cupom' : 'Adicionar cupom'}
+        title={editingCoupon ? 'Editar cupom' : 'Adicionar cupom'}
+        description="Código, tipo e valor."
         size="lg"
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
       >
         <form
-          className="flex flex-col gap-4 pb-4"
+          className="flex flex-col gap-5"
           onSubmit={(event) => {
             event.preventDefault();
             void handleSubmit();
@@ -215,9 +216,24 @@ const Coupons = () => {
               onChange={(e) => setMaxRedemptions(e.target.value)}
             />
           </FormField>
-          <Button type="submit" variant="primary" isLoading={isLoading} className="mt-2 w-full">
-            {editingCoupon ? 'Salvar alterações' : 'Criar cupom'}
-          </Button>
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full sm:w-auto"
+              onClick={() => setIsOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={isLoading}
+              className="w-full sm:w-auto"
+            >
+              {editingCoupon ? 'Salvar' : 'Adicionar'}
+            </Button>
+          </ModalFooter>
         </form>
       </ComponentModal>
 

@@ -1,3 +1,4 @@
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -28,11 +29,11 @@ const FormMedal = ({ onClose, idParticipant }: EditMedalProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
-      <FormField id="medalTakenBy" label="Nome" error={errors.medalTakenBy?.message}>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <FormField id="medalTakenBy" label="Responsável" error={errors.medalTakenBy?.message}>
         <Input
           id="medalTakenBy"
-          placeholder="Responsável pela retirada"
+          placeholder="Quem retirou a medalha"
           invalid={!!errors.medalTakenBy}
           {...register('medalTakenBy', {
             required: validationMessages['required'],
@@ -41,9 +42,14 @@ const FormMedal = ({ onClose, idParticipant }: EditMedalProps) => {
           })}
         />
       </FormField>
-      <Button type="submit" variant="primary" disabled={!isValid} className="sticky bottom-0 w-full">
-        Salvar
-      </Button>
+      <ModalFooter>
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button type="submit" variant="primary" disabled={!isValid} className="w-full sm:w-auto">
+          Confirmar retirada
+        </Button>
+      </ModalFooter>
     </form>
   );
 };

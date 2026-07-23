@@ -1,3 +1,5 @@
+export type PickupStatusFilter = 'pending' | 'taken';
+
 export interface IParticipants {
   id: string;
   name: string;

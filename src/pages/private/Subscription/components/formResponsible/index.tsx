@@ -1,3 +1,4 @@
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -56,70 +57,81 @@ const FormResponsible = ({ subId, onClose }: UpdateModalProps) => {
   ]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
-      <p className="font-bold text-slate-900">Dados do responsável</p>
-      <FormField id="responsibleName" label="Nome" error={errors.responsibleName?.message}>
-        <Input
-          id="responsibleName"
-          placeholder="Nome do responsável"
-          invalid={!!errors.responsibleName}
-          {...register('responsibleName', {
-            required: validationMessages['required'],
-            minLength: { value: 4, message: validationMessages['minLength'] },
-            maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-          })}
-        />
-      </FormField>
-      <FormField id="responsibleEmail" label="E-mail" error={errors.responsibleEmail?.message}>
-        <Input
-          id="responsibleEmail"
-          placeholder="E-mail do responsável"
-          invalid={!!errors.responsibleEmail}
-          {...register('responsibleEmail', {
-            required: validationMessages['required'],
-            minLength: { value: 4, message: validationMessages['minLength'] },
-            maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: validationMessages['invalidField'],
-            },
-          })}
-        />
-      </FormField>
-      <FormField id="responsiblePhone" label="Telefone" error={errors.responsiblePhone?.message}>
-        <Input
-          id="responsiblePhone"
-          placeholder="Telefone do responsável"
-          invalid={!!errors.responsiblePhone}
-          {...register('responsiblePhone', {
-            required: validationMessages['required'],
-            minLength: { value: 10, message: validationMessages['minLength'] },
-            maxLength: { value: 15, message: validationMessages['maxLengthSm'] },
-            value: formatDisplayPhone,
-            onChange(event) {
-              formatPhone(event.target.value);
-            },
-          })}
-        />
-      </FormField>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-slate-900">Dados do responsável</h3>
+        <div className="space-y-5">
+          <FormField id="responsibleName" label="Nome" error={errors.responsibleName?.message}>
+            <Input
+              id="responsibleName"
+              placeholder="Nome do responsável"
+              invalid={!!errors.responsibleName}
+              {...register('responsibleName', {
+                required: validationMessages['required'],
+                minLength: { value: 4, message: validationMessages['minLength'] },
+                maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+              })}
+            />
+          </FormField>
+          <FormField id="responsibleEmail" label="E-mail" error={errors.responsibleEmail?.message}>
+            <Input
+              id="responsibleEmail"
+              placeholder="E-mail do responsável"
+              invalid={!!errors.responsibleEmail}
+              {...register('responsibleEmail', {
+                required: validationMessages['required'],
+                minLength: { value: 4, message: validationMessages['minLength'] },
+                maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: validationMessages['invalidField'],
+                },
+              })}
+            />
+          </FormField>
+          <FormField id="responsiblePhone" label="Telefone" error={errors.responsiblePhone?.message}>
+            <Input
+              id="responsiblePhone"
+              placeholder="Telefone do responsável"
+              invalid={!!errors.responsiblePhone}
+              {...register('responsiblePhone', {
+                required: validationMessages['required'],
+                minLength: { value: 10, message: validationMessages['minLength'] },
+                maxLength: { value: 15, message: validationMessages['maxLengthSm'] },
+                value: formatDisplayPhone,
+                onChange(event) {
+                  formatPhone(event.target.value);
+                },
+              })}
+            />
+          </FormField>
+        </div>
+      </div>
 
-      <p className="font-bold text-slate-900">Dados do Atleta</p>
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-slate-900">Dados do atleta</h3>
+        <FormField id="nickname" label="Nome do time ou apelido" error={errors.nickname?.message}>
+          <Input
+            id="nickname"
+            placeholder="Informe o nome do time ou apelido"
+            invalid={!!errors.nickname}
+            {...register('nickname', {
+              required: validationMessages['required'],
+              minLength: { value: 4, message: validationMessages['minLength'] },
+              maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+            })}
+          />
+        </FormField>
+      </div>
 
-      <FormField id="nickname" label="Nome do time ou apelido" error={errors.nickname?.message}>
-        <Input
-          id="nickname"
-          placeholder="Informe o nome do time ou apelido"
-          invalid={!!errors.nickname}
-          {...register('nickname', {
-            required: validationMessages['required'],
-            minLength: { value: 4, message: validationMessages['minLength'] },
-            maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-          })}
-        />
-      </FormField>
-      <Button type="submit" variant="primary" disabled={!isValid} className="w-full">
-        Editar
-      </Button>
+      <ModalFooter>
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button type="submit" variant="primary" disabled={!isValid} className="w-full sm:w-auto">
+          Salvar
+        </Button>
+      </ModalFooter>
     </form>
   );
 };

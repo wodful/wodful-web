@@ -1,4 +1,3 @@
-import ComponentModal from '@/components/ComponentModal';
 import DeleteData from '@/components/Delete';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -162,18 +161,13 @@ const ListTicket = ({ openEdit }: IListTicketProps) => {
         {statusAnnounce}
       </div>
 
-      <ComponentModal
-        modalHeader="Remover ingresso"
-        size="sm"
+      <DeleteData
         isOpen={isOpen}
+        title="Remover ingresso"
         onClose={() => setIsOpen(false)}
-      >
-        <DeleteData
-          onClose={() => setIsOpen(false)}
-          removedData="o ingresso"
-          confirmDelete={() => Delete(ticketId)}
-        />
-      </ComponentModal>
+        removedData="o ingresso"
+        confirmDelete={() => Delete(ticketId)}
+      />
 
       <div className="space-y-3 rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

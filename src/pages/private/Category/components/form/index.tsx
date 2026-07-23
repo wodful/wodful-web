@@ -1,3 +1,4 @@
+import { ModalFooter } from '@/components/ComponentModal';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
@@ -77,7 +78,7 @@ const FormCategory = ({ id, onClose, oldCategory, resetCategory }: IFormChampion
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
       <FormField id="cat-name" label="Nome" error={errors.name?.message}>
         <Input
           id="cat-name"
@@ -145,15 +146,20 @@ const FormCategory = ({ id, onClose, oldCategory, resetCategory }: IFormChampion
         </div>
       ) : null}
 
-      <Button
-        type="submit"
-        variant="primary"
-        disabled={!isValid}
-        isLoading={isLoading}
-        className="w-full"
-      >
-        {oldCategory ? 'Salvar alterações' : 'Adicionar categoria'}
-      </Button>
+      <ModalFooter>
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={!isValid}
+          isLoading={isLoading}
+          className="w-full sm:w-auto"
+        >
+          {oldCategory ? 'Salvar' : 'Adicionar'}
+        </Button>
+      </ModalFooter>
     </form>
   );
 };

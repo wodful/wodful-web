@@ -1,4 +1,3 @@
-import ComponentModal from '@/components/ComponentModal';
 import DeleteData from '@/components/Delete';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -91,18 +90,13 @@ const ListCategory = ({ openEdit }: IListCategory) => {
 
   return (
     <div className="space-y-4">
-      <ComponentModal
-        modalHeader="Remover categoria"
-        size="sm"
+      <DeleteData
         isOpen={isOpen}
+        title="Remover categoria"
         onClose={() => setIsOpen(false)}
-      >
-        <DeleteData
-          onClose={() => setIsOpen(false)}
-          removedData="a categoria"
-          confirmDelete={() => Delete(categoryId)}
-        />
-      </ComponentModal>
+        removedData="a categoria"
+        confirmDelete={() => Delete(categoryId)}
+      />
 
       <div className="space-y-3 rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
         <Input

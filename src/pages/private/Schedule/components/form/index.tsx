@@ -1,3 +1,4 @@
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -51,10 +52,10 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 pb-6'>
-      <FormField id='schedule-category' label='Categoria' error={errors.categoryId?.message}>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <FormField id="schedule-category" label="Categoria" error={errors.categoryId?.message}>
         <Select
-          id='schedule-category'
+          id="schedule-category"
           invalid={!!errors.categoryId}
           {...register('categoryId', {
             required: validationMessages['required'],
@@ -63,7 +64,7 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
             },
           })}
         >
-          <option value=''>Selecione a categoria</option>
+          <option value="">Selecione a categoria</option>
           {categories?.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -72,14 +73,14 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
         </Select>
       </FormField>
 
-      <FormField id='schedule-workout' label='Nome da Prova' error={errors.workoutId?.message}>
+      <FormField id="schedule-workout" label="Nome da Prova" error={errors.workoutId?.message}>
         <Select
-          id='schedule-workout'
+          id="schedule-workout"
           invalid={!!errors.workoutId}
           disabled={!workouts.length}
           {...register('workoutId', { required: validationMessages['required'] })}
         >
-          <option value=''>Selecione a prova</option>
+          <option value="">Selecione a prova</option>
           {workouts?.map((workout) => (
             <option key={workout.id} value={workout.id}>
               {workout.name}
@@ -88,31 +89,31 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
         </Select>
       </FormField>
 
-      <div className='grid w-full grid-cols-1 gap-6 sm:grid-cols-2'>
-        <FormField id='schedule-date' label='Data de início' error={errors.date?.message}>
+      <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2">
+        <FormField id="schedule-date" label="Data de início" error={errors.date?.message}>
           <Input
-            id='schedule-date'
-            type='date'
-            placeholder='DD/MM/AAAA'
+            id="schedule-date"
+            type="date"
+            placeholder="DD/MM/AAAA"
             invalid={!!errors.date}
             {...register('date', { required: validationMessages['required'] })}
           />
         </FormField>
 
-        <FormField id='schedule-hour' label='Horário de início' error={errors.hour?.message}>
+        <FormField id="schedule-hour" label="Horário de início" error={errors.hour?.message}>
           <Input
-            id='schedule-hour'
-            type='time'
-            placeholder='HH:MM'
+            id="schedule-hour"
+            type="time"
+            placeholder="HH:MM"
             invalid={!!errors.hour}
             {...register('hour', { required: validationMessages['required'] })}
           />
         </FormField>
       </div>
 
-      <FormField id='schedule-heat' label='Bateria' error={errors.heat?.message}>
+      <FormField id="schedule-heat" label="Bateria" error={errors.heat?.message}>
         <Select
-          id='schedule-heat'
+          id="schedule-heat"
           invalid={!!errors.heat}
           {...register('heat', { required: validationMessages['required'] })}
         >
@@ -124,9 +125,9 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
         </Select>
       </FormField>
 
-      <FormField id='schedule-lanes' label='Número de baias' error={errors.laneQuantity?.message}>
+      <FormField id="schedule-lanes" label="Número de baias" error={errors.laneQuantity?.message}>
         <Select
-          id='schedule-lanes'
+          id="schedule-lanes"
           invalid={!!errors.laneQuantity}
           {...register('laneQuantity', { required: validationMessages['required'] })}
         >
@@ -138,9 +139,14 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
         </Select>
       </FormField>
 
-      <Button type='submit' variant='primary' className='mt-4 w-full' disabled={!isValid}>
-        Adicionar
-      </Button>
+      <ModalFooter>
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button type="submit" variant="primary" className="w-full sm:w-auto" disabled={!isValid}>
+          Adicionar
+        </Button>
+      </ModalFooter>
     </form>
   );
 };

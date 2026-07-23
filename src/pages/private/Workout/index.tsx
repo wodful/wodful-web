@@ -56,7 +56,13 @@ const Workout = () => {
         actionLabel="Adicionar prova"
         onAction={() => setIsOpen(true)}
       >
-        <ComponentModal modalHeader="Criar prova" size="xl" isOpen={isOpen} onClose={onClose}>
+        <ComponentModal
+          title="Adicionar prova"
+          description="Categorias, tipo e descrição."
+          size="xl"
+          isOpen={isOpen}
+          onClose={onClose}
+        >
           <FormWorkout id={id as string} onClose={onClose} showHalfPointsOption={isScoreType} />
         </ComponentModal>
 

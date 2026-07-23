@@ -1,29 +1,36 @@
-import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 interface IDelete {
   removedData: string;
   onClose: () => void;
   confirmDelete: () => void;
+  isOpen: boolean;
+  title?: string;
 }
 
-const DeleteData = ({ onClose, removedData, confirmDelete }: IDelete) => {
-  const deleteData = () => {
+/** Full-screen confirm modal for destructive removals. */
+const DeleteData = ({
+  onClose,
+  removedData,
+  confirmDelete,
+  isOpen,
+  title = 'Remover',
+}: IDelete) => {
+  const handleConfirm = () => {
     confirmDelete();
     onClose();
   };
 
   return (
-    <div className="flex w-full flex-col gap-5 pb-2">
-      <p className="text-sm text-slate-700">Tem certeza que deseja remover {removedData}</p>
-      <div className="flex flex-col gap-2">
-        <Button variant="danger" className="w-full" onClick={deleteData}>
-          Remover
-        </Button>
-        <Button variant="secondary" className="w-full" onClick={onClose}>
-          Cancelar
-        </Button>
-      </div>
-    </div>
+    <ConfirmModal
+      isOpen={isOpen}
+      title={title}
+      description={`Remover ${removedData}.`}
+      confirmLabel="Remover"
+      tone="danger"
+      onConfirm={handleConfirm}
+      onClose={onClose}
+    />
   );
 };
 

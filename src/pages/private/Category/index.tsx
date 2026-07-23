@@ -51,7 +51,8 @@ const Category = () => {
         onAction={openCreate}
       >
         <ComponentModal
-          modalHeader={category ? 'Editar categoria' : 'Criar categoria'}
+          title={category ? 'Editar categoria' : 'Adicionar categoria'}
+          description="Nome, descrição e formato."
           size="lg"
           isOpen={isOpen}
           onClose={onClose}

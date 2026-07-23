@@ -1,3 +1,4 @@
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -64,7 +65,7 @@ const FormSubscription = ({ id, openFormParticipants, onCancel }: CreateModalPro
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
       <SubscriptionFormStepper step={1} />
 
       <div>
@@ -144,14 +145,14 @@ const FormSubscription = ({ id, openFormParticipants, onCancel }: CreateModalPro
         </Select>
       </FormField>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <ModalFooter>
         <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onCancel}>
           Cancelar
         </Button>
         <Button type="submit" variant="primary" disabled={!isValid} className="w-full sm:w-auto">
           Próximo
         </Button>
-      </div>
+      </ModalFooter>
     </form>
   );
 };
