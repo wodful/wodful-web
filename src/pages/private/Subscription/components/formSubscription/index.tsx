@@ -5,46 +5,75 @@ import { Select } from '@/components/ui/Select';
 import { ISubscriptionForm } from '@/data/interfaces/subscription';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
 import useTicketData from '@/hooks/useTicketData';
-import { regexOnlyNumber } from '@/utils/documentVerification';
 import { validationMessages } from '@/utils/messages';
-import { useEffect, useState } from 'react';
+import { formatPhoneDisplay, phoneDigitsOnly } from '@/utils/phone';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { SubscriptionFormStepper } from '../SubscriptionFormStepper';
 
 interface CreateModalProps {
   id: string;
   openFormParticipants: (step: number, participantsNumber: number) => void;
+  onCancel: () => void;
 }
 
-const FormSubscription = ({ id, openFormParticipants }: CreateModalProps) => {
-  const [formatDisplayPhone, setFormatDisplayPhone] = useState<string>('');
-  const { setSubscriptionForm } = useSubscriptionData();
+const FormSubscription = ({ id, openFormParticipants, onCancel }: CreateModalProps) => {
+  const { setSubscriptionForm, subscriptionForm } = useSubscriptionData();
   const { ListEnabled, tickets } = useTicketData();
+
+  const defaultTicketIndex = useMemo(() => {
+    if (!subscriptionForm?.ticketId) return '';
+    const index = tickets.findIndex((ticket) => ticket.id === subscriptionForm.ticketId);
+    return index >= 0 ? String(index) : '';
+  }, [subscriptionForm?.ticketId, tickets]);
+
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isValid },
   } = useForm<ISubscriptionForm>({
     mode: 'onChange',
+    defaultValues: {
+      responsibleName: subscriptionForm?.responsibleName ?? '',
+      responsibleEmail: subscriptionForm?.responsibleEmail ?? '',
+      responsiblePhone: subscriptionForm?.responsiblePhone ?? '',
+      ticketIndex: defaultTicketIndex as unknown as number,
+    },
   });
+
+  const phoneValue = watch('responsiblePhone') ?? '';
 
   useEffect(() => {
     ListEnabled(id);
   }, [ListEnabled, id]);
 
-  function onSubmit(subscription: ISubscriptionForm) {
-    subscription.ticketId = tickets[subscription.ticketIndex as number].id;
-    setSubscriptionForm(subscription as ISubscriptionForm);
-    openFormParticipants(1, tickets[subscription.ticketIndex as number].category?.members);
-  }
+  useEffect(() => {
+    if (defaultTicketIndex !== '' && defaultTicketIndex !== undefined) {
+      setValue('ticketIndex', Number(defaultTicketIndex), { shouldValidate: true });
+    }
+  }, [defaultTicketIndex, setValue]);
 
-  const formatPhone = (phoneNumber: string) => {
-    phoneNumber = regexOnlyNumber(phoneNumber);
-    setFormatDisplayPhone(phoneNumber);
-  };
+  function onSubmit(subscription: ISubscriptionForm) {
+    const ticket = tickets[Number(subscription.ticketIndex)];
+    subscription.ticketId = ticket.id;
+    subscription.responsiblePhone = phoneDigitsOnly(subscription.responsiblePhone);
+    setSubscriptionForm(subscription);
+    openFormParticipants(1, ticket.category?.members);
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
-      <p className="font-bold text-slate-900">Dados do responsável</p>
+      <SubscriptionFormStepper step={1} />
+
+      <div>
+        <h3 className="text-sm font-semibold text-slate-900">Dados do responsável</h3>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Quem receberá a confirmação e o contato da inscrição.
+        </p>
+      </div>
+
       <FormField id="responsibleName" label="Nome" error={errors.responsibleName?.message}>
         <Input
           id="responsibleName"
@@ -60,6 +89,7 @@ const FormSubscription = ({ id, openFormParticipants }: CreateModalProps) => {
       <FormField id="responsibleEmail" label="E-mail" error={errors.responsibleEmail?.message}>
         <Input
           id="responsibleEmail"
+          type="email"
           placeholder="E-mail do responsável"
           invalid={!!errors.responsibleEmail}
           {...register('responsibleEmail', {
@@ -76,15 +106,22 @@ const FormSubscription = ({ id, openFormParticipants }: CreateModalProps) => {
       <FormField id="responsiblePhone" label="Telefone" error={errors.responsiblePhone?.message}>
         <Input
           id="responsiblePhone"
-          placeholder="Telefone do responsável"
-          value={formatDisplayPhone}
+          type="tel"
+          inputMode="numeric"
+          placeholder="(11) 99999-9999"
+          value={formatPhoneDisplay(phoneValue)}
           invalid={!!errors.responsiblePhone}
           {...register('responsiblePhone', {
             required: validationMessages['required'],
-            minLength: { value: 10, message: validationMessages['minLength'] },
-            maxLength: { value: 15, message: validationMessages['maxLengthSm'] },
+            validate: (value) => {
+              const digits = phoneDigitsOnly(value);
+              return digits.length >= 10 || validationMessages['minLength'];
+            },
             onChange(event) {
-              formatPhone(event.target.value);
+              setValue('responsiblePhone', phoneDigitsOnly(event.target.value), {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
             },
           })}
         />
@@ -101,14 +138,20 @@ const FormSubscription = ({ id, openFormParticipants }: CreateModalProps) => {
           <option value="">Selecione o ticket da categoria</option>
           {tickets?.map((ticket, index) => (
             <option key={ticket.id} value={index}>
-              {ticket.name}
+              {ticket.category?.name ? `${ticket.category.name} · ${ticket.name}` : ticket.name}
             </option>
           ))}
         </Select>
       </FormField>
-      <Button type="submit" variant="primary" disabled={!isValid} className="w-full">
-        Próximo
-      </Button>
+
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit" variant="primary" disabled={!isValid} className="w-full sm:w-auto">
+          Próximo
+        </Button>
+      </div>
     </form>
   );
 };

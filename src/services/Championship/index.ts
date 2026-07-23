@@ -29,6 +29,23 @@ export class ChampionshipService {
     }
   }
 
+  async listAffiliations(championshipId: string, query?: string): Promise<string[]> {
+    const search = new URLSearchParams();
+    if (query?.trim()) search.set('q', query.trim());
+    const qs = search.toString();
+    const { statusCode, body } = await this.httpClient.request({
+      method: 'get',
+      url: `${this.path}/${championshipId}/affiliations${qs ? `?${qs}` : ''}`,
+    });
+
+    switch (statusCode) {
+      case HttpStatusCode.ok:
+        return (body as unknown as string[]) ?? [];
+      default:
+        throw new Error();
+    }
+  }
+
   async create({
     name,
     startDate,

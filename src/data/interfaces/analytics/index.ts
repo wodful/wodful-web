@@ -5,6 +5,7 @@ export type ChampionshipAnalyticsSummary = {
   subscriptionsDeclined: number;
   subscriptionsOnline: number;
   subscriptionsOutside: number;
+  subscriptionsComplimentary: number;
   ticketsSold: number;
   ticketsCapacity: number;
   revenueApproximate: number;

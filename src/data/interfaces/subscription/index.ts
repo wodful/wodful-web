@@ -7,6 +7,10 @@ export interface ISubscriptionDTO {
   nickname: string;
   ticketId: string;
   participants: IParticipantDTO[];
+  /** Admin: approve immediately without Mercado Pago payment */
+  approveManually?: boolean;
+  /** Admin: fee waived by organizer */
+  isComplimentary?: boolean;
 }
 
 export interface ISubscriptionForm {
@@ -25,7 +29,16 @@ export interface ISimpleSubscription {
 export interface IParticipantForm {
   nickname: string;
   participants: IParticipantDTO[];
+  approveManually?: boolean;
+  isComplimentary?: boolean;
 }
+
+export type SubscriptionPaymentOrigin =
+  | 'MERCADO_PAGO'
+  | 'MANUAL'
+  | 'COMPLIMENTARY'
+  | 'NONE';
+
 export interface ISubscription {
   id: string;
   responsibleName: string;
@@ -33,6 +46,12 @@ export interface ISubscription {
   responsiblePhone?: string;
   nickname: string;
   status: 'APPROVED' | 'WAITING' | 'DECLINED';
+  paidOnline?: boolean;
+  isComplimentary?: boolean;
+  paymentOrigin?: SubscriptionPaymentOrigin;
+  ticketPrice?: number;
+  amountPaid?: number | null;
+  amountEstimated?: number;
   createdAt: Date | string;
   category: {
     name: string;
@@ -44,4 +63,9 @@ export interface UpdateSubscriptionDTO {
   responsibleEmail: string;
   responsiblePhone: string;
   nickname: string;
+}
+
+export interface ISubscriptionPaymentLink {
+  paymentId: string;
+  paymentUrl: string;
 }
