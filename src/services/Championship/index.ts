@@ -3,14 +3,31 @@ import {
   IChampionship,
   IChampionshipEditDTO,
 } from '@/data/interfaces/championship';
+import { ChampionshipAnalytics } from '@/data/interfaces/analytics';
 import { HttpClient, HttpStatusCode } from '@/data/interfaces/http';
 import { IPageResponse } from '@/data/interfaces/pageResponse';
 
 export class ChampionshipService {
   constructor(
-    private readonly httpClient: HttpClient<IChampionship | IChampionship[]>,
+    private readonly httpClient: HttpClient<
+      IChampionship | IChampionship[] | ChampionshipAnalytics
+    >,
     private readonly path = '/championships',
-  ) { }
+  ) {}
+
+  async getAnalytics(championshipId: string): Promise<ChampionshipAnalytics> {
+    const { statusCode, body } = await this.httpClient.request({
+      method: 'get',
+      url: `${this.path}/${championshipId}/analytics`,
+    });
+
+    switch (statusCode) {
+      case HttpStatusCode.ok:
+        return body! as ChampionshipAnalytics;
+      default:
+        throw new Error();
+    }
+  }
 
   async create({
     name,
