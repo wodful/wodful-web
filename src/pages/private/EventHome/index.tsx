@@ -104,7 +104,7 @@ const EventHome = () => {
               value={String(summary.subscriptionsApproved)}
             />
             <MiniKpi
-              label="Recebido (MP)"
+              label="Recebido online"
               value={formatCurrency(summary.revenuePaid)}
             />
           </div>

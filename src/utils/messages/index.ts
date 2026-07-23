@@ -93,10 +93,14 @@ export const subscriptionMessages = {
   update_err: 'Algo deu errado ao alterar a inscrição',
   resend_email_success: 'E-mail reenviado com sucesso',
   resend_email_error: 'Algo deu errado ao reenviar o e-mail',
+  complimentary_success: 'Isenção atualizada com sucesso',
+  complimentary_error: 'Algo deu errado ao atualizar a isenção',
+  payment_link_success: 'Link de pagamento gerado',
+  payment_link_error: 'Algo deu errado ao gerar o link de pagamento',
 };
 
 export const subscriptionStatus = {
-  APPROVED: 'INSCRIÇÃO PAGA',
-  WAITING: 'AGUARDANDO',
-  DECLINED: 'RECUSADA',
+  APPROVED: 'Aprovada',
+  WAITING: 'Aguardando pagamento',
+  DECLINED: 'Recusada',
 };

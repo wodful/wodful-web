@@ -27,11 +27,17 @@ import { ChampionshipService } from '@/services/Championship';
 const axios = new AxiosAdapter();
 const championshipService = new ChampionshipService(axios);
 
-const REVENUE_HELP =
-  'Recebido: pagamentos confirmados no Mercado Pago. Por fora: inscritos aprovados manualmente (PIX/pagamento externo ou link regenerado), com valor estimado pelo preço do ticket menos cupom.';
+const REVENUE_TOTAL_HELP =
+  'Soma do recebido online (checkout confirmado) com o estimado das inscrições internas (preço do ticket menos cupom). Isentas não entram neste total.';
+
+const ONLINE_HELP =
+  'Pagamentos confirmados no checkout do site.';
 
 const OUTSIDE_HELP =
-  'Inscrições aprovadas sem pagamento PAID no Mercado Pago — inclusão manual, PIX fora da plataforma ou novo link após vencimento.';
+  'Inscrições aprovadas no painel sem pagamento no checkout e sem isenção — PIX externo ou inclusão interna. Valor estimado pelo preço do ticket menos cupom.';
+
+const COMPLIMENTARY_HELP =
+  'Inscrições liberadas pelo organizador sem cobrança. Contam como aprovadas, mas não entram no valor estimado.';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', {
@@ -95,6 +101,56 @@ function KpiCard({
         {value}
       </p>
       {hint ? <p className="mt-1 text-xs leading-relaxed text-slate-500">{hint}</p> : null}
+    </div>
+  );
+}
+
+function RevenueStat({
+  label,
+  value,
+  hint,
+  labelExtra,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  labelExtra?: ReactNode;
+}) {
+  return (
+    <div className="min-w-0">
+      <div className="flex items-center gap-1.5">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+        {labelExtra}
+      </div>
+      <p className="mt-1.5 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{value}</p>
+      {hint ? <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{hint}</p> : null}
+    </div>
+  );
+}
+
+function PickupStat({
+  label,
+  taken,
+  total,
+  pct,
+}: {
+  label: string;
+  taken: number;
+  total: number;
+  pct: number;
+}) {
+  return (
+    <div className="flex min-w-0 flex-1 items-center justify-between gap-3 sm:justify-start sm:gap-4">
+      <div className="min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+        <p className="mt-0.5 text-sm font-semibold text-slate-900">
+          {taken}/{total}
+          <span className="ml-1.5 font-normal text-slate-500">({pct}%)</span>
+        </p>
+      </div>
+      <div className="h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-slate-200 sm:w-28">
+        <div className="h-full rounded-full bg-slate-400" style={{ width: `${pct}%` }} />
+      </div>
     </div>
   );
 }
@@ -311,28 +367,61 @@ const Analytics = () => {
         />
       ) : (
         <div className="space-y-4 sm:space-y-5">
+          <section className="rounded-surface border border-primary/25 bg-primary/[0.04] p-4 shadow-sm sm:p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                    Total aproximado
+                  </p>
+                  <Tooltip label={REVENUE_TOTAL_HELP}>
+                    <HelpCircle size={14} className="text-primary/70" aria-hidden />
+                  </Tooltip>
+                </div>
+                <p className="mt-1.5 text-3xl font-bold tracking-tight text-slate-900">
+                  {formatCurrency(summary.revenueApproximate)}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  Online confirmado + estimado das internas
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-4 border-t border-primary/15 pt-4 sm:grid-cols-3">
+              <RevenueStat
+                label="Recebido online"
+                value={formatCurrency(summary.revenuePaid)}
+                hint={`${summary.subscriptionsOnline} ${summary.subscriptionsOnline === 1 ? 'inscrição' : 'inscrições'}`}
+                labelExtra={
+                  <Tooltip label={ONLINE_HELP}>
+                    <HelpCircle size={14} className="text-slate-400" aria-hidden />
+                  </Tooltip>
+                }
+              />
+              <RevenueStat
+                label="Internas"
+                value={String(summary.subscriptionsOutside)}
+                hint={`${formatCurrency(summary.revenueEstimated)} estimados`}
+                labelExtra={
+                  <Tooltip label={OUTSIDE_HELP}>
+                    <HelpCircle size={14} className="text-slate-400" aria-hidden />
+                  </Tooltip>
+                }
+              />
+              <RevenueStat
+                label="Isentas"
+                value={String(summary.subscriptionsComplimentary)}
+                hint="Sem cobrança"
+                labelExtra={
+                  <Tooltip label={COMPLIMENTARY_HELP}>
+                    <HelpCircle size={14} className="text-slate-400" aria-hidden />
+                  </Tooltip>
+                }
+              />
+            </div>
+          </section>
+
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard
-              accent
-              label="Recebido (Mercado Pago)"
-              value={formatCurrency(summary.revenuePaid)}
-              hint={`Total aproximado ${formatCurrency(summary.revenueApproximate)}`}
-              labelExtra={
-                <Tooltip label={REVENUE_HELP}>
-                  <HelpCircle size={14} className="text-primary/70" aria-hidden />
-                </Tooltip>
-              }
-            />
-            <KpiCard
-              label="Por fora"
-              value={String(summary.subscriptionsOutside)}
-              hint={`${formatCurrency(summary.revenueEstimated)} estimados · ${summary.subscriptionsOnline} via MP`}
-              labelExtra={
-                <Tooltip label={OUTSIDE_HELP}>
-                  <HelpCircle size={14} className="text-slate-400" aria-hidden />
-                </Tooltip>
-              }
-            />
             <KpiCard
               label="Atletas"
               value={String(summary.athletes)}
@@ -353,16 +442,26 @@ const Analytics = () => {
               value={String(summary.couponsRedeemed)}
               hint={`${formatCurrency(summary.discountTotal)} em descontos`}
             />
-            <KpiCard
-              label="Kits retirados"
-              value={`${summary.kitsTaken}/${summary.athletes}`}
-              hint={`${kitPct}% dos atletas`}
-            />
-            <KpiCard
-              label="Medalhas retiradas"
-              value={`${summary.medalsTaken}/${summary.athletes}`}
-              hint={`${medalPct}% dos atletas`}
-            />
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-surface border border-slate-200 bg-slate-50/80 px-4 py-3 sm:flex-row sm:items-center sm:gap-8">
+            <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Retiradas
+            </p>
+            <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
+              <PickupStat
+                label="Kits"
+                taken={summary.kitsTaken}
+                total={summary.athletes}
+                pct={kitPct}
+              />
+              <PickupStat
+                label="Medalhas"
+                taken={summary.medalsTaken}
+                total={summary.athletes}
+                pct={medalPct}
+              />
+            </div>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
