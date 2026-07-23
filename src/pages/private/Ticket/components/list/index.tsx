@@ -284,13 +284,16 @@ const ListTicket = ({ openEdit }: IListTicketProps) => {
                       </div>
                     </DataTableCell>
                     <DataTableCell>
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                        <Badge
-                          tone={ticketWindowStatusTone[window]}
-                          aria-label={`Janela: ${windowLabel}`}
-                        >
-                          {windowLabel}
-                        </Badge>
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex w-[5.75rem] shrink-0 justify-start">
+                          <Badge
+                            tone={ticketWindowStatusTone[window]}
+                            className="leading-none"
+                            aria-label={`Janela: ${windowLabel}`}
+                          >
+                            {windowLabel}
+                          </Badge>
+                        </span>
                         <button
                           type="button"
                           role="switch"

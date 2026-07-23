@@ -1,6 +1,7 @@
 import type { Icon } from 'react-feather';
 import {
   Award,
+  BarChart2,
   Calendar,
   Clipboard,
   CreditCard,
@@ -26,6 +27,7 @@ export type EventNavItemId =
   | 'coupons'
   | 'subscriptions'
   | 'participants'
+  | 'analytics'
   | 'settings';
 
 export type EventNavItem = {
@@ -133,6 +135,14 @@ export const EVENT_NAV_ITEMS: EventNavItem[] = [
     pathSegment: 'participants',
     Icon: Users,
     group: 'people',
+  },
+  {
+    id: 'analytics',
+    label: 'Métricas',
+    description: 'Inscritos, arrecadação e gráficos do evento',
+    pathSegment: 'analytics',
+    Icon: BarChart2,
+    group: 'event',
   },
   {
     id: 'settings',
