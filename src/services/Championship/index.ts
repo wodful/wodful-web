@@ -46,6 +46,28 @@ export class ChampionshipService {
     }
   }
 
+  async getTshirts(championshipId: string): Promise<{
+    hasTshirt: boolean;
+    hasNameInTshirt: boolean;
+    tShirtSizes: string[];
+  }> {
+    const { statusCode, body } = await this.httpClient.request({
+      method: 'get',
+      url: `${this.path}/${championshipId}/tshirts`,
+    });
+
+    switch (statusCode) {
+      case HttpStatusCode.ok:
+        return body as unknown as {
+          hasTshirt: boolean;
+          hasNameInTshirt: boolean;
+          tShirtSizes: string[];
+        };
+      default:
+        throw new Error();
+    }
+  }
+
   async create({
     name,
     startDate,

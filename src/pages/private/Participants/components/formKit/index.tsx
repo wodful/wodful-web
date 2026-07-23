@@ -1,3 +1,4 @@
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -28,11 +29,11 @@ const FormKit = ({ onClose, idParticipant }: EditKitProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
-      <FormField id="kitTakenBy" label="Nome" error={errors.kitTakenBy?.message}>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <FormField id="kitTakenBy" label="Responsável" error={errors.kitTakenBy?.message}>
         <Input
           id="kitTakenBy"
-          placeholder="Responsável pela retirada"
+          placeholder="Quem retirou o kit"
           invalid={!!errors.kitTakenBy}
           {...register('kitTakenBy', {
             required: validationMessages['required'],
@@ -41,9 +42,14 @@ const FormKit = ({ onClose, idParticipant }: EditKitProps) => {
           })}
         />
       </FormField>
-      <Button type="submit" variant="primary" disabled={!isValid} className="sticky bottom-0 w-full">
-        Salvar
-      </Button>
+      <ModalFooter>
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button type="submit" variant="primary" disabled={!isValid} className="w-full sm:w-auto">
+          Confirmar retirada
+        </Button>
+      </ModalFooter>
     </form>
   );
 };

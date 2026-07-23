@@ -3,8 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { Search } from 'react-feather';
 
 import ComponentModal from '@/components/ComponentModal';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import { Loader } from '@/components/Loader';
-import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -370,7 +370,8 @@ const Result = () => {
         )}
 
         <ComponentModal
-          modalHeader="Editar resultado"
+          title="Editar resultado"
+          description="Resultado do atleta nesta prova."
           size="md"
           isOpen={editOpen && !!resultId}
           onClose={() => {
@@ -389,48 +390,20 @@ const Result = () => {
           ) : null}
         </ComponentModal>
 
-        <ComponentModal
-          modalHeader={workoutReleased ? 'Ocultar resultados' : 'Liberar resultados'}
-          size="sm"
+        <ConfirmModal
           isOpen={confirmReleaseOpen}
+          title={workoutReleased ? 'Ocultar resultados' : 'Liberar resultados'}
+          description={
+            workoutReleased
+              ? `${selectedWorkoutName} · ${selectedCategoryName}`
+              : `${selectedWorkoutName} · ${selectedCategoryName}`
+          }
+          confirmLabel={workoutReleased ? 'Ocultar' : 'Liberar'}
+          tone={workoutReleased ? 'danger' : 'primary'}
+          isLoading={releasing}
+          onConfirm={() => void confirmReleaseAction()}
           onClose={() => setConfirmReleaseOpen(false)}
-        >
-          <div className="flex flex-col gap-5 pb-2">
-            <p className="text-sm text-slate-700">
-              {workoutReleased ? (
-                <>
-                  Ocultar os resultados de{' '}
-                  <strong>{selectedWorkoutName}</strong> ({selectedCategoryName}) do
-                  público?
-                </>
-              ) : (
-                <>
-                  Liberar os resultados de{' '}
-                  <strong>{selectedWorkoutName}</strong> ({selectedCategoryName}) para o
-                  público?
-                </>
-              )}
-            </p>
-            <div className="flex flex-col gap-2">
-              <Button
-                variant={workoutReleased ? 'danger' : 'primary'}
-                className="w-full"
-                isLoading={releasing}
-                onClick={() => void confirmReleaseAction()}
-              >
-                {workoutReleased ? 'Ocultar' : 'Liberar'}
-              </Button>
-              <Button
-                variant="secondary"
-                className="w-full"
-                disabled={releasing}
-                onClick={() => setConfirmReleaseOpen(false)}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        </ComponentModal>
+        />
       </LivePageShell>
     </Suspense>
   );

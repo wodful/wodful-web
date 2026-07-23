@@ -1,6 +1,6 @@
 import { AxiosAdapter } from '@/adapters/AxiosAdapter';
 import { IPageResponse } from '@/data/interfaces/pageResponse';
-import { IParticipant, IParticipants } from '@/data/interfaces/participant';
+import { IParticipant, IParticipants, PickupStatusFilter } from '@/data/interfaces/participant';
 import { ParticipantsService } from '@/services/Participants';
 import { participantMessages } from '@/utils/messages';
 import { useToast } from '@/components/ui/Toast';
@@ -18,7 +18,15 @@ export interface ParticipantContextData {
   setLimit: (value: number) => void;
   page: number;
   setPage: (value: number) => void;
-  ListPaginated: (id: string | null, name?: string) => Promise<void>;
+  ListPaginated: (
+    id: string | null,
+    filters?: {
+      search?: string;
+      categoryId?: string;
+      kitStatus?: PickupStatusFilter | '';
+      medalStatus?: PickupStatusFilter | '';
+    },
+  ) => Promise<void>;
   PatchMedal(
     idParticipant: string,
     medalTakenBy: string | null,
@@ -42,11 +50,18 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
   const [participantsPages, setParticipantsPages] = useState<IPageResponse<IParticipants>>(
     {} as IPageResponse<IParticipants>,
   );
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isError] = useState<boolean>(false);
   const [currentSearch, setCurrentSearch] = useState<string | undefined>(undefined);
+  const [currentCategoryId, setCurrentCategoryId] = useState<string | undefined>(undefined);
+  const [currentKitStatus, setCurrentKitStatus] = useState<PickupStatusFilter | undefined>(
+    undefined,
+  );
+  const [currentMedalStatus, setCurrentMedalStatus] = useState<PickupStatusFilter | undefined>(
+    undefined,
+  );
 
   const ExportToCSV = useCallback(async (champId: string) => {
     setIsLoading(true);
@@ -69,17 +84,53 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
   }, []);
 
   const ListPaginated = useCallback(
-    async (id: string | null, name?: string) => {
-      setCurrentSearch(name);
+    async (
+      id: string | null,
+      filters?: {
+        search?: string;
+        categoryId?: string;
+        kitStatus?: PickupStatusFilter | '';
+        medalStatus?: PickupStatusFilter | '';
+      },
+    ) => {
+      const nextSearch = filters?.search;
+      const nextCategoryId = filters?.categoryId || undefined;
+      const nextKitStatus = filters?.kitStatus || undefined;
+      const nextMedalStatus = filters?.medalStatus || undefined;
+
+      setCurrentSearch(nextSearch);
+      setCurrentCategoryId(nextCategoryId);
+      setCurrentKitStatus(nextKitStatus);
+      setCurrentMedalStatus(nextMedalStatus);
       setIsLoading(true);
       await new ParticipantsService(axios)
-        .listAll(id, limit, page, name)
+        .listAll({
+          championshipId: id,
+          limit,
+          page,
+          search: nextSearch,
+          categoryId: nextCategoryId,
+          kitStatus: nextKitStatus,
+          medalStatus: nextMedalStatus,
+        })
         .then((paginatedParticipants) => {
           setParticipantsPages(paginatedParticipants as IPageResponse<IParticipants>);
         })
         .finally(() => setIsLoading(false));
     },
     [limit, page],
+  );
+
+  const refreshList = useCallback(
+    async (idChampionship: string) => {
+      await ListPaginated(idChampionship, {
+        search: currentSearch,
+        categoryId: currentCategoryId,
+        kitStatus: currentKitStatus,
+        medalStatus: currentMedalStatus,
+      });
+    },
+    [ListPaginated, currentSearch, currentCategoryId, currentKitStatus, currentMedalStatus],
   );
 
   const Edit = useCallback(
@@ -96,7 +147,7 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(idChampionship, currentSearch);
+          refreshList(idChampionship);
         })
         .catch(() => {
           toast({
@@ -109,7 +160,7 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
           setIsLoading(false);
         });
     },
-    [toast, ListPaginated, currentSearch],
+    [toast, refreshList],
   );
 
   const PatchKit = useCallback(
@@ -123,7 +174,7 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(idChampionship, currentSearch);
+          refreshList(idChampionship);
         })
         .catch(() => {
           toast({
@@ -136,7 +187,7 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
           setIsLoading(false);
         });
     },
-    [toast, ListPaginated, currentSearch],
+    [toast, refreshList],
   );
 
   const PatchMedal = useCallback(
@@ -150,7 +201,7 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
             status: 'success',
             isClosable: true,
           });
-          ListPaginated(idChampionship, currentSearch);
+          refreshList(idChampionship);
         })
         .catch(() => {
           toast({
@@ -163,7 +214,7 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
           setIsLoading(false);
         });
     },
-    [toast, ListPaginated, currentSearch],
+    [toast, refreshList],
   );
 
   return (

@@ -1,4 +1,5 @@
 import { AxiosAdapter } from '@/adapters/AxiosAdapter';
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { FormField } from '@/components/ui/FormField';
@@ -9,7 +10,6 @@ import { IParticipantForm } from '@/data/interfaces/subscription';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
 import useTicketData from '@/hooks/useTicketData';
 import { ChampionshipService } from '@/services/Championship';
-import { ConfigurationService } from '@/services/Configuration';
 import { isValidDocument, regexOnlyNumber } from '@/utils/documentVerification';
 import { validationMessages } from '@/utils/messages';
 import { useEffect, useMemo, useState } from 'react';
@@ -49,7 +49,6 @@ const APPROVAL_OPTIONS: {
 
 const axios = new AxiosAdapter();
 const championshipService = new ChampionshipService(axios);
-const configurationService = new ConfigurationService(axios);
 
 function normalizeAffiliation(value: string) {
   return value.trim().replace(/\s+/g, ' ');
@@ -62,10 +61,6 @@ function resolveAffiliation(value: string, options: string[]) {
     (option) => option.toLowerCase() === normalized.toLowerCase(),
   );
   return match ?? normalized;
-}
-
-function isEnabledFlag(value: unknown) {
-  return value === true || value === 'true';
 }
 
 const FormSubscriptionParticipants = ({
@@ -114,16 +109,13 @@ const FormSubscriptionParticipants = ({
         if (!cancelled) setAffiliations([]);
       });
 
-    configurationService
-      .get(championshipId)
-      .then((config) => {
+    championshipService
+      .getTshirts(championshipId)
+      .then((tshirts) => {
         if (cancelled) return;
-        const flags = config.configuration?.tShirtFlags;
-        const enabled = isEnabledFlag(flags?.hasTshirt);
-        const sizes = flags?.tShirtSizes ?? [];
-        setHasTshirt(enabled);
-        setTShirtSizes(sizes);
-        if (!enabled) {
+        setHasTshirt(tshirts.hasTshirt);
+        setTShirtSizes(tshirts.tShirtSizes ?? []);
+        if (!tshirts.hasTshirt) {
           for (let index = 0; index < participantsNumber; index++) {
             setValue(`participants.${index}.tShirtSize`, 'Sem camiseta', {
               shouldValidate: true,
@@ -182,7 +174,7 @@ const FormSubscriptionParticipants = ({
   const isTeam = indexes.length > 1;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
       <SubscriptionFormStepper step={2} />
 
       {selectedTicket ? (
@@ -392,7 +384,7 @@ const FormSubscriptionParticipants = ({
         </div>
       </fieldset>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <ModalFooter>
         <Button
           type="button"
           variant="secondary"
@@ -404,7 +396,7 @@ const FormSubscriptionParticipants = ({
         <Button type="submit" variant="primary" disabled={!isValid} className="w-full sm:w-auto">
           {submitLabel}
         </Button>
-      </div>
+      </ModalFooter>
     </form>
   );
 };

@@ -1,9 +1,9 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { AxiosAdapter } from '@/adapters/AxiosAdapter';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import { Loader } from '@/components/Loader';
-import { Button } from '@/components/ui/Button';
 import { ChampionshipProvider } from '@/contexts/championship';
 import { IChampionship } from '@/data/interfaces/championship';
 import useApp from '@/hooks/useApp';
@@ -22,7 +22,6 @@ const axios = new AxiosAdapter();
 function EventSettingsView() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const titleId = useId();
   const { currentChampionship, setCurrentChampionship } = useApp();
   const { Activate, Deactivate, Delete, isLoading } = useChampionshipData();
 
@@ -64,15 +63,6 @@ function EventSettingsView() {
       cancelled = true;
     };
   }, [id, currentChampionship, setCurrentChampionship]);
-
-  useEffect(() => {
-    if (!deleteOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setDeleteOpen(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [deleteOpen]);
 
   if (!id) return null;
 
@@ -127,45 +117,16 @@ function EventSettingsView() {
         <p className="mt-1 text-sm text-gray-500">{championship.name}</p>
       </header>
 
-      {deleteOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="presentation">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            aria-label="Fechar"
-            onClick={() => setDeleteOpen(false)}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            className="relative w-full max-w-sm rounded-surface border border-gray-200 bg-white p-5 shadow-xl"
-          >
-            <h2 id={titleId} className="text-base font-semibold text-gray-900">
-              Remover campeonato
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Tem certeza que deseja remover o campeonato?
-            </p>
-            <div className="mt-5 flex flex-col gap-2">
-              <Button
-                variant="danger"
-                isLoading={deleting}
-                onClick={() => void confirmDelete()}
-              >
-                Remover
-              </Button>
-              <Button
-                variant="secondary"
-                disabled={deleting}
-                onClick={() => setDeleteOpen(false)}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ConfirmModal
+        isOpen={deleteOpen}
+        title="Remover campeonato"
+        description="Esta ação não pode ser desfeita."
+        confirmLabel="Remover"
+        tone="danger"
+        isLoading={deleting}
+        onConfirm={() => void confirmDelete()}
+        onClose={() => setDeleteOpen(false)}
+      />
 
       <div className="space-y-4">
         <SettingsNav

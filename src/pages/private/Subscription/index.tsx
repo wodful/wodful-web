@@ -74,7 +74,8 @@ const Subscription = () => {
         onAction={openCreate}
       >
         <ComponentModal
-          modalHeader={`${isEditing ? 'Editar' : 'Adicionar'} inscrição`}
+          title={`${isEditing ? 'Editar' : 'Adicionar'} inscrição`}
+          description={isEditing ? 'Responsável e time.' : 'Responsável, ticket e atletas.'}
           size="lg"
           isOpen={isOpen}
           onClose={() => {

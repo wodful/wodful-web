@@ -57,7 +57,8 @@ const ChampionshipView = ({ closeModalRef }: ChampionshipViewProps) => {
           ) : null}
 
           <ComponentModal
-            modalHeader="Novo Evento"
+            title="Adicionar evento"
+            description="Dados básicos do campeonato."
             size="xl"
             isOpen={isOpen}
             onClose={closeModal}

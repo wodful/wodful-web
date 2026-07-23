@@ -1,4 +1,3 @@
-import ComponentModal from '@/components/ComponentModal';
 import DeleteData from '@/components/Delete';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -138,18 +137,13 @@ const ListWorkout = ({ championshipId, showPontuacaoColumn = false }: IListWorko
 
   return (
     <div className="space-y-4">
-      <ComponentModal
-        modalHeader="Remover prova"
-        size="sm"
+      <DeleteData
         isOpen={isOpen}
+        title="Remover prova"
         onClose={() => setIsOpen(false)}
-      >
-        <DeleteData
-          onClose={() => setIsOpen(false)}
-          removedData="a prova"
-          confirmDelete={() => Delete(workoutId)}
-        />
-      </ComponentModal>
+        removedData="a prova"
+        confirmDelete={() => Delete(workoutId)}
+      />
 
       <div className="space-y-3 rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

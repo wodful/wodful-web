@@ -1,3 +1,4 @@
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -184,7 +185,7 @@ const FormWorkout = ({ id, onClose, showHalfPointsOption = false }: IFormChampio
   );
 
   return (
-    <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-5 pb-4">
+    <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-5">
       <FormField id="workout-name" label="Nome da prova" error={nameError}>
         <Input
           id="workout-name"
@@ -374,17 +375,22 @@ const FormWorkout = ({ id, onClose, showHalfPointsOption = false }: IFormChampio
         </div>
       ) : null}
 
-      <Button
-        type="submit"
-        variant="primary"
-        disabled={touched ? !canSubmit : !name.trim() || selectedIds.length === 0}
-        isLoading={isLoading}
-        className="mt-1 w-full"
-      >
-        {selectedIds.length > 1
-          ? `Criar prova em ${selectedIds.length} categorias`
-          : 'Criar prova'}
-      </Button>
+      <ModalFooter>
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={touched ? !canSubmit : !name.trim() || selectedIds.length === 0}
+          isLoading={isLoading}
+          className="w-full sm:w-auto"
+        >
+          {selectedIds.length > 1
+            ? `Adicionar em ${selectedIds.length} categorias`
+            : 'Adicionar'}
+        </Button>
+      </ModalFooter>
     </form>
   );
 };

@@ -1,3 +1,4 @@
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -51,11 +52,11 @@ const ResultForm = ({ onClose, oldResultId }: IFormResultProps) => {
   const ready = result?.id === oldResultId;
 
   if (!ready) {
-    return <p className="pb-4 text-sm text-slate-500">Carregando resultado…</p>;
+    return <p className="text-sm text-slate-500">Carregando resultado…</p>;
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-5 pb-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-5">
       <div className="space-y-3 rounded-surface border border-slate-100 bg-slate-50/80 px-3.5 py-3 text-sm">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Categoria</p>
@@ -86,20 +87,20 @@ const ResultForm = ({ onClose, oldResultId }: IFormResultProps) => {
         />
       </FormField>
 
-      <div className="flex flex-col gap-2">
+      <ModalFooter>
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
         <Button
           type="submit"
           variant="primary"
           disabled={!isValid}
           isLoading={isLoading}
-          className="w-full"
+          className="w-full sm:w-auto"
         >
           Salvar
         </Button>
-        <Button type="button" variant="secondary" className="w-full" onClick={onClose}>
-          Cancelar
-        </Button>
-      </div>
+      </ModalFooter>
     </form>
   );
 };

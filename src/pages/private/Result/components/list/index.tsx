@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { EyeOff } from 'react-feather';
 
-import ComponentModal from '@/components/ComponentModal';
 import DeleteData from '@/components/Delete';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -86,18 +85,13 @@ const ListResults = ({
 
   return (
     <>
-      <ComponentModal
-        modalHeader="Remover resultado"
-        size="sm"
+      <DeleteData
         isOpen={isOpen}
+        title="Remover resultado"
         onClose={() => setIsOpen(false)}
-      >
-        <DeleteData
-          onClose={() => setIsOpen(false)}
-          removedData="o resultado"
-          confirmDelete={() => Delete(resultId, categoryId)}
-        />
-      </ComponentModal>
+        removedData="o resultado"
+        confirmDelete={() => Delete(resultId, categoryId)}
+      />
 
       <DataTable>
         <DataTableHead>

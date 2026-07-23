@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -13,12 +12,20 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 
 interface IFormChampionshipProps {
+  formId: string;
   onClose: () => void;
   oldTicket?: ITicket;
   resetTicket: () => void;
+  onValidityChange?: (isValid: boolean) => void;
 }
 
-const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps) => {
+const FormTicket = ({
+  formId,
+  onClose,
+  oldTicket,
+  resetTicket,
+  onValidityChange,
+}: IFormChampionshipProps) => {
   const { List, categories } = useCategoryData();
   const { Create, Edit } = useTicketData();
   const { id } = useParams();
@@ -52,6 +59,10 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
     },
   });
 
+  useEffect(() => {
+    onValidityChange?.(isValid);
+  }, [isValid, onValidityChange]);
+
   const onSubmit: SubmitHandler<TicketDTO> = async (ticket) => {
     ticket.price = Number(ticket.price);
     ticket.quantity = Number(ticket.quantity);
@@ -59,6 +70,7 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
     const startDate = datetimeLocalToIso(String(ticket.startDate));
     const endDate = datetimeLocalToIso(String(ticket.endDate));
     const categoryId = oldTicket?.category?.id ?? ticket.categoryId;
+    const paymentLink = oldTicket?.paymentLink ?? '';
 
     if (oldTicket) {
       const editedTicket = {
@@ -70,7 +82,7 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
         endDate,
         startDate,
         categoryId,
-        paymentLink: ticket.paymentLink,
+        paymentLink,
       };
       await Edit(editedTicket);
       resetTicket();
@@ -78,7 +90,7 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
       return;
     }
 
-    await Create({ ...ticket, categoryId, startDate, endDate });
+    await Create({ ...ticket, categoryId, startDate, endDate, paymentLink });
     onClose();
   };
 
@@ -87,131 +99,136 @@ const FormTicket = ({ onClose, oldTicket, resetTicket }: IFormChampionshipProps)
   }, [List, id, oldTicket]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 pb-6">
-      <FormField id="ticket-category" label="Categoria" error={errors.categoryId?.message}>
-        {oldTicket?.category ? (
-          <Input
-            id="ticket-category"
-            value={oldTicket.category.name}
-            disabled
-            readOnly
-            aria-label={`Categoria ${oldTicket.category.name}`}
-          />
-        ) : (
-          <Select
-            id="ticket-category"
-            invalid={!!errors.categoryId}
-            {...register('categoryId', { required: validationMessages['required'] })}
-          >
-            <option value="">Selecione a categoria</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </Select>
-        )}      </FormField>
-      <FormField id="ticket-name" label="Nome" error={errors.name?.message}>
-        <Input
-          id="ticket-name"
-          placeholder="Nome do ticket"
-          invalid={!!errors.name}
-          {...register('name', {
-            required: validationMessages['required'],
-            minLength: { value: 4, message: validationMessages['minLength'] },
-            maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
-          })}
-        />
-      </FormField>
+    <form id={formId} onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-slate-900">Lote</h3>
+        <div className="space-y-5">
+          <FormField id="ticket-category" label="Categoria" error={errors.categoryId?.message}>
+            {oldTicket?.category ? (
+              <Input
+                id="ticket-category"
+                value={oldTicket.category.name}
+                disabled
+                readOnly
+                aria-label={`Categoria ${oldTicket.category.name}`}
+              />
+            ) : (
+              <Select
+                id="ticket-category"
+                invalid={!!errors.categoryId}
+                {...register('categoryId', { required: validationMessages['required'] })}
+              >
+                <option value="">Selecione</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </FormField>
 
-      <FormField id="ticket-description" label="Descrição" error={errors.description?.message}>
-        <Textarea
-          id="ticket-description"
-          placeholder="Descrição do ticket"
-          invalid={!!errors.description}
-          {...register('description', {
-            minLength: { value: 4, message: validationMessages['minLength'] },
-            maxLength: { value: 250, message: validationMessages['maxLengthSm'] },
-          })}
-        />
-      </FormField>
+          <FormField id="ticket-name" label="Nome" error={errors.name?.message}>
+            <Input
+              id="ticket-name"
+              placeholder="Ex.: 1º lote"
+              invalid={!!errors.name}
+              {...register('name', {
+                required: validationMessages['required'],
+                minLength: { value: 4, message: validationMessages['minLength'] },
+                maxLength: { value: 50, message: validationMessages['maxLengthSm'] },
+              })}
+            />
+          </FormField>
 
-      <FormField id="ticket-payment-link" label="Link de pagamento" error={errors.paymentLink?.message}>
-        <Input
-          id="ticket-payment-link"
-          placeholder="https://mpago.la/seu_link"
-          invalid={!!errors.paymentLink}
-          {...register('paymentLink')}
-        />
-      </FormField>
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <FormField id="ticket-price" label="Valor" error={errors.price?.message}>
-          <Input
-            id="ticket-price"
-            type="text"
-            inputMode="decimal"
-            placeholder="Valor do ticket (ex.: 289,90)"
-            invalid={!!errors.price}
-            {...register('price', {
-              required: validationMessages['required'],
-              setValueAs: parsePriceBR,
-              validate: (v) =>
-                typeof v === 'number' && Number.isFinite(v) && v >= 0
-                  ? true
-                  : validationMessages['invalidField'],
-            })}
-          />
-        </FormField>
-
-        <FormField id="ticket-quantity" label="Quantidade máxima" error={errors.quantity?.message}>
-          <Input
-            id="ticket-quantity"
-            type="number"
-            placeholder="Quantidade de tickets"
-            invalid={!!errors.quantity}
-            {...register('quantity', {
-              required: validationMessages['required'],
-              minLength: { value: 1, message: validationMessages['minLength'] },
-              maxLength: { value: 5, message: validationMessages['maxLengthSm'] },
-            })}
-          />
-        </FormField>
+          <FormField id="ticket-description" label="Descrição" error={errors.description?.message}>
+            <Textarea
+              id="ticket-description"
+              placeholder="Opcional"
+              invalid={!!errors.description}
+              {...register('description', {
+                minLength: { value: 4, message: validationMessages['minLength'] },
+                maxLength: { value: 250, message: validationMessages['maxLengthSm'] },
+              })}
+            />
+          </FormField>
+        </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <FormField id="ticket-start-date" label="Data e hora de início" error={errors.startDate?.message}>
-          <Input
-            id="ticket-start-date"
-            type="datetime-local"
-            placeholder="DD/MM/AAAA HH:mm"
-            invalid={!!errors.startDate}
-            {...register('startDate', {
-              required: validationMessages['required'],
-            })}
-          />
-        </FormField>
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-slate-900">Venda</h3>
+        <div className="space-y-5">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <FormField id="ticket-price" label="Valor" error={errors.price?.message}>
+              <Input
+                id="ticket-price"
+                type="text"
+                inputMode="decimal"
+                placeholder="289,90"
+                invalid={!!errors.price}
+                {...register('price', {
+                  required: validationMessages['required'],
+                  setValueAs: parsePriceBR,
+                  validate: (v) =>
+                    typeof v === 'number' && Number.isFinite(v) && v >= 0
+                      ? true
+                      : validationMessages['invalidField'],
+                })}
+              />
+            </FormField>
 
-        <FormField id="ticket-end-date" label="Data e hora de encerramento" error={errors.endDate?.message}>
-          <Input
-            id="ticket-end-date"
-            type="datetime-local"
-            placeholder="DD/MM/AAAA HH:mm"
-            invalid={!!errors.endDate}
-            {...register('endDate', {
-              required: validationMessages['required'],
-            })}
-          />
-        </FormField>
+            <FormField
+              id="ticket-quantity"
+              label="Quantidade máxima"
+              error={errors.quantity?.message}
+            >
+              <Input
+                id="ticket-quantity"
+                type="number"
+                placeholder="100"
+                invalid={!!errors.quantity}
+                {...register('quantity', {
+                  required: validationMessages['required'],
+                  minLength: { value: 1, message: validationMessages['minLength'] },
+                  maxLength: { value: 5, message: validationMessages['maxLengthSm'] },
+                })}
+              />
+            </FormField>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <FormField
+              id="ticket-start-date"
+              label="Início"
+              error={errors.startDate?.message}
+            >
+              <Input
+                id="ticket-start-date"
+                type="datetime-local"
+                invalid={!!errors.startDate}
+                {...register('startDate', {
+                  required: validationMessages['required'],
+                })}
+              />
+            </FormField>
+
+            <FormField
+              id="ticket-end-date"
+              label="Encerramento"
+              error={errors.endDate?.message}
+            >
+              <Input
+                id="ticket-end-date"
+                type="datetime-local"
+                invalid={!!errors.endDate}
+                {...register('endDate', {
+                  required: validationMessages['required'],
+                })}
+              />
+            </FormField>
+          </div>
+        </div>
       </div>
-
-      <p className="text-xs text-slate-500">
-        Os horários seguem o fuso do seu navegador. O valor digitado (ex.: 12:00) é o mesmo na listagem.
-      </p>
-
-      <Button type="submit" variant="primary" disabled={!isValid} className="mt-2 w-full">
-        {oldTicket ? 'Editar' : 'Criar'}
-      </Button>
     </form>
   );
 };

@@ -7,16 +7,19 @@ import {
   DropdownMenuItem,
   DropdownMenuList,
 } from '@/components/ui/DropdownMenu';
-import { Input } from '@/components/ui/Input';
+import { PeoplePageShell } from '@/components/ui/PeoplePageShell';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useToast } from '@/components/ui/Toast';
+import { CategoryProvider } from '@/contexts/category';
 import { ParticipantProvider } from '@/contexts/participant';
-import { IParticipant } from '@/data/interfaces/participant';
+import { IParticipants } from '@/data/interfaces/participant';
 import useApp from '@/hooks/useApp';
+import useCategoryData from '@/hooks/useCategoryData';
 import useParticipantData from '@/hooks/useParticipantData';
 import { participantMessages } from '@/utils/messages';
-import { ChangeEvent, Suspense, lazy, useState } from 'react';
-import { Menu as MenuIcon, Search } from 'react-feather';
+import { Suspense, lazy, useEffect, useState } from 'react';
+import { Menu as MenuIcon } from 'react-feather';
+import { useParams } from 'react-router-dom';
 import FormParticipant from './components/form';
 import FormKit from './components/formKit';
 import FormMedal from './components/formMedal';
@@ -25,31 +28,29 @@ const ListParticipants = lazy(() => import('./components/list'));
 
 const ParticipantWithProvider = () => {
   return (
-    <ParticipantProvider>
-      <Participants />
-    </ParticipantProvider>
+    <CategoryProvider>
+      <ParticipantProvider>
+        <Participants />
+      </ParticipantProvider>
+    </CategoryProvider>
   );
 };
 
 const Participants = () => {
-  const [searchBy, setSearchBy] = useState<string>('');
   const [whichModal, setWhichModal] = useState<'EDIT' | 'MEDAL' | 'KIT'>('EDIT');
-  const [participant, setParticipant] = useState<IParticipant>();
+  const [participant, setParticipant] = useState<IParticipants>();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { id } = useParams();
   const { ExportToCSV, ExportContactsToCSV } = useParticipantData();
+  const { List: CategoryList } = useCategoryData();
   const { currentChampionship } = useApp();
   const toast = useToast();
 
   const onClose = () => setIsOpen(false);
   const onOpen = () => setIsOpen(true);
 
-  const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const name = event.target.value.length;
-    return name >= 3 ? setSearchBy(event.target.value) : setSearchBy('');
-  };
-
-  const openModal = (whichOne: 'EDIT' | 'MEDAL' | 'KIT', participantObj: IParticipant) => {
+  const openModal = (whichOne: 'EDIT' | 'MEDAL' | 'KIT', participantObj: IParticipants) => {
     setWhichModal(whichOne);
     setParticipant(participantObj);
     onOpen();
@@ -89,46 +90,44 @@ const Participants = () => {
     });
   };
 
+  useEffect(() => {
+    if (id) CategoryList(id);
+  }, [CategoryList, id]);
+
   return (
     <Suspense fallback={<Loader title="Carregando ..." />}>
-      <div className="flex w-full flex-col items-center p-6">
-        <div className="flex w-full items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold text-slate-900">Lista de Participantes</h1>
-          <div className="flex items-center gap-3">
-            <div className="relative min-w-[320px]">
-              <Search
-                size={20}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                aria-hidden
-              />
-              <Input
-                onChange={handleOnChange}
-                className="!pl-10"
-                placeholder="Buscar participante ou time"
-              />
-            </div>
-            <DropdownMenu>
-              <Tooltip label="Opções de exportação de relatórios">
-                <DropdownMenuButton className="!h-auto !w-auto gap-2 rounded-control border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                  <MenuIcon size={18} aria-hidden />
-                  Opções
-                </DropdownMenuButton>
-              </Tooltip>
-              <DropdownMenuList align="right">
-                <DropdownMenuItem onClick={exportToCsv}>Exportar camisas</DropdownMenuItem>
-                <DropdownMenuItem onClick={exportContactsToCsv}>Exportar contatos</DropdownMenuItem>
-              </DropdownMenuList>
-            </DropdownMenu>
-          </div>
-        </div>
-
+      <PeoplePageShell
+        title="Participantes"
+        description="Consulte atletas, boxes e retire kits e medalhas no dia do evento."
+        actions={
+          <DropdownMenu>
+            <Tooltip label="Opções de exportação de relatórios">
+              <DropdownMenuButton className="!h-auto !w-auto gap-2 rounded-control border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                <MenuIcon size={18} aria-hidden />
+                Opções
+              </DropdownMenuButton>
+            </Tooltip>
+            <DropdownMenuList align="right">
+              <DropdownMenuItem onClick={exportToCsv}>Exportar camisas</DropdownMenuItem>
+              <DropdownMenuItem onClick={exportContactsToCsv}>Exportar contatos</DropdownMenuItem>
+            </DropdownMenuList>
+          </DropdownMenu>
+        }
+      >
         <ComponentModal
-          modalHeader={
+          title={
             whichModal == 'EDIT'
               ? 'Editar participante'
               : whichModal == 'MEDAL'
                 ? 'Retirar medalha'
                 : 'Retirar kit'
+          }
+          description={
+            whichModal === 'EDIT'
+              ? 'Dados do atleta.'
+              : whichModal === 'MEDAL'
+                ? 'Quem retirou a medalha.'
+                : 'Quem retirou o kit.'
           }
           size="lg"
           isOpen={isOpen}
@@ -143,10 +142,8 @@ const Participants = () => {
           {whichModal === 'KIT' && <FormKit onClose={onClose} idParticipant={participant!.id} />}
         </ComponentModal>
 
-        <div className="mt-6 w-full">
-          <ListParticipants participantOrTeamName={searchBy} openModal={openModal} />
-        </div>
-      </div>
+        <ListParticipants openModal={openModal} />
+      </PeoplePageShell>
     </Suspense>
   );
 };

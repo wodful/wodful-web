@@ -1,10 +1,20 @@
 import { HttpClient, HttpStatusCode } from '@/data/interfaces/http';
 import { IPageResponse } from '@/data/interfaces/pageResponse';
-import { IParticipant, IParticipants } from '@/data/interfaces/participant';
+import { IParticipant, IParticipants, PickupStatusFilter } from '@/data/interfaces/participant';
 
 interface DownloadLink {
   downloadUrl: string;
 }
+
+export type ListParticipantsParams = {
+  championshipId: string | null;
+  limit?: number;
+  page?: number;
+  search?: string | null;
+  categoryId?: string;
+  kitStatus?: PickupStatusFilter;
+  medalStatus?: PickupStatusFilter;
+};
 
 export class ParticipantsService {
   constructor(
@@ -14,15 +24,27 @@ export class ParticipantsService {
     private readonly path = '/participants/',
   ) {}
 
-  async listAll(
-    id: string | null,
-    limit?: number,
-    page?: number,
-    search?: string | null,
-  ): Promise<IPageResponse<IParticipants> | IParticipants[]> {
-    let url = `championships/${id}${this.path}${limit && page && `?limit=${limit}&page=${page}`}`;
+  async listAll({
+    championshipId,
+    limit,
+    page,
+    search,
+    categoryId,
+    kitStatus,
+    medalStatus,
+  }: ListParticipantsParams): Promise<IPageResponse<IParticipants> | IParticipants[]> {
+    const params = new URLSearchParams();
+    if (limit && page) {
+      params.set('limit', String(limit));
+      params.set('page', String(page));
+    }
+    if (search?.trim()) params.set('search', search.trim());
+    if (categoryId) params.set('categoryId', categoryId);
+    if (kitStatus) params.set('kitStatus', kitStatus);
+    if (medalStatus) params.set('medalStatus', medalStatus);
 
-    if (search) url = `${url}&search=${search}`;
+    const query = params.toString();
+    const url = `championships/${championshipId}${this.path}${query ? `?${query}` : ''}`;
 
     const { statusCode, body } = await this.httpClient.request({
       method: 'get',
@@ -110,7 +132,7 @@ export class ParticipantsService {
   }
 
   async exportToCsv(champID: string): Promise<DownloadLink> {
-    const url = `${this.path}/${champID}/exports`;
+    const url = `${this.path}${champID}/exports`;
 
     const { statusCode, body } = await this.httpClient.request({
       method: 'get',
@@ -126,7 +148,7 @@ export class ParticipantsService {
   }
 
   async exportContactsToCsv(champID: string): Promise<DownloadLink> {
-    const url = `${this.path}/${champID}/exports/contacts`;
+    const url = `${this.path}${champID}/exports/contacts`;
 
     const { statusCode, body } = await this.httpClient.request({
       method: 'get',

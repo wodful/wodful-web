@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 
-import ComponentModal from '@/components/ComponentModal';
 import DeleteData from '@/components/Delete';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -113,18 +112,13 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
 
   return (
     <>
-      <ComponentModal
-        modalHeader="Remover cronograma"
-        size="sm"
+      <DeleteData
         isOpen={isOpen}
+        title="Remover cronograma"
         onClose={() => setIsOpen(false)}
-      >
-        <DeleteData
-          onClose={() => setIsOpen(false)}
-          removedData="o cronograma"
-          confirmDelete={() => Delete(scheduleId)}
-        />
-      </ComponentModal>
+        removedData="o cronograma"
+        confirmDelete={() => Delete(scheduleId)}
+      />
 
       <div className="rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

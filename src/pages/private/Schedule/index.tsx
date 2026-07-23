@@ -1,4 +1,5 @@
 import ComponentModal from '@/components/ComponentModal';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import { EmptyList } from '@/components/EmptyList';
 import { Loader } from '@/components/Loader';
 import { Button } from '@/components/ui/Button';
@@ -124,40 +125,22 @@ const Schedule = () => {
           />
         )}
 
-        <ComponentModal
-          modalHeader="Encerrar atividade"
-          size="sm"
+        <ConfirmModal
           isOpen={!!confirmEndId}
+          title="Encerrar atividade"
+          description="A bateria será marcada como finalizada."
+          confirmLabel="Encerrar"
+          tone="danger"
+          onConfirm={() => {
+            if (confirmEndId) handleIsOver(confirmEndId, true);
+            setConfirmEndId(null);
+          }}
           onClose={() => setConfirmEndId(null)}
-        >
-          <div className="flex w-full flex-col gap-5 pb-2">
-            <p className="text-sm text-slate-700">
-              Encerrar marca a bateria como finalizada. Você poderá reabrir depois, se precisar.
-            </p>
-            <div className="flex flex-col gap-2">
-              <Button
-                variant="danger"
-                className="w-full"
-                onClick={() => {
-                  if (confirmEndId) handleIsOver(confirmEndId, true);
-                  setConfirmEndId(null);
-                }}
-              >
-                Encerrar
-              </Button>
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={() => setConfirmEndId(null)}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        </ComponentModal>
+        />
 
         <ComponentModal
-          modalHeader="Adicionar atividade ao cronograma"
+          title="Adicionar atividade ao cronograma"
+          description="Categoria, prova, horário e baias."
           size="lg"
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}

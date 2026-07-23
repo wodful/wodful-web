@@ -1,4 +1,5 @@
-import ComponentModal from '@/components/ComponentModal';
+import ComponentModal, { ModalFooter } from '@/components/ComponentModal';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import DeleteData from '@/components/Delete';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -167,65 +168,50 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
 
   return (
     <div className="space-y-4">
-      <ComponentModal
-        modalHeader="Remover inscrição"
-        size="sm"
+      <DeleteData
         isOpen={isDeleteOpen}
+        title="Remover inscrição"
         onClose={() => setIsDeleteOpen(false)}
-      >
-        <DeleteData
-          onClose={() => setIsDeleteOpen(false)}
-          removedData="a inscrição"
-          confirmDelete={confirmDelete}
-        />
-      </ComponentModal>
-      <ComponentModal
-        modalHeader="Reenviar e-mail"
-        size="sm"
+        removedData="a inscrição"
+        confirmDelete={confirmDelete}
+      />
+      <ConfirmModal
         isOpen={isResendOpen}
+        title="Reenviar e-mail"
+        description="O responsável receberá novamente o e-mail de confirmação."
+        confirmLabel="Reenviar"
+        onConfirm={confirmResendEmail}
         onClose={() => setIsResendOpen(false)}
-      >
-        <div className="flex flex-col gap-5 pb-4">
-          <p className="text-sm text-slate-700">
-            Deseja reenviar o e-mail de confirmação para o responsável desta inscrição?
-          </p>
-          <Button variant="primary" className="w-full" onClick={confirmResendEmail}>
-            Reenviar e-mail
-          </Button>
-          <Button variant="secondary" className="w-full" onClick={() => setIsResendOpen(false)}>
-            Cancelar
-          </Button>
-        </div>
-      </ComponentModal>
+      />
       <ComponentModal
-        modalHeader="Link de pagamento"
+        title="Link de pagamento"
+        description="Link para o atleta pagar online."
         size="sm"
         isOpen={isPaymentLinkOpen}
         onClose={() => setIsPaymentLinkOpen(false)}
+        footer={
+          <ModalFooter>
+            <Button
+              variant="secondary"
+              className="w-full sm:w-auto"
+              onClick={() => setIsPaymentLinkOpen(false)}
+            >
+              Fechar
+            </Button>
+            <Button variant="primary" className="w-full sm:w-auto" onClick={copyPaymentLink}>
+              {copyDone ? 'Copiado' : 'Copiar link'}
+            </Button>
+          </ModalFooter>
+        }
       >
-        <div className="flex flex-col gap-4 pb-4">
-          <p className="text-sm text-slate-700">
-            Envie este link para o atleta concluir o pagamento online.
-          </p>
-          <a
-            href={paymentLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="break-all text-sm font-medium text-primary hover:underline"
-          >
-            {paymentLink}
-          </a>
-          <Button variant="primary" className="w-full" onClick={copyPaymentLink}>
-            {copyDone ? 'Copiado' : 'Copiar link'}
-          </Button>
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={() => setIsPaymentLinkOpen(false)}
-          >
-            Fechar
-          </Button>
-        </div>
+        <a
+          href={paymentLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="break-all text-sm font-medium text-primary hover:underline"
+        >
+          {paymentLink}
+        </a>
       </ComponentModal>
 
       <div className="space-y-3 rounded-surface border border-slate-200 bg-white p-4 shadow-sm">

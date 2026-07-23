@@ -4,6 +4,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { ChampionshipDTO, IChampionship } from '@/data/interfaces/championship';
 import useChampionshipData from '@/hooks/useChampionshipData';
 import { validationMessages } from '@/utils/messages';
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -349,32 +350,41 @@ const FormChampionship = ({
     </FormField>
   ) : null;
 
-  const saveFooter = (
-    <div
-      className={[
-        'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
-        isEdit
-          ? 'sticky bottom-3 z-[1] rounded-surface border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur'
-          : 'border-t border-slate-100 pt-4',
-      ].join(' ')}
-    >
+  const saveFooter = isEdit ? (
+    <div className="sticky bottom-3 z-[1] flex flex-col gap-3 rounded-surface border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">
       <div className="min-h-5 text-sm">
-        {isEdit && isDirty ? (
+        {isDirty ? (
           <span className="font-medium text-amber-700">Alterações não salvas</span>
-        ) : isEdit ? (
+        ) : (
           <span className="text-slate-400">Nenhuma alteração</span>
-        ) : null}
+        )}
       </div>
       <Button
         type="submit"
         variant="primary"
         isLoading={isSubmitting}
-        disabled={isEdit && !isDirty}
+        disabled={!isDirty}
         className="w-full sm:w-auto"
       >
-        {!oldChampionship ? 'Adicionar' : 'Salvar alterações'}
+        Salvar alterações
       </Button>
     </div>
+  ) : (
+    <ModalFooter>
+      {onClose ? (
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+      ) : null}
+      <Button
+        type="submit"
+        variant="primary"
+        isLoading={isSubmitting}
+        className="w-full sm:w-auto"
+      >
+        Adicionar
+      </Button>
+    </ModalFooter>
   );
 
   if (!isEdit) {

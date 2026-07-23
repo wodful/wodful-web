@@ -1,3 +1,4 @@
+import { ModalFooter } from '@/components/ComponentModal';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Select } from '@/components/ui/Select';
@@ -17,7 +18,7 @@ export interface IReleaseResultsFormRequestDTO {
   categoryId: string;
 }
 
-const ReleaseResultsForm = ({ onClose: _onClose }: IFormResultProps) => {
+const ReleaseResultsForm = ({ onClose }: IFormResultProps) => {
   const { categories } = useCategoryData();
   const { workouts, ListByCategory } = useWorkoutData();
   const { GetIsReleasedResult, UpdateReleaseResult } = useResultData();
@@ -41,7 +42,6 @@ const ReleaseResultsForm = ({ onClose: _onClose }: IFormResultProps) => {
       release: isRelease,
       categoryId: resultData.categoryId,
     });
-    // Mantem o modal aberto para agilizar operacao durante o evento.
     setAlertMessage(isRelease);
   };
 
@@ -60,7 +60,7 @@ const ReleaseResultsForm = ({ onClose: _onClose }: IFormResultProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6 pb-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-5">
       <FormField id="categoryId" label="Categoria" error={errors.categoryId?.message}>
         <Select
           id="categoryId"
@@ -112,9 +112,14 @@ const ReleaseResultsForm = ({ onClose: _onClose }: IFormResultProps) => {
         </div>
       )}
 
-      <Button type="submit" variant="primary" disabled={!isValid} className="mt-2 w-full">
-        {!alertMessage ? 'Liberar' : 'Ocultar'}
-      </Button>
+      <ModalFooter>
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button type="submit" variant="primary" disabled={!isValid} className="w-full sm:w-auto">
+          {!alertMessage ? 'Liberar' : 'Ocultar'}
+        </Button>
+      </ModalFooter>
     </form>
   );
 };
