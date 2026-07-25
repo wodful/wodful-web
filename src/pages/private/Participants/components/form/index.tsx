@@ -58,7 +58,6 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
   const { id } = useParams();
   const { Edit } = useParticipantData();
   const [affiliations, setAffiliations] = useState<string[]>([]);
-  const [hasTshirt, setHasTshirt] = useState(false);
   const [tShirtSizes, setTShirtSizes] = useState<string[]>([]);
 
   const {
@@ -77,7 +76,7 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
         ? formatDocumentDisplay(oldParticipant.identificationCode)
         : '',
       name: oldParticipant?.name,
-      tShirtSize: oldParticipant?.tShirtSize,
+      tShirtSize: oldParticipant?.tShirtSize ?? '',
     },
   });
 
@@ -99,22 +98,19 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
       .getTshirts(id)
       .then((tshirts) => {
         if (cancelled) return;
-        setHasTshirt(tshirts.hasTshirt);
-        setTShirtSizes(tshirts.tShirtSizes ?? []);
-        if (!tshirts.hasTshirt) {
-          setValue('tShirtSize', 'Sem camiseta', { shouldValidate: true });
-        } else if (
-          oldParticipant?.tShirtSize &&
-          tshirts.tShirtSizes.includes(oldParticipant.tShirtSize)
-        ) {
-          setValue('tShirtSize', oldParticipant.tShirtSize, { shouldValidate: true });
-        }
+        const sizes = tshirts.tShirtSizes ?? [];
+        setTShirtSizes(sizes);
+
+        const current = oldParticipant?.tShirtSize?.trim() ?? '';
+        if (!current) return;
+
+        const match = sizes.find(
+          (size) => size.toLowerCase() === current.toLowerCase(),
+        );
+        setValue('tShirtSize', match ?? current, { shouldValidate: true });
       })
       .catch(() => {
-        if (cancelled) return;
-        setHasTshirt(false);
-        setTShirtSizes([]);
-        setValue('tShirtSize', 'Sem camiseta', { shouldValidate: true });
+        if (!cancelled) setTShirtSizes([]);
       });
 
     return () => {
@@ -128,11 +124,20 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
         ...participant,
         identificationCode: regexOnlyNumber(participant.identificationCode),
         affiliation: resolveAffiliation(participant.affiliation ?? '', affiliations),
-        tShirtSize: hasTshirt ? participant.tShirtSize : 'Sem camiseta',
+        tShirtSize: participant.tShirtSize,
       },
       id!,
     );
     onClose();
+  }
+
+  const currentSize = oldParticipant?.tShirtSize?.trim() ?? '';
+  const sizeOptions = [...tShirtSizes];
+  if (
+    currentSize &&
+    !sizeOptions.some((size) => size.toLowerCase() === currentSize.toLowerCase())
+  ) {
+    sizeOptions.push(currentSize);
   }
 
   return (
@@ -200,29 +205,16 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
             <Select
               id="tShirtSize"
               invalid={!!errors.tShirtSize}
-              disabled={!hasTshirt}
               {...register('tShirtSize', {
-                required: hasTshirt ? validationMessages['required'] : false,
+                required: validationMessages['required'],
               })}
             >
-              {hasTshirt ? (
-                <>
-                  <option value="">Selecione um tamanho</option>
-                  {tShirtSizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                  {oldParticipant?.tShirtSize &&
-                  !tShirtSizes.includes(oldParticipant.tShirtSize) ? (
-                    <option value={oldParticipant.tShirtSize}>
-                      {oldParticipant.tShirtSize} (atual)
-                    </option>
-                  ) : null}
-                </>
-              ) : (
-                <option value="Sem camiseta">Sem camiseta</option>
-              )}
+              <option value="">Selecione um tamanho</option>
+              {sizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
             </Select>
           </FormField>
           <FormField id="city" label="Cidade" error={errors.city?.message}>

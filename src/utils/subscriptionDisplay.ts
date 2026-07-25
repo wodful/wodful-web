@@ -38,10 +38,6 @@ export function getSubscriptionStatusDisplay(subscription: ISubscription): {
     return { label: 'Isenta', tone: 'neutral' };
   }
 
-  if (subscription.paidOnline || subscription.paymentOrigin === 'MERCADO_PAGO') {
-    return { label: 'Paga online', tone: 'success' };
-  }
-
   return { label: 'Aprovada', tone: 'primary' };
 }
 
