@@ -22,7 +22,7 @@ export function Badge({
 } & HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
-      className={`inline-flex items-center rounded-chip px-2 py-0.5 text-xs font-semibold ${toneClasses[tone]} ${className}`}
+      className={`inline-flex items-center whitespace-nowrap rounded-chip px-2 py-0.5 text-xs font-semibold ${toneClasses[tone]} ${className}`}
       {...props}
     >
       {children}
