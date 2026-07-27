@@ -1,5 +1,6 @@
 import { PublicLayout } from '@/components/public/PublicLayout';
 import Access from '@/pages/public/Access';
+import Impersonate from '@/pages/public/Impersonate';
 import PublicLeaderboard from '@/pages/public/Leaderboard';
 import Login from '@/pages/public/Login';
 import PublicSchedule from '@/pages/public/Schedule';
@@ -14,6 +15,7 @@ const PublicRoutes = () => {
         <Route path="/" element={<Navigate to="/login" replace />} />
 
         <Route path="/login" element={<Login />} />
+        <Route path="/impersonate" element={<Impersonate />} />
         <Route path="/access" element={<Access />} />
 
         <Route path="/championships" element={<Navigate to="/login" replace />} />
