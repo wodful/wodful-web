@@ -16,12 +16,11 @@ export class TicketService {
     price,
     quantity,
     categoryId,
-    paymentLink,
   }: TicketDTO): Promise<ITicket> {
     const { statusCode, body } = await this.httpClient.request({
       method: 'post',
       url: this.path,
-      body: { name, description, startDate, endDate, price, quantity, categoryId, paymentLink },
+      body: { name, description, startDate, endDate, price, quantity, categoryId },
     });
 
     switch (statusCode) {
@@ -41,7 +40,6 @@ export class TicketService {
     price,
     quantity,
     categoryId,
-    paymentLink,
   }: TicketDTO): Promise<ITicket> {
     const { statusCode, body } = await this.httpClient.request({
       method: 'put',
@@ -49,7 +47,7 @@ export class TicketService {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: { id, name, description, startDate, endDate, price, quantity, categoryId, paymentLink },
+      body: { id, name, description, startDate, endDate, price, quantity, categoryId },
     });
 
     switch (statusCode) {

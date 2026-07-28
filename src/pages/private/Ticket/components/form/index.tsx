@@ -51,7 +51,6 @@ const FormTicket = ({
       categoryId: oldTicket?.category?.id ?? '',
       name: oldTicket?.name ?? '',
       description: oldTicket?.description ?? '',
-      paymentLink: oldTicket?.paymentLink ?? '',
       price: oldTicket?.price,
       quantity: oldTicket?.quantity,
       endDate: isoToDatetimeLocal(oldTicket?.endDate),
@@ -70,7 +69,6 @@ const FormTicket = ({
     const startDate = datetimeLocalToIso(String(ticket.startDate));
     const endDate = datetimeLocalToIso(String(ticket.endDate));
     const categoryId = oldTicket?.category?.id ?? ticket.categoryId;
-    const paymentLink = oldTicket?.paymentLink ?? '';
 
     if (oldTicket) {
       const editedTicket = {
@@ -82,7 +80,6 @@ const FormTicket = ({
         endDate,
         startDate,
         categoryId,
-        paymentLink,
       };
       await Edit(editedTicket);
       resetTicket();
@@ -90,7 +87,7 @@ const FormTicket = ({
       return;
     }
 
-    await Create({ ...ticket, categoryId, startDate, endDate, paymentLink });
+    await Create({ ...ticket, categoryId, startDate, endDate });
     onClose();
   };
 
