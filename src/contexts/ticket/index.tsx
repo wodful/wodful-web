@@ -34,7 +34,6 @@ export interface TicketContextData {
     price,
     quantity,
     categoryId,
-    paymentLink,
   }: TicketDTO) => Promise<void>;
   Edit: ({
     id,
@@ -45,7 +44,6 @@ export interface TicketContextData {
     price,
     quantity,
     categoryId,
-    paymentLink,
   }: TicketDTO) => Promise<void>;
 }
 
@@ -112,7 +110,6 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
       price,
       quantity,
       categoryId,
-      paymentLink,
     }: TicketDTO) => {
       setIsLoading(true);
       await new TicketService(axios)
@@ -124,7 +121,6 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
           price,
           quantity,
           categoryId,
-          paymentLink,
         })
         .then(() => {
           toast({
@@ -157,7 +153,6 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
       endDate,
       startDate,
       categoryId,
-      paymentLink,
     }: TicketDTO) => {
       setIsLoading(true);
       await new TicketService(axios)
@@ -170,7 +165,6 @@ export const TicketProvider = ({ children, onClose }: TicketProviderProps) => {
           endDate,
           startDate,
           categoryId,
-          paymentLink,
         })
         .then(() => {
           toast({
