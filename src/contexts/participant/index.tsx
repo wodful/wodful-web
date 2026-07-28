@@ -37,8 +37,6 @@ export interface ParticipantContextData {
     { id, affiliation, city, identificationCode, name, tShirtSize }: IParticipant,
     idChampionship: string,
   ): Promise<void>;
-  ExportToCSV(champId: string): Promise<void>;
-  ExportContactsToCSV(champId: string): Promise<void>;
 }
 
 const ParticipantContext = createContext({} as ParticipantContextData);
@@ -62,26 +60,6 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
   const [currentMedalStatus, setCurrentMedalStatus] = useState<PickupStatusFilter | undefined>(
     undefined,
   );
-
-  const ExportToCSV = useCallback(async (champId: string) => {
-    setIsLoading(true);
-    await new ParticipantsService(axios)
-      .exportToCsv(`${champId}`)
-      .then((url) => {
-        window.open(`${import.meta.env.VITE_BASE_SERVER_URL}/${url.downloadUrl}`, 'blank');
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
-
-  const ExportContactsToCSV = useCallback(async (champId: string) => {
-    setIsLoading(true);
-    await new ParticipantsService(axios)
-      .exportContactsToCsv(`${champId}`)
-      .then((url) => {
-        window.open(`${import.meta.env.VITE_BASE_SERVER_URL}/${url.downloadUrl}`, 'blank');
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
 
   const ListPaginated = useCallback(
     async (
@@ -231,8 +209,6 @@ export const ParticipantProvider = ({ children }: TicketProviderProps) => {
         PatchKit,
         Edit,
         ListPaginated,
-        ExportToCSV,
-        ExportContactsToCSV,
       }}
     >
       {children}
