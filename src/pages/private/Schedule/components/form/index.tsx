@@ -7,7 +7,7 @@ import { ICreateScheduleRequestDTO } from '@/data/interfaces/schedule';
 import useCategoryData from '@/hooks/useCategoryData';
 import useScheduleData from '@/hooks/useScheduleData';
 import useWorkoutData from '@/hooks/useWorkoutData';
-import { incrementAndFormatDate } from '@/utils/formatDate';
+import { toDateOnlyString } from '@/utils/formatDate';
 import { validationMessages } from '@/utils/messages';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -40,7 +40,7 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
   });
 
   function onSubmit(schedule: ICreateScheduleRequestDTO) {
-    schedule.date = incrementAndFormatDate(schedule.date, 'yyyy-MM-dd');
+    schedule.date = toDateOnlyString(schedule.date);
     schedule.heat = Number(schedule.heat);
     schedule.laneQuantity = Number(schedule.laneQuantity);
     Create(schedule);

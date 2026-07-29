@@ -8,7 +8,7 @@ import {
   DataTableRow,
 } from '@/components/ui/DataTable';
 import useScheduleData from '@/hooks/useScheduleData';
-import { formatDate } from '@/utils/formatDate';
+import { formatDateOnly } from '@/utils/formatDate';
 import { ArrowDown } from 'react-feather';
 
 const ListTablePublicSchedule = () => {
@@ -30,7 +30,7 @@ const ListTablePublicSchedule = () => {
             <DataTableCell className="py-4">
               <div className="flex items-center gap-2">
                 <ArrowDown size={16} aria-hidden />
-                <span>{formatDate(`${schedule.date}`)}</span>
+                <span>{formatDateOnly(`${schedule.date}`)}</span>
               </div>
             </DataTableCell>
             <DataTableCell className="py-4">{schedule.hour}</DataTableCell>

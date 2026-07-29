@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { IChampionship } from '@/data/interfaces/championship';
 import useApp from '@/hooks/useApp';
-import { incrementAndFormatDate } from '@/utils/formatDate';
+import { formatDateOnly } from '@/utils/formatDate';
 
 type ChampionshipCardProps = {
   championship: IChampionship;
@@ -58,8 +58,8 @@ export function ChampionshipCard({ championship }: ChampionshipCardProps) {
             {championship.name}
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            {incrementAndFormatDate(`${championship.startDate}`)} até{' '}
-            {incrementAndFormatDate(`${championship.endDate}`)}
+            {formatDateOnly(`${championship.startDate}`)} até{' '}
+            {formatDateOnly(`${championship.endDate}`)}
           </p>
           <p className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary/80 transition group-hover:text-primary">
             Abrir evento

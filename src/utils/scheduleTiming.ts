@@ -1,16 +1,19 @@
-import { addDays, format } from 'date-fns';
 import { IPublicSchedule } from '@/data/interfaces/schedule';
+import { toDateOnlyString } from '@/utils/formatDate';
 
 const WARMUP_BATTERY_COUNT = 2;
+const PRODUCT_TZ_OFFSET = '-03:00';
 
 type WarmupAnchor = {
   id: string;
   start: number;
 };
 
+/** Combine schedule @db.Date + hour as America/Sao_Paulo instant (no +1 hack). */
 export function getScheduleStart(schedule: IPublicSchedule): Date {
-  const ymd = format(new Date(schedule.date), 'yyyy-MM-dd');
-  return addDays(new Date(`${ymd}T${schedule.hour}`), 1);
+  const ymd = toDateOnlyString(schedule.date);
+  const hour = schedule.hour?.length === 5 ? `${schedule.hour}:00` : schedule.hour;
+  return new Date(`${ymd}T${hour}${PRODUCT_TZ_OFFSET}`);
 }
 
 type TimedActivity = {

@@ -18,7 +18,7 @@ import { RowActions } from '@/components/ui/RowActions';
 import { Select } from '@/components/ui/Select';
 import { IIsLiveDTO, IIsOverDTO, ISchedule } from '@/data/interfaces/schedule';
 import useScheduleData from '@/hooks/useScheduleData';
-import { incrementAndFormatDate } from '@/utils/formatDate';
+import { formatDateOnly } from '@/utils/formatDate';
 
 type StatusFilter = 'all' | 'live' | 'upcoming' | 'over';
 
@@ -188,7 +188,7 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
             {filtered.map((schedule) => {
               const status = activityStatus(schedule, nextPendingId);
               const muted = status === 'over';
-              const dateLabel = incrementAndFormatDate(schedule.date);
+              const dateLabel = formatDateOnly(schedule.date);
               const showDateHeader = dateLabel !== lastDateLabel;
               if (showDateHeader) lastDateLabel = dateLabel;
 
