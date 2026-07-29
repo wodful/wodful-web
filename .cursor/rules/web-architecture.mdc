@@ -1,0 +1,42 @@
+---
+description: wodful-web architecture — Routes → Pages → Contexts → Services → API
+alwaysApply: true
+---
+
+# Architecture
+
+This package is the organizer/public React app (`wodful-web`). Do not apply Nest, Next, Gatsby (`wodful-site`), or Express/Prisma patterns from `wodful-api`.
+
+## Flow
+
+**Routes** (`src/routes/PrivateRoutes|PublicRoutes`) → **Pages** (`src/pages/private|public`) → **Contexts/Hooks** → **Services** (`src/services`) → **AxiosAdapter** → `wodful-api`.
+
+## Areas
+
+- **Private** (JWT): `/championships/:id/...` — organizer CRUD.
+- **Public** (access code): `/access/:code/...` — leaderboard, schedule, workouts.
+
+## Adding a feature
+
+1. Register the route in `PrivateRoutes` or `PublicRoutes`.
+2. Add/update the page under `src/pages/...` (often `components/list` + `components/form`).
+3. Wire state/actions via context (`src/contexts`) and/or hooks.
+4. Add/update the domain service in `src/services` and types in `src/data/interfaces`.
+5. Call an existing REST endpoint on `wodful-api` — do not invent API contracts.
+
+## HTTP
+
+- Use `AxiosAdapter` implementing `HttpClient`.
+- Central client: `src/services/index.ts` (`wodfulApiPrivate`) with Bearer from `@Wodful:tkn`.
+
+```typescript
+// ❌ BAD — fetch/axios inline in the page
+await axios.post('/tickets', data);
+
+// ✅ GOOD — page/context → service
+await ticketService.create(data);
+```
+
+## Domain reference
+
+Before changing auth, leaderboard, results, schedule, or subscriptions, read `docs/WODFUL_WEB_CONTEXT.md`. Do not invent product rules.
