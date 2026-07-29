@@ -1,0 +1,32 @@
+---
+description: Tailwind UI kit and auth/localStorage rules for wodful-web
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# UI and auth
+
+## UI
+
+- Stack: **Tailwind CSS** + components under `src/components/ui/` (`Button`, `Input`, `DataTable`, `SetupPageShell`, `Toast`, etc.).
+- Do **not** reintroduce Chakra UI.
+- Reuse existing shells (`SetupPageShell`, `LivePageShell`, `AuthShell`, …) and design tokens from `src/styles/global.css` (`--primary`, `--primary-hover`, etc.).
+
+```tsx
+// ❌ BAD
+import { Button } from '@chakra-ui/react';
+
+// ✅ GOOD
+import { Button } from '@/components/ui/Button';
+```
+
+## Auth and storage
+
+- Use `AuthProvider` / `useAuth` for login, logout, and public access-code flow.
+- Preserve `localStorage` keys: `@Wodful:tkn`, `@Wodful:usr`, `@Wodful:access` (and related public keys). Do not rename without an explicit migration.
+- Keep private CRUD off public routes; do not weaken auth redirects.
+
+## Secrets
+
+- Do not log JWTs or access tokens.
+- Do not hardcode `VITE_BASE_API_URL` or API keys — use `import.meta.env`.

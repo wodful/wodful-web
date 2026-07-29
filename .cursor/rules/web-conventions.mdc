@@ -1,0 +1,42 @@
+---
+description: TypeScript/React naming, services, forms, and tooling for wodful-web
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Conventions
+
+## Imports and types
+
+- Prefer `@/...` path alias (`src/*`).
+- Domain types live in `src/data/interfaces/<domain>`.
+
+## Services and contexts
+
+- Services: one class per domain (e.g. `TicketService`) with `HttpClient` and `switch` on `HttpStatusCode`.
+- Contexts expose actions (`Create`, `Edit`, `List`, `Delete`, …), loading/error state, and toasts via `useToast`.
+- Prefer reusing existing services/contexts over duplicating HTTP calls in components.
+
+```typescript
+// ❌ BAD — status handling scattered in UI
+if (res.status !== 201) alert('fail');
+
+// ✅ GOOD — service maps status, context shows toast
+case HttpStatusCode.created:
+  return body! as ITicket;
+```
+
+## Pages and forms
+
+- Functional components; wrap pages with domain providers when needed.
+- Forms: `react-hook-form`.
+- Common page shape: lazy `list` + `form` inside modal/shell components.
+
+## Do not introduce without request
+
+- No Redux, Zustand, or React Query by default — stick to contexts/hooks already in the repo.
+
+## Tooling
+
+- Use project scripts from `package.json` (Vite, ESLint, Prettier, Cypress).
+- Never commit `.env` or `VITE_*` secrets.
