@@ -1,6 +1,6 @@
 import { IPublicSchedule } from '@/data/interfaces/schedule';
 import useScheduleData from '@/hooks/useScheduleData';
-import { incrementAndFormatDate } from '@/utils/formatDate';
+import { formatDateOnly } from '@/utils/formatDate';
 import { findWarmupBatteryIds, getScheduleStart } from '@/utils/scheduleTiming';
 import { useCallback, useMemo, useState } from 'react';
 import { ChevronDown, Clipboard } from 'react-feather';
@@ -81,8 +81,8 @@ const ListCardPublicSchedule = ({
       .filter((item) => !item.isLive && !warmupIds.has(item.id))
       .sort(sortByTime)
       .forEach((schedule) => {
-        const key = incrementAndFormatDate(schedule.date, 'yyyy-MM-dd');
-        const label = incrementAndFormatDate(schedule.date, 'dd/MM');
+        const key = formatDateOnly(schedule.date, 'yyyy-MM-dd');
+        const label = formatDateOnly(schedule.date, 'dd/MM');
         const existing = map.get(key);
         if (existing) {
           existing.items.push(schedule);
