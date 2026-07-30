@@ -64,8 +64,3 @@ export interface UpdateSubscriptionDTO {
   responsiblePhone: string;
   nickname: string;
 }
-
-export interface ISubscriptionPaymentLink {
-  paymentId: string;
-  paymentUrl: string;
-}

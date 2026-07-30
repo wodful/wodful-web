@@ -5,7 +5,6 @@ import {
   ISubscription,
   ISubscriptionDTO,
   ISubscriptionForm,
-  ISubscriptionPaymentLink,
   SubscriptionPaymentOrigin,
   UpdateSubscriptionDTO,
 } from '@/data/interfaces/subscription';
@@ -37,7 +36,6 @@ export interface SubscriptionContextData {
   List: (id: string) => Promise<void>;
   UpdateStatus: (id: string, status: string) => Promise<void>;
   SetComplimentary: (id: string, isComplimentary: boolean) => Promise<void>;
-  CreatePaymentLink: (id: string) => Promise<ISubscriptionPaymentLink | null>;
   ResendApprovedEmail: (id: string) => Promise<void>;
   ListPaginated: (
     id: string,
@@ -298,31 +296,6 @@ export const SubscriptionProvider = ({ children, onClose }: SubscriptionProvider
     [refreshCurrentList, toast],
   );
 
-  const CreatePaymentLink = useCallback(
-    async (idSub: string) => {
-      setIsLoading(true);
-      try {
-        const result = await new SubscriptionService(axios).createPaymentLink(idSub);
-        toast({
-          title: subscriptionMessages['payment_link_success'],
-          status: 'success',
-          isClosable: true,
-        });
-        return result;
-      } catch {
-        toast({
-          title: subscriptionMessages['payment_link_error'],
-          status: 'error',
-          isClosable: true,
-        });
-        return null;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [toast],
-  );
-
   const ResendApprovedEmail = useCallback(
     async (idSub: string) => {
       setIsLoading(true);
@@ -365,7 +338,6 @@ export const SubscriptionProvider = ({ children, onClose }: SubscriptionProvider
         Delete,
         UpdateStatus,
         SetComplimentary,
-        CreatePaymentLink,
         ResendApprovedEmail,
         List,
         ListPaginated,
