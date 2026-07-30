@@ -3,7 +3,6 @@ import { IPageResponse } from '@/data/interfaces/pageResponse';
 import {
   ISubscription,
   ISubscriptionDTO,
-  ISubscriptionPaymentLink,
   SubscriptionPaymentOrigin,
   UpdateSubscriptionDTO,
 } from '@/data/interfaces/subscription';
@@ -22,7 +21,6 @@ export class SubscriptionService {
       | IPageResponse<ISubscription>
       | ISubscription
       | ISubscription[]
-      | ISubscriptionPaymentLink
     >,
     private readonly path = '/subscriptions',
   ) {}
@@ -140,20 +138,6 @@ export class SubscriptionService {
     switch (statusCode) {
       case HttpStatusCode.ok:
         return;
-      default:
-        throw new Error();
-    }
-  }
-
-  async createPaymentLink(id: string): Promise<ISubscriptionPaymentLink> {
-    const { statusCode, body } = await this.httpClient.request({
-      method: 'post',
-      url: `${this.path}/${id}/payment-link`,
-    });
-
-    switch (statusCode) {
-      case HttpStatusCode.created:
-        return body! as ISubscriptionPaymentLink;
       default:
         throw new Error();
     }

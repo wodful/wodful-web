@@ -93,8 +93,6 @@ export const subscriptionMessages = {
   resend_email_error: 'Algo deu errado ao reenviar o e-mail',
   complimentary_success: 'Isenção atualizada com sucesso',
   complimentary_error: 'Algo deu errado ao atualizar a isenção',
-  payment_link_success: 'Link de pagamento gerado',
-  payment_link_error: 'Algo deu errado ao gerar o link de pagamento',
 };
 
 export const subscriptionStatus = {

@@ -1,8 +1,6 @@
-import ComponentModal, { ModalFooter } from '@/components/ComponentModal';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import DeleteData from '@/components/Delete';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 import {
   DataTable,
   DataTableBody,
@@ -16,10 +14,7 @@ import { Input } from '@/components/ui/Input';
 import { PaginationBar } from '@/components/ui/PaginationBar';
 import { RowActions } from '@/components/ui/RowActions';
 import { Select } from '@/components/ui/Select';
-import type {
-  ISubscription,
-  SubscriptionPaymentOrigin,
-} from '@/data/interfaces/subscription';
+import type { SubscriptionPaymentOrigin } from '@/data/interfaces/subscription';
 import useCategoryData from '@/hooks/useCategoryData';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
 import { formatDate } from '@/utils/formatDate';
@@ -53,9 +48,6 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
   const [subscriptionId, setSubscriptionId] = useState('');
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isResendOpen, setIsResendOpen] = useState(false);
-  const [paymentLink, setPaymentLink] = useState('');
-  const [isPaymentLinkOpen, setIsPaymentLinkOpen] = useState(false);
-  const [copyDone, setCopyDone] = useState(false);
 
   const {
     ListPaginated,
@@ -70,7 +62,6 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
     Delete,
     UpdateStatus,
     SetComplimentary,
-    CreatePaymentLink,
     ResendApprovedEmail,
   } = useSubscriptionData();
   const { categories } = useCategoryData();
@@ -126,28 +117,6 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
     setIsResendOpen(false);
   };
 
-  const handlePaymentLink = async (subId: string) => {
-    const result = await CreatePaymentLink(subId);
-    if (!result?.paymentUrl) return;
-    setPaymentLink(result.paymentUrl);
-    setCopyDone(false);
-    setIsPaymentLinkOpen(true);
-  };
-
-  const copyPaymentLink = async () => {
-    try {
-      await navigator.clipboard.writeText(paymentLink);
-      setCopyDone(true);
-    } catch {
-      setCopyDone(false);
-    }
-  };
-
-  const canGeneratePaymentLink = (subscription: ISubscription) =>
-    subscription.status === 'WAITING' &&
-    !subscription.isComplimentary &&
-    !subscription.paidOnline;
-
   const clearFilters = () => {
     setCategoryId('');
     setOriginFilter('');
@@ -183,36 +152,6 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
         onConfirm={confirmResendEmail}
         onClose={() => setIsResendOpen(false)}
       />
-      <ComponentModal
-        title="Link de pagamento"
-        description="Link para o atleta pagar online."
-        size="sm"
-        isOpen={isPaymentLinkOpen}
-        onClose={() => setIsPaymentLinkOpen(false)}
-        footer={
-          <ModalFooter>
-            <Button
-              variant="secondary"
-              className="w-full sm:w-auto"
-              onClick={() => setIsPaymentLinkOpen(false)}
-            >
-              Fechar
-            </Button>
-            <Button variant="primary" className="w-full sm:w-auto" onClick={copyPaymentLink}>
-              {copyDone ? 'Copiado' : 'Copiar link'}
-            </Button>
-          </ModalFooter>
-        }
-      >
-        <a
-          href={paymentLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="break-all text-sm font-medium text-primary hover:underline"
-        >
-          {paymentLink}
-        </a>
-      </ComponentModal>
 
       <div className="space-y-3 rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -365,14 +304,6 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
                           {
                             label: 'Remover isenção',
                             onClick: () => SetComplimentary(subscription.id, false),
-                          },
-                        ]
-                      : []),
-                    ...(canGeneratePaymentLink(subscription)
-                      ? [
-                          {
-                            label: 'Gerar link de pagamento',
-                            onClick: () => handlePaymentLink(subscription.id),
                           },
                         ]
                       : []),
