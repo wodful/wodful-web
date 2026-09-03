@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input';
 import { PaginationBar } from '@/components/ui/PaginationBar';
 import { RowActions } from '@/components/ui/RowActions';
 import { Select } from '@/components/ui/Select';
+import { Tooltip } from '@/components/ui/Tooltip';
 import type { SubscriptionPaymentOrigin } from '@/data/interfaces/subscription';
 import useCategoryData from '@/hooks/useCategoryData';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
@@ -25,6 +26,7 @@ import {
   toDisplayName,
 } from '@/utils/subscriptionDisplay';
 import { useEffect, useState, type ReactNode } from 'react';
+import TransferSubscriptionModal from '../transfer';
 
 interface IListSubscription {
   id: string;
@@ -48,6 +50,7 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
   const [subscriptionId, setSubscriptionId] = useState('');
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isResendOpen, setIsResendOpen] = useState(false);
+  const [isTransferOpen, setIsTransferOpen] = useState(false);
 
   const {
     ListPaginated,
@@ -117,6 +120,11 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
     setIsResendOpen(false);
   };
 
+  const openTransfer = (subId: string) => {
+    setSubscriptionId(subId);
+    setIsTransferOpen(true);
+  };
+
   const clearFilters = () => {
     setCategoryId('');
     setOriginFilter('');
@@ -151,6 +159,12 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
         confirmLabel="Reenviar"
         onConfirm={confirmResendEmail}
         onClose={() => setIsResendOpen(false)}
+      />
+      <TransferSubscriptionModal
+        isOpen={isTransferOpen}
+        subscriptionId={subscriptionId}
+        categories={categories}
+        onClose={() => setIsTransferOpen(false)}
       />
 
       <div className="space-y-3 rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
@@ -315,6 +329,14 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
                           },
                         ]
                       : []),
+                    ...(subscription.status !== 'DECLINED'
+                      ? [
+                          {
+                            label: 'Transferir',
+                            onClick: () => openTransfer(subscription.id),
+                          },
+                        ]
+                      : []),
                   ];
 
                   return (
@@ -323,7 +345,21 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
                         {toDisplayName(subscription.responsibleName)}
                       </DataTableCell>
                       <DataTableCell>{toDisplayName(subscription.nickname)}</DataTableCell>
-                      <DataTableCell>{subscription.category.name}</DataTableCell>
+                      <DataTableCell>
+                        <div className="flex flex-col items-start gap-1">
+                          <span>{subscription.category.name}</span>
+                          {subscription.transferredAt ? (
+                            <Tooltip
+                              label={`De ${subscription.transferredFromName ?? 'outra categoria'} em ${formatDate(
+                                subscription.transferredAt,
+                                'dd/MM/yyyy HH:mm',
+                              )}`}
+                            >
+                              <Badge tone="warning">Transferida</Badge>
+                            </Tooltip>
+                          ) : null}
+                        </div>
+                      </DataTableCell>
                       <DataTableCell>
                         <Badge tone={statusDisplay.tone}>{statusDisplay.label}</Badge>
                       </DataTableCell>

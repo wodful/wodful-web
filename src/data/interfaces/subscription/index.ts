@@ -39,6 +39,32 @@ export type SubscriptionPaymentOrigin =
   | 'COMPLIMENTARY'
   | 'NONE';
 
+export interface ISubscriptionParticipant {
+  id: string;
+  name: string;
+  identificationCode: string;
+  affiliation: string;
+  city: string;
+  tShirtSize: string;
+  tShirtName?: string | null;
+}
+
+export interface ITransferSubscriptionDTO {
+  toCategoryId: string;
+  removeParticipantIds?: string[];
+  addParticipants?: IParticipantDTO[];
+  adjustmentAmount?: number;
+}
+
+export interface ITransferSubscriptionResponse {
+  subscriptionId: string;
+  category: {
+    id: string;
+    name: string;
+  };
+  paymentUrl: string | null;
+}
+
 export interface ISubscription {
   id: string;
   responsibleName: string;
@@ -53,8 +79,19 @@ export interface ISubscription {
   amountPaid?: number | null;
   amountEstimated?: number;
   createdAt: Date | string;
-  category: {
+  transferredAt?: Date | string | null;
+  transferredFromName?: string | null;
+  hasResults?: boolean;
+  couponCode?: string | null;
+  ticket?: {
+    id: string;
     name: string;
+  } | null;
+  participants?: ISubscriptionParticipant[];
+  category: {
+    id?: string;
+    name: string;
+    members?: number;
   };
 }
 
