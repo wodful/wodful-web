@@ -3,6 +3,8 @@ import { IPageResponse } from '@/data/interfaces/pageResponse';
 import {
   ISubscription,
   ISubscriptionDTO,
+  ITransferSubscriptionDTO,
+  ITransferSubscriptionResponse,
   SubscriptionPaymentOrigin,
   UpdateSubscriptionDTO,
 } from '@/data/interfaces/subscription';
@@ -21,6 +23,7 @@ export class SubscriptionService {
       | IPageResponse<ISubscription>
       | ISubscription
       | ISubscription[]
+      | ITransferSubscriptionResponse
     >,
     private readonly path = '/subscriptions',
   ) {}
@@ -140,6 +143,27 @@ export class SubscriptionService {
         return;
       default:
         throw new Error();
+    }
+  }
+
+  async transfer(
+    id: string,
+    data: ITransferSubscriptionDTO,
+  ): Promise<ITransferSubscriptionResponse> {
+    const { statusCode, body } = await this.httpClient.request({
+      method: 'post',
+      url: `${this.path}/${id}/transfer`,
+      body: data,
+    });
+
+    switch (statusCode) {
+      case HttpStatusCode.ok:
+        return body as ITransferSubscriptionResponse;
+      default:
+        throw new Error(
+          (body as { message?: string } | undefined)?.message ||
+            'Algo deu errado ao transferir a inscrição',
+        );
     }
   }
 

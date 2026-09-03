@@ -303,9 +303,12 @@ const Analytics = () => {
 
   const categoryChart = useMemo(
     () =>
-      (data?.byCategory ?? []).filter(
-        (item) => item.athletes > 0 || item.subscriptions > 0,
-      ),
+      (data?.byCategory ?? [])
+        .filter((item) => item.athletes > 0 || item.subscriptions > 0)
+        .map((item) => ({
+          ...item,
+          transferredIn: item.transferredIn ?? 0,
+        })),
     [data],
   );
 
@@ -421,7 +424,7 @@ const Analytics = () => {
             </div>
           </section>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <KpiCard
               label="Atletas"
               value={String(summary.athletes)}
@@ -431,6 +434,11 @@ const Analytics = () => {
               label="Inscrições aprovadas"
               value={String(summary.subscriptionsApproved)}
               hint={`${summary.subscriptionsWaiting} aguardando · ${summary.subscriptionsDeclined} recusados`}
+            />
+            <KpiCard
+              label="Transferidas"
+              value={String(summary.subscriptionsTransferred ?? 0)}
+              hint="Mudaram de categoria sem novo lote"
             />
             <KpiCard
               label="Tickets vendidos"
@@ -467,7 +475,7 @@ const Analytics = () => {
           <div className="grid gap-4 lg:grid-cols-2">
             <ChartCard
               title="Atletas por categoria"
-              description="Participantes vinculados a cada divisão."
+              description="Categoria competitiva atual. Times transferidos entram na divisão de destino."
               empty={categoryChart.length === 0}
             >
               <div className="h-48 w-full">
@@ -485,6 +493,12 @@ const Analytics = () => {
                     <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={28} />
                     <RechartsTooltip />
                     <Bar dataKey="athletes" name="Atletas" fill="#0D9488" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="transferredIn"
+                      name="Transferidas"
+                      fill="#F59E0B"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -550,7 +564,7 @@ const Analytics = () => {
 
             <ChartCard
               title="Ocupação por ticket"
-              description="Prioriza tickets com vendas; esgotados em destaque."
+              description="Vagas do lote de compra. Transferência de categoria não move a ocupação do ticket."
             >
               <TicketFillList tickets={ticketFill} />
             </ChartCard>

@@ -6,6 +6,7 @@ export type ChampionshipAnalyticsSummary = {
   subscriptionsOnline: number;
   subscriptionsOutside: number;
   subscriptionsComplimentary: number;
+  subscriptionsTransferred: number;
   ticketsSold: number;
   ticketsCapacity: number;
   revenueApproximate: number;
@@ -22,6 +23,7 @@ export type ChampionshipAnalyticsByCategory = {
   name: string;
   athletes: number;
   subscriptions: number;
+  transferredIn: number;
 };
 
 export type ChampionshipAnalyticsByBox = {

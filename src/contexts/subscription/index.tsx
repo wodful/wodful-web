@@ -5,6 +5,8 @@ import {
   ISubscription,
   ISubscriptionDTO,
   ISubscriptionForm,
+  ITransferSubscriptionDTO,
+  ITransferSubscriptionResponse,
   SubscriptionPaymentOrigin,
   UpdateSubscriptionDTO,
 } from '@/data/interfaces/subscription';
@@ -37,6 +39,10 @@ export interface SubscriptionContextData {
   UpdateStatus: (id: string, status: string) => Promise<void>;
   SetComplimentary: (id: string, isComplimentary: boolean) => Promise<void>;
   ResendApprovedEmail: (id: string) => Promise<void>;
+  Transfer: (
+    id: string,
+    data: ITransferSubscriptionDTO,
+  ) => Promise<ITransferSubscriptionResponse>;
   ListPaginated: (
     id: string,
     categoryId?: string,
@@ -296,6 +302,35 @@ export const SubscriptionProvider = ({ children, onClose }: SubscriptionProvider
     [refreshCurrentList, toast],
   );
 
+  const Transfer = useCallback(
+    async (idSub: string, data: ITransferSubscriptionDTO) => {
+      setIsLoading(true);
+      try {
+        const result = await new SubscriptionService(axios).transfer(idSub, data);
+        toast({
+          title: subscriptionMessages['transfer_success'],
+          status: 'success',
+          isClosable: true,
+        });
+        await refreshCurrentList();
+        return result;
+      } catch (error) {
+        toast({
+          title:
+            error instanceof Error && error.message
+              ? error.message
+              : subscriptionMessages['transfer_error'],
+          status: 'error',
+          isClosable: true,
+        });
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [refreshCurrentList, toast],
+  );
+
   const ResendApprovedEmail = useCallback(
     async (idSub: string) => {
       setIsLoading(true);
@@ -339,6 +374,7 @@ export const SubscriptionProvider = ({ children, onClose }: SubscriptionProvider
         UpdateStatus,
         SetComplimentary,
         ResendApprovedEmail,
+        Transfer,
         List,
         ListPaginated,
         ListAllByCategory,

@@ -93,6 +93,8 @@ export const subscriptionMessages = {
   resend_email_error: 'Algo deu errado ao reenviar o e-mail',
   complimentary_success: 'Isenção atualizada com sucesso',
   complimentary_error: 'Algo deu errado ao atualizar a isenção',
+  transfer_success: 'Inscrição transferida com sucesso',
+  transfer_error: 'Algo deu errado ao transferir a inscrição',
 };
 
 export const subscriptionStatus = {
