@@ -18,6 +18,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import type { SubscriptionPaymentOrigin } from '@/data/interfaces/subscription';
 import useCategoryData from '@/hooks/useCategoryData';
 import useSubscriptionData from '@/hooks/useSubscriptionData';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import {
   getSubscriptionAmountDisplay,
@@ -356,6 +357,26 @@ const ListSubscription = ({ id, onEdit, emptyFallback }: IListSubscription) => {
                               )}`}
                             >
                               <Badge tone="warning">Transferida</Badge>
+                            </Tooltip>
+                          ) : null}
+                          {subscription.isCustomAmount ? (
+                            <Tooltip
+                              label={`Ingresso ${formatCurrency(
+                                subscription.ticketPrice ?? 0,
+                              )}, cobrado ${formatCurrency(
+                                subscription.customAmount ??
+                                  subscription.amountEstimated ??
+                                  0,
+                              )}${
+                                subscription.customAmountAt
+                                  ? ` em ${formatDate(
+                                      subscription.customAmountAt,
+                                      'dd/MM/yyyy HH:mm',
+                                    )}`
+                                  : ''
+                              }`}
+                            >
+                              <Badge tone="warning">Valor personalizado</Badge>
                             </Tooltip>
                           ) : null}
                         </div>

@@ -87,18 +87,33 @@ export function getSubscriptionAmountDisplay(subscription: ISubscription): {
     subscription.paymentOrigin === 'MERCADO_PAGO'
   ) {
     const paid = subscription.amountPaid ?? subscription.ticketPrice ?? 0;
-    return { label: format(paid), title: 'Pago online' };
+    return {
+      label: format(paid),
+      title: subscription.isCustomAmount
+        ? 'Pago online com valor personalizado'
+        : 'Pago online',
+    };
   }
 
   const estimated =
     subscription.amountEstimated ?? subscription.ticketPrice ?? 0;
 
   if (subscription.status === 'APPROVED') {
-    return { label: format(estimated), title: 'Valor estimado (pagamento interno)' };
+    return {
+      label: format(estimated),
+      title: subscription.isCustomAmount
+        ? 'Valor personalizado (pagamento interno)'
+        : 'Valor estimado (pagamento interno)',
+    };
   }
 
   if (subscription.status === 'WAITING') {
-    return { label: format(estimated), title: 'Valor a pagar' };
+    return {
+      label: format(estimated),
+      title: subscription.isCustomAmount
+        ? 'Valor personalizado a pagar'
+        : 'Valor a pagar',
+    };
   }
 
   return { label: '—' };
