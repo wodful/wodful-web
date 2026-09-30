@@ -78,6 +78,9 @@ export interface ISubscription {
   ticketPrice?: number;
   amountPaid?: number | null;
   amountEstimated?: number;
+  isCustomAmount?: boolean;
+  customAmount?: number | null;
+  customAmountAt?: Date | string | null;
   createdAt: Date | string;
   transferredAt?: Date | string | null;
   transferredFromName?: string | null;
