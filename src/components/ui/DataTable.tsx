@@ -28,11 +28,20 @@ export function DataTableBody({ children }: { children: ReactNode }) {
 export function DataTableRow({
   children,
   className = '',
+  onClick,
 }: {
   children: ReactNode;
   className?: string;
+  onClick?: () => void;
 }) {
-  return <tr className={`hover:bg-slate-50/80 ${className}`}>{children}</tr>;
+  return (
+    <tr
+      className={`hover:bg-slate-50/80 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      onClick={onClick}
+    >
+      {children}
+    </tr>
+  );
 }
 
 export function DataTableHeaderCell({

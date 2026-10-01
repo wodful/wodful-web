@@ -8,25 +8,19 @@ export class ScheduleService {
     private readonly path = '/schedules',
   ) {}
 
-  async create({
-    date,
-    hour,
-    categoryId,
-    workoutId,
-    laneQuantity,
-    heat,
-  }: ICreateScheduleRequestDTO): Promise<ISchedule> {
+  async create(payload: ICreateScheduleRequestDTO): Promise<ISchedule> {
+    const bodyPayload = payload.segments?.length
+      ? {
+          date: payload.date,
+          hour: payload.hour,
+          segments: payload.segments,
+        }
+      : payload;
+
     const { statusCode, body } = await this.httpClient.request({
       method: 'post',
       url: this.path,
-      body: {
-        date,
-        hour,
-        categoryId,
-        workoutId,
-        laneQuantity,
-        heat,
-      },
+      body: bodyPayload,
     });
 
     switch (statusCode) {
