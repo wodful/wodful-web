@@ -25,7 +25,7 @@ export interface ScheduleContextData {
   IsOver: ({ championshipId, activityId, isOver }: IIsOverDTO) => void;
   setLimit: (value: number) => void;
   setPage: (value: number) => void;
-  Create: ({ workoutId, categoryId, date, hour, laneQuantity }: ICreateScheduleRequestDTO) => void;
+  Create: (schedule: ICreateScheduleRequestDTO) => void;
   Delete: (value: string) => void;
   schedules: IPublicSchedule[];
   PublicList: (code: string) => Promise<void>;
@@ -66,17 +66,10 @@ export const ScheduleProvider = ({ children, onClose }: ScheduleProviderProps) =
   );
 
   const Create = useCallback(
-    async ({
-      date,
-      hour,
-      categoryId,
-      workoutId,
-      heat,
-      laneQuantity,
-    }: ICreateScheduleRequestDTO) => {
+    async (schedule: ICreateScheduleRequestDTO) => {
       setIsLoading(true);
       await new ScheduleService(axios)
-        .create({ date, hour, categoryId, workoutId, heat, laneQuantity })
+        .create(schedule)
         .then(() => {
           toast({
             title: activityMessages['success'],

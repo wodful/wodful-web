@@ -22,9 +22,22 @@ type TimedActivity = {
 };
 
 function toTimed(schedules: IPublicSchedule[]): TimedActivity[] {
-  return schedules
+  const sorted = schedules
     .map((item) => ({ item, start: getScheduleStart(item).getTime() }))
-    .sort((a, b) => a.start - b.start);
+    .sort((a, b) => {
+      if (a.start !== b.start) return a.start - b.start;
+      return (a.item.slotOrder ?? 0) - (b.item.slotOrder ?? 0);
+    });
+
+  const seen = new Set<string>();
+  const collapsed: TimedActivity[] = [];
+  sorted.forEach((entry) => {
+    const key = entry.item.slotId || entry.item.id;
+    if (seen.has(key)) return;
+    seen.add(key);
+    collapsed.push(entry);
+  });
+  return collapsed;
 }
 
 function storageKey(accessCode: string) {

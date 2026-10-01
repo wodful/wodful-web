@@ -9,16 +9,19 @@ export interface ISchedule {
   heat: number;
   isLive: boolean;
   isOver: boolean;
+  slotId?: string | null;
+  slotOrder?: number;
   category: {
     name: string;
   };
   workout: {
     name: string;
   };
-  subscriptions: {
-    raking: number;
+  subscriptions?: {
+    ranking: number;
     nickname: string;
-  };
+    generalScore?: number;
+  }[];
 }
 
 export interface IPublicSchedule {
@@ -29,22 +32,35 @@ export interface IPublicSchedule {
   heat: number;
   isLive: boolean;
   isOver: boolean;
+  laneQuantity?: number;
+  slotId?: string | null;
+  slotOrder?: number;
+  /** Later workouts hide names until the previous one for the category is closed. */
+  showAthletes?: boolean;
   category: {
     name: string;
   };
   workout: {
     name: string;
   };
-  subscriptions: ISimpleSubscription[];
+  subscriptions: (ISimpleSubscription & { place?: number })[];
+}
+
+export interface IScheduleSegmentRequest {
+  categoryId: string;
+  workoutId: string;
+  heat: number;
+  laneQuantity: number;
 }
 
 export interface ICreateScheduleRequestDTO {
   date: string;
   hour: string;
-  categoryId: string;
-  workoutId: string;
-  heat: number;
-  laneQuantity: number;
+  categoryId?: string;
+  workoutId?: string;
+  heat?: number;
+  laneQuantity?: number;
+  segments?: IScheduleSegmentRequest[];
 }
 
 export interface IIsLiveDTO {

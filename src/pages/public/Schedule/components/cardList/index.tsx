@@ -1,6 +1,7 @@
 import { IPublicSchedule } from '@/data/interfaces/schedule';
 import useScheduleData from '@/hooks/useScheduleData';
 import { formatDateOnly } from '@/utils/formatDate';
+import { groupBySlot, slotKey, uniqueJoined } from '@/utils/scheduleSlots';
 import { findWarmupBatteryIds, getScheduleStart } from '@/utils/scheduleTiming';
 import { useCallback, useMemo, useState } from 'react';
 import { ChevronDown, Clipboard } from 'react-feather';
@@ -14,8 +15,10 @@ type ListCardPublicScheduleProps = {
 type DayGroup = {
   key: string;
   label: string;
-  items: IPublicSchedule[];
+  items: IPublicSchedule[][];
 };
+
+type ScheduleSlot = IPublicSchedule[];
 
 function sortByTime(a: IPublicSchedule, b: IPublicSchedule) {
   const dateA = getScheduleStart(a).getTime();
@@ -24,16 +27,47 @@ function sortByTime(a: IPublicSchedule, b: IPublicSchedule) {
   return a.hour.localeCompare(b.hour);
 }
 
-function matchesSearch(schedule: IPublicSchedule, query: string) {
+function sortSlots(a: ScheduleSlot, b: ScheduleSlot) {
+  return sortByTime(a[0], b[0]);
+}
+
+function placeLabel(place?: number) {
+  if (!place) return '';
+  return `${place}º lugar`;
+}
+
+function showsAthletes(segment: IPublicSchedule) {
+  return segment.showAthletes !== false;
+}
+
+function laneText(segment: IPublicSchedule, nickname: string, place?: number) {
+  if (!showsAthletes(segment)) {
+    return placeLabel(place) || nickname;
+  }
+  return nickname;
+}
+
+function matchesSearch(slot: ScheduleSlot, query: string) {
   if (!query) return true;
-  const nicknames = (schedule.subscriptions ?? [])
-    .map((item) => item.nickname.toLowerCase())
-    .join(' ');
-  return (
-    nicknames.includes(query) ||
-    schedule.workout.name.toLowerCase().includes(query) ||
-    schedule.category.name.toLowerCase().includes(query)
-  );
+  return slot.some((segment) => {
+    if (segment.workout.name.toLowerCase().includes(query)) return true;
+    if (segment.category.name.toLowerCase().includes(query)) return true;
+    return (segment.subscriptions ?? []).some((athlete) => {
+      const label = laneText(segment, athlete.nickname, athlete.place).toLowerCase();
+      if (label.includes(query)) return true;
+      return showsAthletes(segment) && athlete.nickname.toLowerCase().includes(query);
+    });
+  });
+}
+
+function segmentSpan(segment: IPublicSchedule) {
+  if (segment.laneQuantity && segment.laneQuantity > 0) return segment.laneQuantity;
+  return segment.subscriptions?.length ?? 0;
+}
+
+/** Higher place number is worse. Unranked (0) stays at the end of the heat. */
+function worstFirst(a: { ranking?: number }, b: { ranking?: number }) {
+  return (b.ranking ?? 0) - (a.ranking ?? 0);
 }
 
 const ListCardPublicSchedule = ({
@@ -44,55 +78,62 @@ const ListCardPublicSchedule = ({
   const { schedules } = useScheduleData();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  const slots = useMemo(() => groupBySlot(schedules), [schedules]);
+
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
     const category = categoryName.trim().toLowerCase();
 
-    return schedules.filter((schedule) => {
-      if (category && schedule.category.name.toLowerCase() !== category) {
+    return slots.filter((slot) => {
+      if (category && !slot.some((segment) => segment.category.name.toLowerCase() === category)) {
         return false;
       }
-      return matchesSearch(schedule, query);
+      return matchesSearch(slot, query);
     });
-  }, [schedules, search, categoryName]);
+  }, [slots, search, categoryName]);
 
   const warmupIds = useMemo(
     () => findWarmupBatteryIds(schedules, accessCode),
     [schedules, accessCode],
   );
 
+  const isWarmup = useCallback(
+    (slot: ScheduleSlot) => slot.some((segment) => warmupIds.has(segment.id)),
+    [warmupIds],
+  );
+
   const liveBatteries = useMemo(
-    () => filtered.filter((item) => item.isLive).sort(sortByTime),
+    () => filtered.filter((slot) => slot.some((segment) => segment.isLive)).sort(sortSlots),
     [filtered],
   );
 
   const warmupBatteries = useMemo(
     () =>
       filtered
-        .filter((item) => warmupIds.has(item.id))
-        .sort(sortByTime),
-    [filtered, warmupIds],
+        .filter((slot) => isWarmup(slot) && !slot.some((segment) => segment.isLive))
+        .sort(sortSlots),
+    [filtered, isWarmup],
   );
 
   const dayGroups = useMemo(() => {
     const map = new Map<string, DayGroup>();
 
     filtered
-      .filter((item) => !item.isLive && !warmupIds.has(item.id))
-      .sort(sortByTime)
-      .forEach((schedule) => {
-        const key = formatDateOnly(schedule.date, 'yyyy-MM-dd');
-        const label = formatDateOnly(schedule.date, 'dd/MM');
+      .filter((slot) => !slot.some((segment) => segment.isLive) && !isWarmup(slot))
+      .sort(sortSlots)
+      .forEach((slot) => {
+        const key = formatDateOnly(slot[0].date, 'yyyy-MM-dd');
+        const label = formatDateOnly(slot[0].date, 'dd/MM');
         const existing = map.get(key);
         if (existing) {
-          existing.items.push(schedule);
+          existing.items.push(slot);
           return;
         }
-        map.set(key, { key, label, items: [schedule] });
+        map.set(key, { key, label, items: [slot] });
       });
 
     return Array.from(map.values());
-  }, [filtered, warmupIds]);
+  }, [filtered, isWarmup]);
 
   const handleParticipantsClick = useCallback((scheduleId: string) => {
     setExpandedId((current) => (current === scheduleId ? null : scheduleId));
@@ -126,11 +167,11 @@ const ListCardPublicSchedule = ({
             Ao vivo
           </h2>
           <ul className="list-none divide-y divide-red-100 overflow-hidden rounded-surface border border-red-200 border-l-4 border-l-red-500 bg-white p-0">
-            {liveBatteries.map((schedule) => (
+            {liveBatteries.map((slot) => (
               <ScheduleRow
-                key={schedule.id}
-                schedule={schedule}
-                isExpanded={expandedId === schedule.id}
+                key={slotKey(slot[0])}
+                slot={slot}
+                isExpanded={expandedId === slotKey(slot[0])}
                 isWarmup={false}
                 onParticipantsClick={handleParticipantsClick}
               />
@@ -150,11 +191,11 @@ const ListCardPublicSchedule = ({
             </p>
           </div>
           <ul className="list-none divide-y divide-primary/10 overflow-hidden rounded-surface border border-primary/25 border-l-4 border-l-primary bg-white p-0">
-            {warmupBatteries.map((schedule) => (
+            {warmupBatteries.map((slot) => (
               <ScheduleRow
-                key={schedule.id}
-                schedule={schedule}
-                isExpanded={expandedId === schedule.id}
+                key={slotKey(slot[0])}
+                slot={slot}
+                isExpanded={expandedId === slotKey(slot[0])}
                 isWarmup
                 onParticipantsClick={handleParticipantsClick}
               />
@@ -169,11 +210,11 @@ const ListCardPublicSchedule = ({
             {group.label}
           </h2>
           <ul className="list-none divide-y divide-gray-100 overflow-hidden rounded-surface border border-gray-200 bg-white p-0">
-            {group.items.map((schedule) => (
+            {group.items.map((slot) => (
               <ScheduleRow
-                key={schedule.id}
-                schedule={schedule}
-                isExpanded={expandedId === schedule.id}
+                key={slotKey(slot[0])}
+                slot={slot}
+                isExpanded={expandedId === slotKey(slot[0])}
                 isWarmup={false}
                 onParticipantsClick={handleParticipantsClick}
               />
@@ -186,20 +227,41 @@ const ListCardPublicSchedule = ({
 };
 
 type ScheduleRowProps = {
-  schedule: IPublicSchedule;
+  slot: ScheduleSlot;
   isExpanded: boolean;
   isWarmup: boolean;
   onParticipantsClick: (scheduleId: string) => void;
 };
 
 function ScheduleRow({
-  schedule,
+  slot,
   isExpanded,
   isWarmup,
   onParticipantsClick,
 }: ScheduleRowProps) {
-  const countBaias = schedule.subscriptions?.length ?? 0;
-  const preview = (schedule.subscriptions ?? []).slice(0, 3);
+  const schedule = slot[0];
+  const mixed = slot.length > 1;
+  const workoutLabel = uniqueJoined(slot.map((segment) => segment.workout.name));
+  const rowKey = slotKey(schedule);
+
+  let laneOffset = 0;
+  const lanes = slot.flatMap((segment) => {
+    const source = segment.subscriptions ?? [];
+    const athletes = showsAthletes(segment) ? [...source].sort(worstFirst) : [...source];
+    const count = athletes.length;
+    const rows = athletes.map((subscription, index) => ({
+      key: `${segment.id}-${subscription.place ?? subscription.nickname}-${index}`,
+      label: laneText(segment, subscription.nickname, subscription.place),
+      categoryName: segment.category.name,
+      bay: laneOffset + (count - index),
+    }));
+    laneOffset += segmentSpan(segment);
+    return rows;
+  });
+  const orderedLanes = [...lanes].sort((a, b) => b.bay - a.bay);
+  const namedHeat = slot.some((segment) => showsAthletes(segment));
+  const countBaias = orderedLanes.length;
+  const preview = orderedLanes.slice(0, 3);
   const remaining = Math.max(countBaias - preview.length, 0);
 
   return (
@@ -213,7 +275,7 @@ function ScheduleRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            {schedule.isLive ? (
+            {slot.some((segment) => segment.isLive) ? (
               <span className="schedule-live-badge" aria-label="Ao vivo">
                 <span className="schedule-live-dot" aria-hidden />
                 Live
@@ -224,18 +286,23 @@ function ScheduleRow({
                 Aquecimento liberado
               </span>
             ) : null}
-            <span className="inline-flex rounded-chip bg-gray-100 px-2 py-0.5 text-[11px] font-semibold capitalize text-gray-600">
-              {schedule.category.name}
-            </span>
+            {slot.map((segment) => (
+              <span
+                key={segment.id}
+                className="inline-flex rounded-chip bg-gray-100 px-2 py-0.5 text-[11px] font-semibold capitalize text-gray-600"
+              >
+                {segment.category.name}
+              </span>
+            ))}
           </div>
 
           <p className="mt-1 truncate text-sm font-medium capitalize text-gray-800">
-            {schedule.workout.name}
+            {workoutLabel}
           </p>
 
           {preview.length && !isExpanded ? (
             <p className="mt-1 truncate text-xs text-gray-400">
-              {preview.map((item) => item.nickname).join(' · ')}
+              {preview.map((item) => item.label).join(' · ')}
               {remaining > 0 ? ` · +${remaining}` : ''}
             </p>
           ) : null}
@@ -247,11 +314,15 @@ function ScheduleRow({
           type="button"
           className="flex w-full items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
           aria-expanded={isExpanded}
-          onClick={() => onParticipantsClick(schedule.id)}
+          onClick={() => onParticipantsClick(rowKey)}
         >
           {isExpanded
-            ? 'Ocultar participantes'
-            : `Participantes (${countBaias})`}
+            ? namedHeat
+              ? 'Ocultar participantes'
+              : 'Ocultar posições'
+            : namedHeat
+              ? `Participantes (${countBaias})`
+              : `Posições (${countBaias})`}
           <ChevronDown
             size={14}
             className={`transition ${isExpanded ? 'rotate-180' : ''}`}
@@ -261,16 +332,21 @@ function ScheduleRow({
 
         {isExpanded ? (
           <ul className="list-none space-y-2 bg-white p-0 px-4 py-3">
-            {schedule.subscriptions?.map((subscription, index) => (
+            {orderedLanes.map((lane) => (
               <li
-                key={`${schedule.id}-${subscription.nickname}-${index}`}
+                key={lane.key}
                 className="flex list-none items-center justify-between gap-3"
               >
-                <span className="truncate text-sm font-semibold text-gray-700">
-                  {subscription.nickname}
+                <span className="min-w-0 truncate text-sm font-semibold text-gray-700">
+                  {mixed ? (
+                    <span className="mr-2 text-xs font-medium text-gray-500">
+                      {lane.categoryName}
+                    </span>
+                  ) : null}
+                  {lane.label}
                 </span>
                 <span className="shrink-0 text-xs text-gray-500">
-                  Baia {Math.abs(index - countBaias)}
+                  Baia {lane.bay}
                 </span>
               </li>
             ))}

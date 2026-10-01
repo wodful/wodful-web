@@ -9,6 +9,7 @@ import { ScheduleProvider } from '@/contexts/schedule';
 import { WorkoutProvider } from '@/contexts/workout';
 import { IIsLiveDTO, IIsOverDTO } from '@/data/interfaces/schedule';
 import useScheduleData from '@/hooks/useScheduleData';
+import { groupBySlot, slotLaneQuantity, uniqueJoined } from '@/utils/scheduleSlots';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { Radio } from 'react-feather';
 import { useParams } from 'react-router-dom';
@@ -33,10 +34,10 @@ const Schedule = () => {
   const { schedulePages, IsLive, IsOver } = useScheduleData();
 
   const hasElements = useMemo(() => schedulePages.count !== 0, [schedulePages]);
-  const liveActivity = useMemo(
-    () => schedulePages.results?.find((item) => item.isLive),
-    [schedulePages.results],
-  );
+  const liveSlot = useMemo(() => {
+    const slots = groupBySlot(schedulePages.results ?? []);
+    return slots.find((slot) => slot.some((item) => item.isLive)) ?? null;
+  }, [schedulePages.results]);
 
   const handleIsLive = useCallback(
     (activityId: string, isLive: boolean) => {
@@ -71,7 +72,7 @@ const Schedule = () => {
       >
         {hasElements ? (
           <div className="space-y-4">
-            {liveActivity ? (
+            {liveSlot ? (
               <div
                 className="flex flex-col gap-3 rounded-surface border border-red-200 border-l-4 border-l-red-500 bg-red-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 aria-live="polite"
@@ -85,11 +86,12 @@ const Schedule = () => {
                       Ao vivo agora
                     </p>
                     <p className="text-sm font-semibold text-slate-900">
-                      {liveActivity.hour} · {liveActivity.category.name} ·{' '}
-                      {liveActivity.workout.name}
+                      {liveSlot[0].hour} · {uniqueJoined(liveSlot.map((item) => item.category.name))} ·{' '}
+                      {uniqueJoined(liveSlot.map((item) => item.workout.name))}
                     </p>
                     <p className="text-xs text-slate-600">
-                      Bateria {liveActivity.heat} · {liveActivity.laneQuantity} baias
+                      {uniqueJoined(liveSlot.map((item) => `Bateria ${item.heat}`))} ·{' '}
+                      {slotLaneQuantity(liveSlot)} baias
                     </p>
                   </div>
                 </div>
@@ -97,14 +99,14 @@ const Schedule = () => {
                   <Button
                     variant="secondary"
                     className="!min-h-9 !px-3 !py-1.5 !text-xs"
-                    onClick={() => handleIsLive(liveActivity.id, false)}
+                    onClick={() => handleIsLive(liveSlot[0].id, false)}
                   >
                     Parar
                   </Button>
                   <Button
                     variant="dangerOutline"
                     className="!min-h-9 !px-3 !py-1.5 !text-xs"
-                    onClick={() => setConfirmEndId(liveActivity.id)}
+                    onClick={() => setConfirmEndId(liveSlot[0].id)}
                   >
                     Encerrar
                   </Button>
@@ -140,7 +142,7 @@ const Schedule = () => {
 
         <ComponentModal
           title="Adicionar atividade ao cronograma"
-          description="Categoria, prova, horário e baias."
+          description="Horário e uma ou mais categorias na mesma bateria."
           size="lg"
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}

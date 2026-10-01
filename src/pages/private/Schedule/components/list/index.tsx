@@ -19,12 +19,39 @@ import { Select } from '@/components/ui/Select';
 import { IIsLiveDTO, IIsOverDTO, ISchedule } from '@/data/interfaces/schedule';
 import useScheduleData from '@/hooks/useScheduleData';
 import { formatDateOnly } from '@/utils/formatDate';
+import { groupBySlot, slotLaneQuantity, uniqueJoined } from '@/utils/scheduleSlots';
+import { ChevronDown } from 'react-feather';
 
 type StatusFilter = 'all' | 'live' | 'upcoming' | 'over';
 
 interface IListSchedule {
   championshipId: string;
   onRequestEnd: (activityId: string) => void;
+}
+
+function heatAthletes(slot: ISchedule[]) {
+  let laneOffset = 0;
+
+  const lanes = slot.flatMap((segment) => {
+    const athletes = segment.subscriptions ?? [];
+    const count = athletes.length;
+    const span = segment.laneQuantity > 0 ? segment.laneQuantity : count;
+    const rows = athletes.map((athlete, index) => ({
+      key: `${segment.id}-${athlete.nickname}-${index}`,
+      nickname: athlete.nickname,
+      categoryName: segment.category.name,
+      bay: laneOffset + (count - index),
+      generalScore: athlete.generalScore,
+    }));
+    laneOffset += span;
+    return rows;
+  });
+
+  return lanes.sort((a, b) => b.bay - a.bay);
+}
+
+function formatPoints(score: number) {
+  return `${score} ${score === 1 ? 'pt' : 'pts'}`;
 }
 
 function activityStatus(schedule: ISchedule, nextPendingId?: string) {
@@ -34,6 +61,10 @@ function activityStatus(schedule: ISchedule, nextPendingId?: string) {
   return 'scheduled' as const;
 }
 
+function startsOpen(status: ReturnType<typeof activityStatus>) {
+  return status === 'live' || status === 'next' || status === 'over';
+}
+
 const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
   const [currentTotal, setCurrentTotal] = useState(0);
   const [scheduleId, setScheduleId] = useState('');
@@ -41,6 +72,7 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [workoutFilter, setWorkoutFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
   const {
     ListPaginated,
@@ -64,11 +96,12 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
   }, [schedulePages.results?.length]);
 
   const results = schedulePages.results ?? [];
+  const slots = useMemo(() => groupBySlot(results), [results]);
 
   const nextPendingId = useMemo(() => {
-    const pending = results.find((item) => !item.isLive && !item.isOver);
-    return pending?.id;
-  }, [results]);
+    const pending = slots.find((slot) => !slot[0].isLive && !slot[0].isOver);
+    return pending?.[0].id;
+  }, [slots]);
 
   const categories = useMemo(() => {
     return Array.from(new Set(results.map((item) => item.category.name))).sort();
@@ -85,10 +118,14 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
   }, [categoryFilter, results]);
 
   const filtered = useMemo(() => {
-    return results.filter((item) => {
-      if (categoryFilter && item.category.name !== categoryFilter) return false;
-      if (workoutFilter && item.workout.name !== workoutFilter) return false;
-      const status = activityStatus(item, nextPendingId);
+    return slots.filter((slot) => {
+      if (categoryFilter && !slot.some((item) => item.category.name === categoryFilter)) {
+        return false;
+      }
+      if (workoutFilter && !slot.some((item) => item.workout.name === workoutFilter)) {
+        return false;
+      }
+      const status = activityStatus(slot[0], nextPendingId);
       if (statusFilter === 'live' && status !== 'live') return false;
       if (statusFilter === 'over' && status !== 'over') return false;
       if (statusFilter === 'upcoming' && status !== 'next' && status !== 'scheduled') {
@@ -96,7 +133,14 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
       }
       return true;
     });
-  }, [categoryFilter, nextPendingId, results, statusFilter, workoutFilter]);
+  }, [categoryFilter, nextPendingId, slots, statusFilter, workoutFilter]);
+
+  const toggleAthletes = (scheduleId: string, status: ReturnType<typeof activityStatus>) => {
+    setExpandedIds((current) => {
+      const open = current[scheduleId] ?? startsOpen(status);
+      return { ...current, [scheduleId]: !open };
+    });
+  };
 
   const handleIsLive = (activityId: string, isLive: boolean) => {
     const payload: IIsLiveDTO = { championshipId, activityId, isLive };
@@ -185,12 +229,26 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
             </DataTableRow>
           </DataTableHead>
           <DataTableBody>
-            {filtered.map((schedule) => {
+            {filtered.map((slot) => {
+              const schedule = slot[0];
               const status = activityStatus(schedule, nextPendingId);
               const muted = status === 'over';
               const dateLabel = formatDateOnly(schedule.date);
               const showDateHeader = dateLabel !== lastDateLabel;
               if (showDateHeader) lastDateLabel = dateLabel;
+              const categoryLabel = uniqueJoined(slot.map((item) => item.category.name));
+              const workoutLabel = uniqueJoined(slot.map((item) => item.workout.name));
+              const laneTotal = slotLaneQuantity(slot);
+              const athletes = heatAthletes(slot);
+              const open = expandedIds[schedule.id] ?? startsOpen(status);
+              const bandClass =
+                status === 'live'
+                  ? 'border-l-4 border-l-red-500 bg-red-50/70'
+                  : status === 'over'
+                    ? 'bg-slate-50 text-slate-400'
+                    : open
+                      ? 'bg-slate-50/80'
+                      : '';
 
               return (
                 <Fragment key={schedule.id}>
@@ -205,13 +263,10 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
                     </DataTableRow>
                   ) : null}
                   <DataTableRow
-                    className={
-                      status === 'live'
-                        ? 'border-l-4 border-l-red-500 bg-red-50/70'
-                        : status === 'over'
-                          ? 'bg-slate-50 text-slate-400'
-                          : ''
-                    }
+                    className={`${bandClass} ${
+                      status === 'live' ? 'hover:!bg-red-50/70' : open ? 'hover:!bg-slate-50/80' : ''
+                    }`}
+                    onClick={() => toggleAthletes(schedule.id, status)}
                   >
                     <DataTableCell>
                       {status === 'live' ? (
@@ -237,25 +292,53 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
                     </DataTableCell>
                     <DataTableCell>
                       <div className={muted ? 'line-through' : ''}>
-                        <p className="font-medium text-slate-900">{schedule.category.name}</p>
-                        <p className="text-xs text-slate-500">{schedule.workout.name}</p>
+                        <p className="font-medium text-slate-900">{categoryLabel}</p>
+                        <p className="text-xs text-slate-500">{workoutLabel}</p>
                       </div>
+                      {athletes.length ? (
+                        <button
+                          type="button"
+                          className="mt-1 inline-flex items-center gap-1 rounded-control text-xs font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          aria-expanded={open}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleAthletes(schedule.id, status);
+                          }}
+                        >
+                          {athletes.length} {athletes.length === 1 ? 'atleta' : 'atletas'}
+                          <ChevronDown
+                            size={14}
+                            className={`transition ${open ? 'rotate-180' : ''}`}
+                            aria-hidden
+                          />
+                        </button>
+                      ) : null}
                     </DataTableCell>
                     <DataTableCell>
                       <div className="flex flex-wrap gap-1.5">
+                        {slot.map((item) => (
+                          <Badge
+                            key={item.id}
+                            tone="neutral"
+                            className={muted ? 'opacity-60' : ''}
+                          >
+                            {slot.length > 1 ? `${item.category.name} · ` : ''}
+                            Bat. {item.heat}
+                          </Badge>
+                        ))}
                         <Badge tone="neutral" className={muted ? 'opacity-60' : ''}>
-                          Bat. {schedule.heat}
-                        </Badge>
-                        <Badge tone="neutral" className={muted ? 'opacity-60' : ''}>
-                          {schedule.laneQuantity} baias
+                          {laneTotal} baias
                         </Badge>
                       </div>
                     </DataTableCell>
                     <DataTableCell>
-                      <div className="flex flex-col items-stretch justify-end gap-2 sm:flex-row sm:items-center">
+                      <div
+                        className="flex flex-col items-stretch justify-end gap-2 sm:flex-row sm:items-center"
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         {status === 'next' || status === 'scheduled' ? (
                           <Button
-                            variant="primary"
+                            variant={status === 'next' ? 'primary' : 'secondary'}
                             className="!min-h-9 !px-3 !py-1.5 !text-xs"
                             onClick={() => handleIsLive(schedule.id, true)}
                           >
@@ -291,7 +374,9 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
                         ) : null}
                         {status === 'next' || status === 'scheduled' ? (
                           <RowActions
-                            entityLabel={`bateria ${schedule.heat}`}
+                            entityLabel={
+                              slot.length > 1 ? 'bateria mista' : `bateria ${schedule.heat}`
+                            }
                             onDelete={() => {
                               setScheduleId(schedule.id);
                               setIsOpen(true);
@@ -301,6 +386,49 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
                       </div>
                     </DataTableCell>
                   </DataTableRow>
+                  {open && athletes.length ? (
+                    <DataTableRow
+                      className={`!border-t-0 ${bandClass} ${
+                        status === 'live' ? 'hover:!bg-red-50/70' : 'hover:!bg-slate-50/80'
+                      }`}
+                    >
+                      <DataTableCell colSpan={5} className="!px-0 !py-0">
+                        <ul className="border-t border-slate-200">
+                          {athletes.map((athlete) => (
+                            <li
+                              key={athlete.key}
+                              className="flex min-w-0 items-center gap-3 border-b border-slate-100 px-4 py-2.5 last:border-b-0"
+                            >
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-800 text-xs font-semibold tabular-nums text-white">
+                                {athlete.bay}
+                              </span>
+                              <span
+                                className={`min-w-0 flex-1 truncate text-sm ${
+                                  muted ? 'text-slate-400 line-through' : 'text-slate-800'
+                                }`}
+                              >
+                                {slot.length > 1 ? (
+                                  <span className="mr-1.5 text-xs text-slate-400">
+                                    {athlete.categoryName}
+                                  </span>
+                                ) : null}
+                                {athlete.nickname}
+                              </span>
+                              {athlete.generalScore != null ? (
+                                <span
+                                  className={`shrink-0 text-xs tabular-nums ${
+                                    muted ? 'text-slate-400 line-through' : 'text-slate-500'
+                                  }`}
+                                >
+                                  {formatPoints(athlete.generalScore)}
+                                </span>
+                              ) : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </DataTableCell>
+                    </DataTableRow>
+                  ) : null}
                 </Fragment>
               );
             })}
