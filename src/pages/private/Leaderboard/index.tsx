@@ -61,6 +61,7 @@ const Leaderboard = () => {
       <LivePageShell
         title="Leaderboard"
         description="Ranking da categoria com desempate automático — inclui resultados ocultos."
+        helpArticleId="leaderboards"
       >
         {!hasCategories ? (
           <EmptyState

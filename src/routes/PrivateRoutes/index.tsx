@@ -15,6 +15,7 @@ import Subscription from '@/pages/private/Subscription';
 import Ticket from '@/pages/private/Ticket';
 import Workout from '@/pages/private/Workout';
 import Coupons from '@/pages/private/Coupons';
+import HelpCenter from '@/pages/private/Help';
 
 const PrivateRoutes = () => {
   return (
@@ -38,6 +39,7 @@ const PrivateRoutes = () => {
           <Route path="coupons" element={<Coupons />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<EventSettings />} />
+          <Route path="ajuda" element={<HelpCenter />} />
         </Route>
       </Routes>
     </BrowserRouter>
