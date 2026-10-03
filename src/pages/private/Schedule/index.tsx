@@ -62,6 +62,7 @@ const Schedule = () => {
       <LivePageShell
         title="Cronograma"
         description="Gerencie suas baterias do evento."
+        helpArticleId="schedules"
         actions={
           hasElements ? (
             <Button variant="primary" onClick={() => setIsOpen(true)}>

@@ -5,6 +5,7 @@ import {
   Calendar,
   Clipboard,
   CreditCard,
+  HelpCircle,
   Home,
   Tag,
   Percent,
@@ -28,7 +29,8 @@ export type EventNavItemId =
   | 'subscriptions'
   | 'participants'
   | 'analytics'
-  | 'settings';
+  | 'settings'
+  | 'help';
 
 export type EventNavItem = {
   id: EventNavItemId;
@@ -150,6 +152,14 @@ export const EVENT_NAV_ITEMS: EventNavItem[] = [
     description: 'Dados do evento, visibilidade, camisetas e cronograma',
     pathSegment: 'settings',
     Icon: Settings,
+    group: 'event',
+  },
+  {
+    id: 'help',
+    label: 'Ajuda',
+    description: 'Regras e dúvidas do dia',
+    pathSegment: 'ajuda',
+    Icon: HelpCircle,
     group: 'event',
   },
 ];

@@ -17,6 +17,13 @@ type EditFormValues = {
   result: string;
 };
 
+/** O input nativo de hora esconde os segundos quando o valor termina em :00. */
+function toTimeWithSeconds(value: string) {
+  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(value.trim());
+  if (!match) return value;
+  return `${match[1]}:${match[2]}:${match[3] ?? '00'}`;
+}
+
 const ResultForm = ({ onClose, oldResultId }: IFormResultProps) => {
   const { Get, result, Edit, isLoading } = useResultData();
   const workoutType = result.Workout?.workoutType || 'AMRAP';
@@ -36,7 +43,9 @@ const ResultForm = ({ onClose, oldResultId }: IFormResultProps) => {
 
   useEffect(() => {
     if (result?.id !== oldResultId) return;
-    reset({ result: result.result });
+    const nextResult =
+      result.Workout?.workoutType === 'FORTIME' ? toTimeWithSeconds(result.result) : result.result;
+    reset({ result: nextResult });
   }, [oldResultId, reset, result]);
 
   const onSubmit: SubmitHandler<EditFormValues> = async ({ result: nextResult }) => {
@@ -78,6 +87,7 @@ const ResultForm = ({ onClose, oldResultId }: IFormResultProps) => {
         <Input
           id="result"
           type={workoutType !== 'FORTIME' ? 'number' : 'time'}
+          step={workoutType === 'FORTIME' ? 1 : undefined}
           placeholder="Resultado"
           invalid={!!errors.result}
           autoFocus

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { HelpArticleLink } from '@/components/help/HelpArticleLink';
 import { Button } from '@/components/ui/Button';
 
 type PeoplePageShellProps = {
@@ -8,6 +9,7 @@ type PeoplePageShellProps = {
   onAction?: () => void;
   /** Custom header actions (e.g. export menu). Takes precedence over actionLabel. */
   actions?: ReactNode;
+  helpArticleId?: string;
   children: ReactNode;
 };
 
@@ -18,15 +20,24 @@ export function PeoplePageShell({
   actionLabel,
   onAction,
   actions,
+  helpArticleId,
   children,
 }: PeoplePageShellProps) {
-  const headerActions =
+  const primaryAction =
     actions ??
     (actionLabel && onAction ? (
       <Button variant="primary" className="w-full shrink-0 sm:w-auto" onClick={onAction}>
         {actionLabel}
       </Button>
     ) : null);
+
+  const headerActions =
+    helpArticleId || primaryAction ? (
+      <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+        {helpArticleId ? <HelpArticleLink articleId={helpArticleId} /> : null}
+        {primaryAction}
+      </div>
+    ) : null;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">

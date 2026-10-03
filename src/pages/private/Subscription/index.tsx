@@ -72,6 +72,7 @@ const Subscription = () => {
         description="Acompanhe pagamentos, origem e status. Inclua atletas pelo painel quando precisar."
         actionLabel="Adicionar inscrição"
         onAction={openCreate}
+        helpArticleId="subscriptions"
       >
         <ComponentModal
           title={`${isEditing ? 'Editar' : 'Adicionar'} inscrição`}

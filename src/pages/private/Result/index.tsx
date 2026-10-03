@@ -212,6 +212,7 @@ const Result = () => {
       <LivePageShell
         title="Resultados"
         description="Lance e libere os resultados do evento."
+        helpArticleId="results"
       >
         <div className="mb-4 space-y-4 rounded-surface border border-slate-200 bg-white p-4 shadow-sm">
           <div>

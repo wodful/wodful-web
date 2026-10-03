@@ -63,7 +63,7 @@ export const Header = () => {
       }
     >
       <div className="h-0.5 w-full bg-primary" aria-hidden />
-      <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-3 px-4 sm:px-6">
+      <div className="flex h-14 w-full items-center gap-3 px-4 sm:px-6">
         <Link
           to="/championships"
           className={

@@ -1,9 +1,12 @@
 import type { ReactNode } from 'react';
 
+import { HelpArticleLink } from '@/components/help/HelpArticleLink';
+
 type LivePageShellProps = {
   title: string;
   description?: string;
   actions?: ReactNode;
+  helpArticleId?: string;
   children: ReactNode;
 };
 
@@ -12,6 +15,7 @@ export function LivePageShell({
   title,
   description,
   actions,
+  helpArticleId,
   children,
   className = '',
 }: LivePageShellProps & { className?: string }) {
@@ -23,8 +27,11 @@ export function LivePageShell({
           <h1 className="mt-1 text-2xl font-bold text-slate-900">{title}</h1>
           {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
         </div>
-        {actions ? (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+        {helpArticleId || actions ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {helpArticleId ? <HelpArticleLink articleId={helpArticleId} /> : null}
+            {actions}
+          </div>
         ) : null}
       </header>
       {children}

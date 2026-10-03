@@ -49,6 +49,7 @@ const Participants = () => {
       <PeoplePageShell
         title="Participantes"
         description="Consulte atletas, boxes e retire kits e medalhas no dia do evento."
+        helpArticleId="participants"
       >
         <ComponentModal
           title={
