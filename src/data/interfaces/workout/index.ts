@@ -6,9 +6,15 @@ export interface IWorkoutDTO {
   categoryId: string;
   worthHalfPoints?: boolean;
 }
+
+export interface IUpdateWorkoutDTO extends IWorkoutDTO {
+  id: string;
+}
+
 export interface IWorkout {
   id: string;
   name: string;
+  description?: string;
   workoutType: 'AMRAP' | 'EMOM' | 'FORTIME' | 'PR';
   categoryId?: string;
   categoryName: string;

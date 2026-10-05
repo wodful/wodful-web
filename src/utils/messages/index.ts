@@ -53,7 +53,9 @@ export const ticketMessages = {
 
 export const workoutMessages = {
   success: 'Prova adicionada com sucesso',
+  success_edit: 'Prova editada com sucesso',
   error: 'Algo deu errado ao adicionar a prova',
+  error_edit: 'Algo deu errado ao editar a prova',
   remove: 'Prova removida com sucesso',
   remove_err: 'Algo deu errado ao remover a Prova',
 };
@@ -71,11 +73,13 @@ export const resultMessages = {
 
 export const activityMessages = {
   success: 'Atividade adicionado ao cronograma com sucesso',
+  success_edit: 'Atividade editada com sucesso',
   start: 'Atividade iniciada com sucesso',
   stop: 'Atividade parada com sucesso',
   finish: 'Atividade encerrada com sucesso',
   errorStatus: 'Algo deu errado ao mudar o status da atividade',
   error: 'Algo deu errado ao adicionar uma atividade ao cronograma',
+  error_edit: 'Algo deu errado ao editar a atividade',
   remove: 'Atividade removida com sucesso',
   remove_err: 'Algo deu errado ao remover o cronograma',
 };

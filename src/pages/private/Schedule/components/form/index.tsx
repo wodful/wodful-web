@@ -4,19 +4,20 @@ import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { ICreateScheduleRequestDTO } from '@/data/interfaces/schedule';
+import { ICreateScheduleRequestDTO, ISchedule } from '@/data/interfaces/schedule';
 import { IWorkout } from '@/data/interfaces/workout';
 import useCategoryData from '@/hooks/useCategoryData';
 import useScheduleData from '@/hooks/useScheduleData';
 import { WorkoutService } from '@/services/Workout';
 import { toDateOnlyString } from '@/utils/formatDate';
 import { validationMessages } from '@/utils/messages';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 
 interface IFormScheduleProps {
   onClose: () => void;
+  slot?: ISchedule[];
 }
 
 type SegmentForm = {
@@ -42,6 +43,21 @@ const emptySegment = (): SegmentForm => ({
   laneQuantity: 1,
 });
 
+function toTimeInput(hour: string) {
+  const [rawHour = '0', rawMinute = '00'] = hour.split(':');
+  return `${rawHour.padStart(2, '0')}:${rawMinute.padStart(2, '0')}`.slice(0, 5);
+}
+
+function segmentsFromSlot(slot?: ISchedule[]): SegmentForm[] {
+  if (!slot?.length) return [emptySegment()];
+  return slot.map((item) => ({
+    categoryId: item.category.id ?? '',
+    workoutId: item.workout.id ?? '',
+    heat: item.heat,
+    laneQuantity: item.laneQuantity,
+  }));
+}
+
 function bayRange(segments: SegmentForm[], index: number) {
   let start = 1;
   for (let cursor = 0; cursor < index; cursor += 1) {
@@ -53,11 +69,16 @@ function bayRange(segments: SegmentForm[], index: number) {
   return start === end ? `Baia ${start}` : `Baias ${start}–${end}`;
 }
 
-const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
+const ScheduleForm = ({ onClose, slot }: IFormScheduleProps) => {
   const { List, categories } = useCategoryData();
-  const { Create } = useScheduleData();
+  const { Create, Update, isLoading } = useScheduleData();
   const { id } = useParams();
   const [workoutsBySegment, setWorkoutsBySegment] = useState<Record<string, IWorkout[]>>({});
+  const loadedFields = useRef(new Set<string>());
+  const pendingWorkoutIds = useRef<(string | undefined)[]>(
+    slot?.map((item) => item.workout.id) ?? [],
+  );
+  const activityId = slot?.[0]?.id;
 
   useEffect(() => {
     List(id as string);
@@ -72,9 +93,15 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
     formState: { errors, isValid },
   } = useForm<ScheduleFormValues>({
     mode: 'onChange',
-    defaultValues: {
-      segments: [emptySegment()],
-    },
+    defaultValues: slot?.length
+      ? {
+          date: toDateOnlyString(slot[0].date),
+          hour: toTimeInput(slot[0].hour),
+          segments: segmentsFromSlot(slot),
+        }
+      : {
+          segments: [emptySegment()],
+        },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -93,7 +120,30 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
     setWorkoutsBySegment((current) => ({ ...current, [fieldId]: list }));
   }
 
-  function onSubmit(values: ScheduleFormValues) {
+  useEffect(() => {
+    fields.forEach((field, index) => {
+      const categoryId = segments?.[index]?.categoryId;
+      if (!categoryId || loadedFields.current.has(field.id)) return;
+      loadedFields.current.add(field.id);
+      void loadWorkouts(field.id, categoryId);
+    });
+  }, [fields, segments]);
+
+  useEffect(() => {
+    fields.forEach((field, index) => {
+      const workoutId = pendingWorkoutIds.current[index];
+      if (!workoutId) return;
+      const list = workoutsBySegment[field.id];
+      if (!list?.some((workout) => workout.id === workoutId)) return;
+      setValue(`segments.${index}.workoutId`, workoutId, {
+        shouldValidate: true,
+        shouldDirty: false,
+      });
+      pendingWorkoutIds.current[index] = undefined;
+    });
+  }, [fields, workoutsBySegment, setValue]);
+
+  async function onSubmit(values: ScheduleFormValues) {
     const payload: ICreateScheduleRequestDTO = {
       date: toDateOnlyString(values.date),
       hour: values.hour,
@@ -104,6 +154,13 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
         laneQuantity: Number(segment.laneQuantity),
       })),
     };
+
+    if (activityId) {
+      const ok = await Update(activityId, payload);
+      if (ok) onClose();
+      return;
+    }
+
     Create(payload);
     onClose();
   }
@@ -135,7 +192,13 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
       <div className="flex flex-col gap-4">
         {fields.map((field, index) => {
           const segmentErrors = errors.segments?.[index];
-          const workouts = workoutsBySegment[field.id] ?? [];
+          const loadedWorkouts = workoutsBySegment[field.id] ?? [];
+          const savedWorkout = slot?.[index]?.workout;
+          const workouts = loadedWorkouts.length
+            ? loadedWorkouts
+            : savedWorkout?.id
+              ? [{ id: savedWorkout.id, name: savedWorkout.name } as IWorkout]
+              : [];
           const range = bayRange(segments ?? [], index);
           const currentCategoryId = segments?.[index]?.categoryId;
 
@@ -173,12 +236,16 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
                     required: validationMessages['required'],
                     onChange: (event) => {
                       const categoryId = event.target.value;
+                      if (categoryId === currentCategoryId) return;
+                      if (!categoryId && pendingWorkoutIds.current[index]) return;
+
+                      pendingWorkoutIds.current[index] = undefined;
                       setValue(`segments.${index}.workoutId`, '', { shouldValidate: true });
                       if (!categoryId) {
                         setWorkoutsBySegment((current) => ({ ...current, [field.id]: [] }));
                         return;
                       }
-                      loadWorkouts(field.id, categoryId);
+                      void loadWorkouts(field.id, categoryId);
                     },
                   })}
                 >
@@ -205,7 +272,7 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
                 <Select
                   id={`schedule-workout-${field.id}`}
                   invalid={!!segmentErrors?.workoutId}
-                  disabled={!workouts.length}
+                  disabled={!currentCategoryId || workouts.length === 0}
                   {...register(`segments.${index}.workoutId`, {
                     required: validationMessages['required'],
                   })}
@@ -283,8 +350,14 @@ const ScheduleForm = ({ onClose }: IFormScheduleProps) => {
         <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
           Cancelar
         </Button>
-        <Button type="submit" variant="primary" className="w-full sm:w-auto" disabled={!isValid}>
-          Adicionar
+        <Button
+          type="submit"
+          variant="primary"
+          className="w-full sm:w-auto"
+          disabled={!isValid || isLoading}
+          isLoading={isLoading}
+        >
+          {activityId ? 'Salvar' : 'Adicionar'}
         </Button>
       </ModalFooter>
     </form>

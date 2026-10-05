@@ -1,6 +1,6 @@
 import { HttpClient, HttpStatusCode } from '@/data/interfaces/http';
 import { IPageResponse } from '@/data/interfaces/pageResponse';
-import { IPublicWorkout, IWorkout, IWorkoutDTO } from '@/data/interfaces/workout';
+import { IPublicWorkout, IUpdateWorkoutDTO, IWorkout, IWorkoutDTO } from '@/data/interfaces/workout';
 
 export class WorkoutService {
   constructor(
@@ -87,6 +87,27 @@ export class WorkoutService {
     switch (statusCode) {
       case HttpStatusCode.ok:
         return body! as IPublicWorkout[];
+      default:
+        throw new Error();
+    }
+  }
+
+  async update({
+    id,
+    name,
+    description,
+    workoutType,
+    worthHalfPoints,
+  }: IUpdateWorkoutDTO): Promise<IWorkout> {
+    const { statusCode, body } = await this.httpClient.request({
+      method: 'put',
+      url: `${this.path}/${id}`,
+      body: { name, description, workoutType, worthHalfPoints },
+    });
+
+    switch (statusCode) {
+      case HttpStatusCode.ok:
+        return body! as IWorkout;
       default:
         throw new Error();
     }

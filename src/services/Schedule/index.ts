@@ -53,6 +53,25 @@ export class ScheduleService {
     }
   }
 
+  async update(activityId: string, payload: ICreateScheduleRequestDTO): Promise<ISchedule> {
+    const { statusCode, body } = await this.httpClient.request({
+      method: 'put',
+      url: `${this.path}/activities/${activityId}`,
+      body: {
+        date: payload.date,
+        hour: payload.hour,
+        segments: payload.segments,
+      },
+    });
+
+    switch (statusCode) {
+      case HttpStatusCode.ok:
+        return body! as ISchedule;
+      default:
+        throw new Error();
+    }
+  }
+
   async delete(id: string): Promise<ISchedule> {
     const { statusCode, body } = await this.httpClient.request({
       method: 'delete',
