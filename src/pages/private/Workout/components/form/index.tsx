@@ -4,6 +4,7 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
+import { IWorkout } from '@/data/interfaces/workout';
 import useCategoryData from '@/hooks/useCategoryData';
 import useWorkoutData from '@/hooks/useWorkoutData';
 import { validationMessages } from '@/utils/messages';
@@ -21,7 +22,137 @@ interface IFormChampionshipProps {
   id: string;
   onClose: () => void;
   showHalfPointsOption?: boolean;
+  workout?: IWorkout;
 }
+
+const EditWorkoutForm = ({
+  id,
+  workout,
+  onClose,
+  showHalfPointsOption = false,
+}: IFormChampionshipProps & { workout: IWorkout }) => {
+  const { Edit, isLoading } = useWorkoutData();
+  const [name, setName] = useState(workout.name);
+  const [description, setDescription] = useState(workout.description ?? '');
+  const [workoutType, setWorkoutType] = useState(workout.workoutType ?? '');
+  const [worthHalfPoints, setWorthHalfPoints] = useState(!!workout.worthHalfPoints);
+  const [touched, setTouched] = useState(false);
+
+  const nameError =
+    touched && (name.trim().length < 4 || name.trim().length > 50)
+      ? name.trim().length < 4
+        ? validationMessages['minLength']
+        : validationMessages['maxLengthSm']
+      : undefined;
+
+  const typeError = touched && !workoutType ? validationMessages['required'] : undefined;
+
+  const descriptionError = touched
+    ? !description.trim() || description.trim().length < 4
+      ? validationMessages['minLength']
+      : description.length > 1400
+        ? validationMessages['maxLengthSm']
+        : undefined
+    : undefined;
+
+  const canSubmit =
+    name.trim().length >= 4 &&
+    name.trim().length <= 50 &&
+    !!workoutType &&
+    description.trim().length >= 4 &&
+    description.length <= 1400;
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setTouched(true);
+    if (!canSubmit || !workout.categoryId) return;
+
+    const ok = await Edit({
+      id: workout.id,
+      name: name.trim(),
+      description: description.trim(),
+      workoutType,
+      championshipId: id,
+      categoryId: workout.categoryId,
+      worthHalfPoints: showHalfPointsOption ? worthHalfPoints : false,
+    });
+
+    if (ok) onClose();
+  };
+
+  return (
+    <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-5">
+      <p className="text-sm text-slate-600">
+        Categoria: <span className="font-semibold text-slate-900">{workout.categoryName}</span>
+      </p>
+
+      <FormField id="workout-name" label="Nome da prova" error={nameError}>
+        <Input
+          id="workout-name"
+          placeholder="Ex.: Prova 1 - Detonado"
+          invalid={!!nameError}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </FormField>
+
+      <FormField id="workout-type-edit" label="Tipo" error={typeError}>
+        <Select
+          id="workout-type-edit"
+          invalid={!!typeError}
+          value={workoutType}
+          onChange={(e) => setWorkoutType(e.target.value as IWorkout['workoutType'])}
+        >
+          <option value="">Selecione o tipo</option>
+          {WORKOUT_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </Select>
+      </FormField>
+
+      <FormField id="workout-desc-edit" label="Descrição / WOD" error={descriptionError}>
+        <Textarea
+          id="workout-desc-edit"
+          placeholder={`WOD de ${workout.categoryName}`}
+          invalid={!!descriptionError}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="min-h-[7rem]"
+        />
+      </FormField>
+
+      {showHalfPointsOption ? (
+        <label htmlFor="half-edit" className="flex cursor-pointer items-center gap-2.5">
+          <input
+            id="half-edit"
+            type="checkbox"
+            checked={worthHalfPoints}
+            onChange={(e) => setWorthHalfPoints(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/25"
+          />
+          <span className="text-sm text-slate-700">Vale 50 pts nesta categoria</span>
+        </label>
+      ) : null}
+
+      <ModalFooter>
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={touched ? !canSubmit : false}
+          isLoading={isLoading}
+          className="w-full sm:w-auto"
+        >
+          Salvar
+        </Button>
+      </ModalFooter>
+    </form>
+  );
+};
 
 const emptyDraft = (): CategoryDraft => ({
   description: '',
@@ -29,7 +160,7 @@ const emptyDraft = (): CategoryDraft => ({
   worthHalfPoints: false,
 });
 
-const FormWorkout = ({ id, onClose, showHalfPointsOption = false }: IFormChampionshipProps) => {
+const CreateWorkoutForm = ({ id, onClose, showHalfPointsOption = false }: IFormChampionshipProps) => {
   const { CreateMany, isLoading } = useWorkoutData();
   const { List, categories } = useCategoryData();
 
@@ -393,6 +524,11 @@ const FormWorkout = ({ id, onClose, showHalfPointsOption = false }: IFormChampio
       </ModalFooter>
     </form>
   );
+};
+
+const FormWorkout = ({ workout, ...props }: IFormChampionshipProps) => {
+  if (workout) return <EditWorkoutForm {...props} workout={workout} />;
+  return <CreateWorkoutForm {...props} />;
 };
 
 export default FormWorkout;

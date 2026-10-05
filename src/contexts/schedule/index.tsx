@@ -26,6 +26,7 @@ export interface ScheduleContextData {
   setLimit: (value: number) => void;
   setPage: (value: number) => void;
   Create: (schedule: ICreateScheduleRequestDTO) => void;
+  Update: (activityId: string, schedule: ICreateScheduleRequestDTO) => Promise<boolean>;
   Delete: (value: string) => void;
   schedules: IPublicSchedule[];
   PublicList: (code: string) => Promise<void>;
@@ -89,6 +90,32 @@ export const ScheduleProvider = ({ children, onClose }: ScheduleProviderProps) =
         .finally(() => setIsLoading(false));
     },
     [ListPaginated, id, onClose, toast],
+  );
+
+  const Update = useCallback(
+    async (activityId: string, schedule: ICreateScheduleRequestDTO) => {
+      setIsLoading(true);
+      try {
+        await new ScheduleService(axios).update(activityId, schedule);
+        toast({
+          title: activityMessages['success_edit'],
+          status: 'success',
+          isClosable: true,
+        });
+        ListPaginated(id as string);
+        return true;
+      } catch {
+        toast({
+          title: activityMessages['error_edit'],
+          status: 'error',
+          isClosable: true,
+        });
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [ListPaginated, id, toast],
   );
 
   const IsLive = useCallback(
@@ -184,6 +211,7 @@ export const ScheduleProvider = ({ children, onClose }: ScheduleProviderProps) =
         setPage,
         Delete,
         Create,
+        Update,
         schedules,
         PublicList,
       }}

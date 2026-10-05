@@ -7,7 +7,7 @@ import { LivePageShell } from '@/components/ui/LivePageShell';
 import { CategoryProvider } from '@/contexts/category';
 import { ScheduleProvider } from '@/contexts/schedule';
 import { WorkoutProvider } from '@/contexts/workout';
-import { IIsLiveDTO, IIsOverDTO } from '@/data/interfaces/schedule';
+import { IIsLiveDTO, IIsOverDTO, ISchedule } from '@/data/interfaces/schedule';
 import useScheduleData from '@/hooks/useScheduleData';
 import { groupBySlot, slotLaneQuantity, uniqueJoined } from '@/utils/scheduleSlots';
 import { Suspense, useCallback, useMemo, useState } from 'react';
@@ -29,6 +29,7 @@ const ScheduleWithProvider = () => (
 const Schedule = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
+  const [editingSlot, setEditingSlot] = useState<ISchedule[] | null>(null);
   const [confirmEndId, setConfirmEndId] = useState<string | null>(null);
 
   const { schedulePages, IsLive, IsOver } = useScheduleData();
@@ -48,6 +49,21 @@ const Schedule = () => {
     [IsLive, id],
   );
 
+  const openCreate = useCallback(() => {
+    setEditingSlot(null);
+    setIsOpen(true);
+  }, []);
+
+  const openEdit = useCallback((slot: ISchedule[]) => {
+    setEditingSlot(slot);
+    setIsOpen(true);
+  }, []);
+
+  const closeForm = useCallback(() => {
+    setIsOpen(false);
+    setEditingSlot(null);
+  }, []);
+
   const handleIsOver = useCallback(
     (activityId: string, isOver: boolean) => {
       if (!id) return;
@@ -65,7 +81,7 @@ const Schedule = () => {
         helpArticleId="schedules"
         actions={
           hasElements ? (
-            <Button variant="primary" onClick={() => setIsOpen(true)}>
+            <Button variant="primary" onClick={openCreate}>
               Adicionar atividade
             </Button>
           ) : null
@@ -118,13 +134,14 @@ const Schedule = () => {
             <ListSchedule
               championshipId={id as string}
               onRequestEnd={(activityId) => setConfirmEndId(activityId)}
+              onRequestEdit={openEdit}
             />
           </div>
         ) : (
           <EmptyList
             text="Você não possui um cronograma ainda!"
             contentButton="Crie um cronograma"
-            onClose={() => setIsOpen(true)}
+            onClose={openCreate}
           />
         )}
 
@@ -142,13 +159,21 @@ const Schedule = () => {
         />
 
         <ComponentModal
-          title="Adicionar atividade ao cronograma"
-          description="Horário e uma ou mais categorias na mesma bateria."
+          title={editingSlot ? 'Editar atividade' : 'Adicionar atividade ao cronograma'}
+          description={
+            editingSlot
+              ? 'Data, horário e categorias desta bateria.'
+              : 'Horário e uma ou mais categorias na mesma bateria.'
+          }
           size="lg"
           isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
+          onClose={closeForm}
         >
-          <ScheduleForm onClose={() => setIsOpen(false)} />
+          <ScheduleForm
+            key={editingSlot?.[0]?.id ?? 'create'}
+            slot={editingSlot ?? undefined}
+            onClose={closeForm}
+          />
         </ComponentModal>
       </LivePageShell>
     </Suspense>

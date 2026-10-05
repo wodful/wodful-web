@@ -23,6 +23,7 @@ import { ChevronDown } from 'react-feather';
 interface IListWorkout {
   championshipId: string;
   showPontuacaoColumn?: boolean;
+  onEdit: (workout: IWorkout) => void;
 }
 
 type WorkoutGroup = {
@@ -57,7 +58,11 @@ function groupWorkouts(workouts: IWorkout[]): WorkoutGroup[] {
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 }
 
-const ListWorkout = ({ championshipId, showPontuacaoColumn = false }: IListWorkout) => {
+const ListWorkout = ({
+  championshipId,
+  showPontuacaoColumn = false,
+  onEdit,
+}: IListWorkout) => {
   const [workoutId, setWorkoutId] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -312,6 +317,7 @@ const ListWorkout = ({ championshipId, showPontuacaoColumn = false }: IListWorko
                             <DataTableCell className="!py-2">
                               <RowActions
                                 entityLabel={`${workout.name} · ${workout.categoryName}`}
+                                onEdit={() => onEdit(workout)}
                                 onDelete={() => openDelete(workout.id)}
                               />
                             </DataTableCell>

@@ -1,6 +1,6 @@
 import { AxiosAdapter } from '@/adapters/AxiosAdapter';
 import { IPageResponse } from '@/data/interfaces/pageResponse';
-import { IPublicWorkout, IWorkout, IWorkoutDTO } from '@/data/interfaces/workout';
+import { IPublicWorkout, IUpdateWorkoutDTO, IWorkout, IWorkoutDTO } from '@/data/interfaces/workout';
 import { WorkoutService } from '@/services/Workout';
 import { workoutMessages } from '@/utils/messages';
 import { useToast } from '@/components/ui/Toast';
@@ -35,6 +35,7 @@ export interface WorkoutContextData {
     worthHalfPoints,
   }: IWorkoutDTO) => Promise<void>;
   CreateMany: (workouts: IWorkoutDTO[]) => Promise<boolean>;
+  Edit: (workout: IUpdateWorkoutDTO) => Promise<boolean>;
 }
 
 const WorkoutContext = createContext({} as WorkoutContextData);
@@ -173,6 +174,48 @@ export const WorkoutProvider = ({ children, onClose }: WorkoutProviderProps) => 
     [List, toast],
   );
 
+  const Edit = useCallback(
+    async ({
+      id: workoutId,
+      name,
+      description,
+      workoutType,
+      championshipId,
+      categoryId,
+      worthHalfPoints,
+    }: IUpdateWorkoutDTO) => {
+      setIsLoading(true);
+      try {
+        await new WorkoutService(axios).update({
+          id: workoutId,
+          name,
+          description,
+          workoutType,
+          championshipId,
+          categoryId,
+          worthHalfPoints,
+        });
+        toast({
+          title: workoutMessages['success_edit'],
+          status: 'success',
+          isClosable: true,
+        });
+        await List(championshipId);
+        return true;
+      } catch {
+        toast({
+          title: workoutMessages['error_edit'],
+          status: 'error',
+          isClosable: true,
+        });
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [List, toast],
+  );
+
   const Delete = useCallback(
     async (idCat: string) => {
       setIsLoading(true);
@@ -205,6 +248,7 @@ export const WorkoutProvider = ({ children, onClose }: WorkoutProviderProps) => 
         setPage,
         Create,
         CreateMany,
+        Edit,
         List,
         ListPaginated,
         ListByCategory,

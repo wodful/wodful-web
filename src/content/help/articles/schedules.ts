@@ -26,6 +26,13 @@ export const schedulesArticle: HelpArticle = {
       ],
     },
     {
+      heading: 'Como editar um horário',
+      steps: [
+        'Na linha da atividade, toque no lápis.',
+        'Ajuste data, hora, bateria, baias ou as categorias daquele horário e salve.',
+      ],
+    },
+    {
       heading: 'O que o sistema não deixa repetir',
       bullets: [
         'Dois horários com a mesma data e a mesma hora neste campeonato.',
@@ -39,7 +46,7 @@ export const schedulesArticle: HelpArticle = {
         'Iniciar marca a bateria como Ao vivo. Não inicia se ela já estiver ao vivo ou encerrada.',
         'Parar tira do ao vivo. A bateria volta a ficar agendada e o público continua vendo o horário.',
         'Encerrar só funciona com a bateria ao vivo. Ela fica Encerrada e deixa o cronograma público.',
-        'Reabrir devolve uma bateria encerrada. Excluir só aparece enquanto ela ainda não começou.',
+        'Reabrir devolve uma bateria encerrada. O lápis edita o horário. Excluir só aparece enquanto ela ainda não começou.',
       ],
       figures: [
         {

@@ -12,9 +12,11 @@ export interface ISchedule {
   slotId?: string | null;
   slotOrder?: number;
   category: {
+    id?: string;
     name: string;
   };
   workout: {
+    id?: string;
     name: string;
   };
   subscriptions?: {

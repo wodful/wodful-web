@@ -27,6 +27,7 @@ type StatusFilter = 'all' | 'live' | 'upcoming' | 'over';
 interface IListSchedule {
   championshipId: string;
   onRequestEnd: (activityId: string) => void;
+  onRequestEdit: (slot: ISchedule[]) => void;
 }
 
 function heatAthletes(slot: ISchedule[]) {
@@ -65,7 +66,7 @@ function startsOpen(status: ReturnType<typeof activityStatus>) {
   return status === 'live' || status === 'next' || status === 'over';
 }
 
-const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
+const ListSchedule = ({ championshipId, onRequestEnd, onRequestEdit }: IListSchedule) => {
   const [currentTotal, setCurrentTotal] = useState(0);
   const [scheduleId, setScheduleId] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -372,17 +373,20 @@ const ListSchedule = ({ championshipId, onRequestEnd }: IListSchedule) => {
                             Reabrir
                           </Button>
                         ) : null}
-                        {status === 'next' || status === 'scheduled' ? (
-                          <RowActions
-                            entityLabel={
-                              slot.length > 1 ? 'bateria mista' : `bateria ${schedule.heat}`
-                            }
-                            onDelete={() => {
-                              setScheduleId(schedule.id);
-                              setIsOpen(true);
-                            }}
-                          />
-                        ) : null}
+                        <RowActions
+                          entityLabel={
+                            slot.length > 1 ? 'bateria mista' : `bateria ${schedule.heat}`
+                          }
+                          onEdit={() => onRequestEdit(slot)}
+                          onDelete={
+                            status === 'next' || status === 'scheduled'
+                              ? () => {
+                                  setScheduleId(schedule.id);
+                                  setIsOpen(true);
+                                }
+                              : undefined
+                          }
+                        />
                       </div>
                     </DataTableCell>
                   </DataTableRow>
