@@ -6,6 +6,10 @@ export interface ITicket {
   endDate: Date;
   enabled: boolean;
   price: number;
+  passFeeToAthlete?: boolean;
+  feePercent?: number;
+  athleteFeeAmount?: number;
+  athleteTotal?: number;
   quantity: number;
   inUse: number;
   category: {

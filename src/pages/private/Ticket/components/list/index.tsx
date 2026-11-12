@@ -314,8 +314,16 @@ const ListTicket = ({ openEdit }: IListTicketProps) => {
                         </button>
                       </div>
                     </DataTableCell>
-                    <DataTableCell className="tabular-nums whitespace-nowrap">
-                      {formatCurrency(ticket.price)}
+                    <DataTableCell className="tabular-nums">
+                      <div>{formatCurrency(ticket.price)}</div>
+                      {ticket.passFeeToAthlete &&
+                      Number(ticket.athleteFeeAmount) > 0 ? (
+                        <p className="mt-1 max-w-[16rem] text-xs font-normal text-slate-500">
+                          Atleta paga {formatCurrency(ticket.athleteTotal ?? ticket.price)} (
+                          {formatCurrency(ticket.price)} +{" "}
+                          {formatCurrency(ticket.athleteFeeAmount ?? 0)} taxa)
+                        </p>
+                      ) : null}
                     </DataTableCell>
                     <DataTableCell>
                       <time
