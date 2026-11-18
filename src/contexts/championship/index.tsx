@@ -54,7 +54,8 @@ export interface ChampionshipContextData {
     accessCode,
     address,
     description,
-  }: IChampionshipEditDTO): Promise<void>;
+    banner,
+  }: IChampionshipEditDTO): Promise<string | null>;
   PatchIsAutoSchedule(idChamp: string, isAutomatic: string): Promise<void>;
 }
 
@@ -143,27 +144,38 @@ export const ChampionshipProvider = ({ children, onClose }: ChampionshipProps) =
       accessCode,
       address,
       description,
-    }: IChampionshipEditDTO) => {
+      banner,
+    }: IChampionshipEditDTO): Promise<string | null> => {
       setIsLoading(true);
-      await new ChampionshipService(axios)
-        .edit({ championshipId, name, startDate, endDate, accessCode, address, description })
-        .then(() => {
-          toast({
-            title: championshipMessages['success_edit'],
-            status: 'success',
-            isClosable: true,
-          });
-          ListPaginated();
-          onClose!();
-        })
-        .catch(() => {
-          toast({
-            title: championshipMessages['error'],
-            status: 'error',
-            isClosable: true,
-          });
-        })
-        .finally(() => setIsLoading(false));
+      try {
+        const savedBanner = await new ChampionshipService(axios).edit({
+          championshipId,
+          name,
+          startDate,
+          endDate,
+          accessCode,
+          address,
+          description,
+          banner,
+        });
+        toast({
+          title: championshipMessages['success_edit'],
+          status: 'success',
+          isClosable: true,
+        });
+        ListPaginated();
+        onClose?.();
+        return savedBanner;
+      } catch {
+        toast({
+          title: championshipMessages['error_edit'],
+          status: 'error',
+          isClosable: true,
+        });
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
     },
     [onClose, toast, ListPaginated],
   );

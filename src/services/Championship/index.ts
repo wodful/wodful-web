@@ -112,12 +112,14 @@ export class ChampionshipService {
     accessCode,
     address,
     description,
-  }: IChampionshipEditDTO): Promise<IChampionship> {
+    banner,
+  }: IChampionshipEditDTO): Promise<string> {
+    const hasBanner = banner instanceof File;
     const { statusCode, body } = await this.httpClient.request({
       method: 'put',
       url: this.path,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': hasBanner ? 'multipart/form-data' : 'application/json',
       },
       body: {
         championshipId,
@@ -127,12 +129,16 @@ export class ChampionshipService {
         accessCode: accessCode.toUpperCase(),
         address,
         description,
+        ...(hasBanner ? { banner } : {}),
       },
     });
 
     switch (statusCode) {
-      case HttpStatusCode.ok:
-        return body! as IChampionship;
+      case HttpStatusCode.ok: {
+        const savedBanner = (body as { banner?: unknown } | undefined)?.banner;
+        if (typeof savedBanner !== 'string') throw new Error();
+        return savedBanner;
+      }
       default:
         throw new Error();
     }
