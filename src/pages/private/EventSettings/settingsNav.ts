@@ -15,7 +15,7 @@ export const SETTINGS_TABS: SettingsTab[] = [
   {
     id: 'general',
     label: 'Geral',
-    description: 'Nome, datas, local, descrição e código',
+    description: 'Nome, banner, datas, local, descrição e código',
   },
   {
     id: 'visibility',

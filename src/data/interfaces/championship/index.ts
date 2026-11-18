@@ -30,4 +30,5 @@ export interface IChampionshipEditDTO {
   accessCode: string;
   address: string;
   description: string;
+  banner?: File;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { ChevronDown, ChevronUp, Edit2, Lock } from 'react-feather';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { ChampionshipDTO, IChampionship } from '@/data/interfaces/championship';
@@ -15,6 +15,22 @@ const RESULT_TYPE_LABEL: Record<string, string> = {
   SCORE: 'Pontuação',
   RANKING: 'Colocação',
 };
+
+const BANNER_MAX_BYTES = 2 * 1024 * 1024;
+const BANNER_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
+
+function storedBannerPath(banner: IChampionship['banner'] | string | undefined) {
+  return typeof banner === 'string' ? banner : '';
+}
+
+function championshipBannerUrl(banner: string) {
+  if (!banner) return '';
+  const storageType = import.meta.env.VITE_STORAGE_TYPE;
+  const baseUrl = import.meta.env.VITE_BASE_SERVER_URL;
+  const awsBucketUrl = import.meta.env.VITE_AWS_PUBLIC_BUCKET;
+
+  return storageType === 'local' ? `${baseUrl}/${banner}` : `${awsBucketUrl}/${banner}`;
+}
 
 type FormChampionshipProps = {
   onClose?: () => void;
@@ -59,6 +75,9 @@ const FormChampionship = ({
 }: FormChampionshipProps) => {
   const { Create, Edit } = useChampionshipData();
   const [file, setFile] = useState('');
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerError, setBannerError] = useState('');
+  const bannerInputRef = useRef<HTMLInputElement>(null);
   const [descriptionOpen, setDescriptionOpen] = useState(!oldChampionship);
   const [codeEditing, setCodeEditing] = useState(!oldChampionship);
   const {
@@ -79,6 +98,37 @@ const FormChampionship = ({
     if (next) setFile(URL.createObjectURL(next));
   };
 
+  const clearBannerSelection = () => {
+    setBannerFile(null);
+    setFile('');
+    if (bannerInputRef.current) bannerInputRef.current.value = '';
+  };
+
+  const handleBannerReplace = (event: ChangeEvent<HTMLInputElement>) => {
+    const next = event.target.files?.[0];
+    if (!next) {
+      clearBannerSelection();
+      setBannerError('');
+      return;
+    }
+
+    if (!BANNER_MIME_TYPES.includes(next.type)) {
+      event.target.value = '';
+      setBannerError('Use uma imagem PNG ou JPEG.');
+      return;
+    }
+
+    if (next.size > BANNER_MAX_BYTES) {
+      event.target.value = '';
+      setBannerError('A imagem deve ter no máximo 2 MB.');
+      return;
+    }
+
+    setBannerError('');
+    setBannerFile(next);
+    setFile(URL.createObjectURL(next));
+  };
+
   useEffect(() => {
     const startDate = oldChampionship?.startDate + '';
     const endDate = oldChampionship?.endDate + '';
@@ -97,9 +147,14 @@ const FormChampionship = ({
     }
   }, [oldChampionship, reset]);
 
+  useEffect(() => {
+    if (!file) return;
+    return () => URL.revokeObjectURL(file);
+  }, [file]);
+
   const onSubmit: SubmitHandler<ChampionshipDTO> = async (championship) => {
     if (oldChampionship) {
-      await Edit({
+      const savedBanner = await Edit({
         championshipId: oldChampionship.id,
         name: championship.name,
         startDate: championship.startDate,
@@ -107,7 +162,13 @@ const FormChampionship = ({
         accessCode: championship.accessCode,
         address: championship.address,
         description: championship.description,
+        banner: bannerFile ?? undefined,
       });
+
+      if (savedBanner === null) return;
+
+      clearBannerSelection();
+      setBannerError('');
 
       const next: IChampionship = {
         ...oldChampionship,
@@ -117,6 +178,7 @@ const FormChampionship = ({
         accessCode: championship.accessCode.toUpperCase(),
         address: championship.address,
         description: championship.description,
+        banner: savedBanner as unknown as IChampionship['banner'],
       };
 
       reset({
@@ -324,6 +386,42 @@ const FormChampionship = ({
     </FormField>
   );
 
+  const currentBannerUrl = championshipBannerUrl(storedBannerPath(oldChampionship?.banner));
+  const bannerPreview = file || currentBannerUrl;
+  const hasChanges = isDirty || Boolean(bannerFile);
+
+  const bannerEditor = isEdit ? (
+    <FormField
+      id="champ-banner"
+      label="Banner"
+      hint="PNG ou JPEG, até 2 MB. A página pública recorta em 880×360."
+      error={bannerError || undefined}
+    >
+      {bannerPreview ? (
+        <div className="overflow-hidden rounded-surface border border-slate-200">
+          <img
+            src={bannerPreview}
+            alt={`Banner do evento ${oldChampionship?.name ?? ''}`}
+            className="aspect-[880/360] w-full bg-slate-100 object-cover object-center"
+          />
+        </div>
+      ) : (
+        <div className="flex aspect-[880/360] w-full items-center justify-center rounded-surface border border-dashed border-slate-200 bg-slate-50">
+          <span className="text-sm text-slate-400">Sem banner</span>
+        </div>
+      )}
+      <Input
+        ref={bannerInputRef}
+        id="champ-banner"
+        type="file"
+        accept="image/png,image/jpeg"
+        invalid={!!bannerError}
+        className="py-2 file:mr-3 file:rounded-control file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary"
+        onChange={handleBannerReplace}
+      />
+    </FormField>
+  ) : null;
+
   const bannerField = !lockedResultType ? (
     <FormField
       id="champ-banner"
@@ -353,7 +451,7 @@ const FormChampionship = ({
   const saveFooter = isEdit ? (
     <div className="sticky bottom-3 z-[1] flex flex-col gap-3 rounded-surface border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">
       <div className="min-h-5 text-sm">
-        {isDirty ? (
+        {hasChanges ? (
           <span className="font-medium text-amber-700">Alterações não salvas</span>
         ) : (
           <span className="text-slate-400">Nenhuma alteração</span>
@@ -363,7 +461,7 @@ const FormChampionship = ({
         type="submit"
         variant="primary"
         isLoading={isSubmitting}
-        disabled={!isDirty}
+        disabled={!hasChanges}
         className="w-full sm:w-auto"
       >
         Salvar alterações
@@ -409,8 +507,9 @@ const FormChampionship = ({
       <FieldGroup
         asCard
         title="Identidade"
-        description="Nome e descrição públicos do evento"
+        description="Banner, nome e descrição públicos do evento"
       >
+        {bannerEditor}
         {nameField}
         {descriptionField}
       </FieldGroup>
