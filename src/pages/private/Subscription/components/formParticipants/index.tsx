@@ -74,13 +74,13 @@ const FormSubscriptionParticipants = ({
   const [indexes, setIndexes] = useState<number[]>([]);
   const [approvalMode, setApprovalMode] = useState<ApprovalMode>('internal');
   const [affiliations, setAffiliations] = useState<string[]>([]);
-  const [hasTshirt, setHasTshirt] = useState(false);
   const [tShirtSizes, setTShirtSizes] = useState<string[]>([]);
 
   const selectedTicket = useMemo(
     () => tickets.find((ticket) => ticket.id === subscriptionForm?.ticketId),
     [tickets, subscriptionForm?.ticketId],
   );
+  const includesTshirt = selectedTicket?.includesTshirt === true;
 
   const {
     register,
@@ -113,38 +113,34 @@ const FormSubscriptionParticipants = ({
       .getTshirts(championshipId)
       .then((tshirts) => {
         if (cancelled) return;
-        setHasTshirt(tshirts.hasTshirt);
         setTShirtSizes(tshirts.tShirtSizes ?? []);
-        if (!tshirts.hasTshirt) {
-          for (let index = 0; index < participantsNumber; index++) {
-            setValue(`participants.${index}.tShirtSize`, 'Sem camiseta', {
-              shouldValidate: true,
-            });
-          }
-        }
       })
       .catch(() => {
         if (cancelled) return;
-        setHasTshirt(false);
         setTShirtSizes([]);
-        for (let index = 0; index < participantsNumber; index++) {
-          setValue(`participants.${index}.tShirtSize`, 'Sem camiseta', {
-            shouldValidate: true,
-          });
-        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [championshipId, participantsNumber, setValue]);
+  }, [championshipId]);
+
+  useEffect(() => {
+    for (let index = 0; index < participantsNumber; index++) {
+      setValue(
+        `participants.${index}.tShirtSize`,
+        includesTshirt ? '' : 'Sem camiseta',
+        { shouldValidate: true },
+      );
+    }
+  }, [includesTshirt, participantsNumber, setValue]);
 
   function removeIdCodePoints(participants: IParticipantDTO[]) {
     return participants.map((participant) => ({
       ...participant,
       identificationCode: regexOnlyNumber(participant.identificationCode),
       affiliation: resolveAffiliation(participant.affiliation ?? '', affiliations),
-      tShirtSize: hasTshirt ? participant.tShirtSize : 'Sem camiseta',
+      tShirtSize: includesTshirt ? participant.tShirtSize : 'Sem camiseta',
     }));
   }
 
@@ -275,12 +271,12 @@ const FormSubscriptionParticipants = ({
                   <Select
                     id={`${participants}.tShirtSize`}
                     invalid={!!errors.participants?.[index]?.tShirtSize}
-                    disabled={!hasTshirt}
+                    disabled={!includesTshirt}
                     {...register(`participants.${index}.tShirtSize`, {
-                      required: hasTshirt ? validationMessages['required'] : false,
+                      required: includesTshirt ? validationMessages['required'] : false,
                     })}
                   >
-                    {hasTshirt ? (
+                    {includesTshirt ? (
                       <>
                         <option value="">Selecione um tamanho</option>
                         {tShirtSizes.map((size) => (

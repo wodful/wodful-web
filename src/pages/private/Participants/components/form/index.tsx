@@ -59,6 +59,8 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
   const { Edit } = useParticipantData();
   const [affiliations, setAffiliations] = useState<string[]>([]);
   const [tShirtSizes, setTShirtSizes] = useState<string[]>([]);
+  const shirtLocked = oldParticipant?.includesTshirt === false;
+  const includesTshirt = oldParticipant?.includesTshirt === true;
 
   const {
     register,
@@ -101,13 +103,22 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
         const sizes = tshirts.tShirtSizes ?? [];
         setTShirtSizes(sizes);
 
+        if (oldParticipant?.includesTshirt === false) {
+          setValue('tShirtSize', 'Sem camiseta', { shouldValidate: true });
+          return;
+        }
+
         const current = oldParticipant?.tShirtSize?.trim() ?? '';
         if (!current) return;
 
         const match = sizes.find(
           (size) => size.toLowerCase() === current.toLowerCase(),
         );
-        setValue('tShirtSize', match ?? current, { shouldValidate: true });
+        setValue(
+          'tShirtSize',
+          match ?? (oldParticipant?.includesTshirt === true ? '' : current),
+          { shouldValidate: true },
+        );
       })
       .catch(() => {
         if (!cancelled) setTShirtSizes([]);
@@ -116,7 +127,7 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
     return () => {
       cancelled = true;
     };
-  }, [id, oldParticipant?.tShirtSize, setValue]);
+  }, [id, oldParticipant?.includesTshirt, oldParticipant?.tShirtSize, setValue]);
 
   function onSubmit(participant: EditParticipantForm) {
     Edit(
@@ -124,7 +135,7 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
         ...participant,
         identificationCode: regexOnlyNumber(participant.identificationCode),
         affiliation: resolveAffiliation(participant.affiliation ?? '', affiliations),
-        tShirtSize: participant.tShirtSize,
+        tShirtSize: shirtLocked ? 'Sem camiseta' : participant.tShirtSize,
       },
       id!,
     );
@@ -132,8 +143,10 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
   }
 
   const currentSize = oldParticipant?.tShirtSize?.trim() ?? '';
-  const sizeOptions = [...tShirtSizes];
+  const sizeOptions = shirtLocked ? ['Sem camiseta'] : [...tShirtSizes];
   if (
+    !shirtLocked &&
+    !includesTshirt &&
     currentSize &&
     !sizeOptions.some((size) => size.toLowerCase() === currentSize.toLowerCase())
   ) {
@@ -205,16 +218,23 @@ const FormParticipant = ({ onClose, oldParticipant }: EditModalProps) => {
             <Select
               id="tShirtSize"
               invalid={!!errors.tShirtSize}
+              disabled={shirtLocked}
               {...register('tShirtSize', {
-                required: validationMessages['required'],
+                required: shirtLocked ? false : validationMessages['required'],
               })}
             >
-              <option value="">Selecione um tamanho</option>
-              {sizeOptions.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
+              {shirtLocked ? (
+                <option value="Sem camiseta">Sem camiseta</option>
+              ) : (
+                <>
+                  <option value="">Selecione um tamanho</option>
+                  {sizeOptions.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </>
+              )}
             </Select>
           </FormField>
           <FormField id="city" label="Cidade" error={errors.city?.message}>

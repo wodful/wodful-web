@@ -255,9 +255,11 @@ const ListTicket = ({ openEdit }: IListTicketProps) => {
               {pageData.results.map((ticket) => {
                 const window = getTicketWindowStatus(ticket);
                 const windowLabel = ticketWindowStatusLabel[window];
+                const shirtLabel = ticket.includesTshirt ? 'Com camiseta' : 'Sem camiseta';
                 const rowLabel = [
                   ticket.name,
                   ticket.category?.name,
+                  shirtLabel,
                   windowLabel,
                   ticket.enabled ? 'ativo' : 'desativado',
                 ]
@@ -274,6 +276,8 @@ const ListTicket = ({ openEdit }: IListTicketProps) => {
                         <p className="font-medium text-slate-900">{ticket.name}</p>
                         <p className="mt-0.5 text-xs text-slate-500">
                           {ticket.category?.name ?? 'Sem categoria'}
+                          {' · '}
+                          {shirtLabel}
                         </p>
                       </div>
                     </DataTableCell>

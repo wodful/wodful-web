@@ -2,6 +2,7 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
+import { Toggle } from '@/components/ui/Toggle';
 import { ITicket, TicketDTO } from '@/data/interfaces/ticket';
 import useCategoryData from '@/hooks/useCategoryData';
 import useTicketData from '@/hooks/useTicketData';
@@ -44,6 +45,8 @@ const FormTicket = ({
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isValid },
   } = useForm<TicketDTO>({
     mode: 'onChange',
@@ -55,8 +58,10 @@ const FormTicket = ({
       quantity: oldTicket?.quantity,
       endDate: isoToDatetimeLocal(oldTicket?.endDate),
       startDate: isoToDatetimeLocal(oldTicket?.startDate),
+      includesTshirt: oldTicket?.includesTshirt ?? false,
     },
   });
+  const includesTshirt = watch('includesTshirt') === true;
 
   useEffect(() => {
     onValidityChange?.(isValid);
@@ -80,6 +85,7 @@ const FormTicket = ({
         endDate,
         startDate,
         categoryId,
+        includesTshirt: ticket.includesTshirt === true,
       };
       await Edit(editedTicket);
       resetTicket();
@@ -87,7 +93,13 @@ const FormTicket = ({
       return;
     }
 
-    await Create({ ...ticket, categoryId, startDate, endDate });
+    await Create({
+      ...ticket,
+      categoryId,
+      startDate,
+      endDate,
+      includesTshirt: ticket.includesTshirt === true,
+    });
     onClose();
   };
 
@@ -224,6 +236,16 @@ const FormTicket = ({
               />
             </FormField>
           </div>
+
+          <Toggle
+            id="ticket-includes-tshirt"
+            label="Inclui camiseta"
+            description="O atleta escolhe o tamanho na inscrição. Desligado, o lote grava sem camiseta."
+            checked={includesTshirt}
+            onChange={(checked) =>
+              setValue('includesTshirt', checked, { shouldDirty: true, shouldValidate: true })
+            }
+          />
         </div>
       </div>
     </form>

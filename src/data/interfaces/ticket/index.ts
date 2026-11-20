@@ -11,6 +11,7 @@ export interface ITicket {
   athleteFeeAmount?: number;
   athleteTotal?: number;
   quantity: number;
+  includesTshirt: boolean;
   inUse: number;
   category: {
     id: string;
@@ -28,4 +29,5 @@ export interface TicketDTO {
   price: number;
   quantity: number;
   categoryId: string;
+  includesTshirt: boolean;
 }
