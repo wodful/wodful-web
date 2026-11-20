@@ -7,6 +7,7 @@ export interface IParticipants {
   affiliation: string;
   city: string;
   tShirtSize: string;
+  includesTshirt?: boolean | null;
   medalTakenBy: string | null;
   kitTakenBy: string | null;
   nickname: string;

@@ -89,6 +89,7 @@ export interface ISubscription {
   ticket?: {
     id: string;
     name: string;
+    includesTshirt?: boolean;
   } | null;
   participants?: ISubscriptionParticipant[];
   category: {

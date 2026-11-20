@@ -46,7 +46,6 @@ const FormConfiguration = ({
   const [tab, setTab] = useState<'kit' | 'schedule'>('kit');
   const { GetConfiguration, CreateConfiguration } = useChampionshipData();
 
-  const hasTshirt = watch('hasTshirt') === 'true';
   const hasNameInTshirt = watch('hasNameInTshirt') === 'true';
   const isAutoSchedule = watch('isAutoSchedule') === 'true';
 
@@ -67,8 +66,9 @@ const FormConfiguration = ({
   const onSubmit: SubmitHandler<IConfigurationForm> = async (data) => {
     await CreateConfiguration(champId, {
       ...data,
-      hasNameInTshirt: data.hasTshirt === 'true' ? data.hasNameInTshirt : 'false',
-      tShirtSizes: data.hasTshirt === 'true' ? sizes : [],
+      hasTshirt: sizes.length > 0 ? 'true' : 'false',
+      hasNameInTshirt: data.hasNameInTshirt,
+      tShirtSizes: sizes,
     });
     onClose?.();
   };
@@ -117,34 +117,17 @@ const FormConfiguration = ({
       {showKit ? (
         <div className="flex flex-col gap-3">
           <Toggle
-            id="cfg-has-tshirt"
-            label="Camiseta para atletas"
-            description="Disponibiliza a seleção de camiseta na inscrição."
-            checked={hasTshirt}
-            onChange={(checked) => {
-              setValue('hasTshirt', boolString(checked), { shouldDirty: true });
-              if (!checked) {
-                setValue('hasNameInTshirt', 'false', { shouldDirty: true });
-              }
-            }}
+            id="cfg-name-tshirt"
+            label="Nome na camiseta"
+            description="Campo opcional de personalização quando o lote inclui camiseta."
+            checked={hasNameInTshirt}
+            onChange={(checked) =>
+              setValue('hasNameInTshirt', boolString(checked), { shouldDirty: true })
+            }
           />
-
-          {hasTshirt ? (
-            <>
-              <Toggle
-                id="cfg-name-tshirt"
-                label="Nome na camiseta"
-                description="Campo opcional de personalização no formulário de inscrição."
-                checked={hasNameInTshirt}
-                onChange={(checked) =>
-                  setValue('hasNameInTshirt', boolString(checked), { shouldDirty: true })
-                }
-              />
-              <div className="rounded-surface border border-slate-200 bg-white px-4 py-3.5">
-                <ShirtSizeManager sizes={sizes} setSizes={setSizes} />
-              </div>
-            </>
-          ) : null}
+          <div className="rounded-surface border border-slate-200 bg-white px-4 py-3.5">
+            <ShirtSizeManager sizes={sizes} setSizes={setSizes} />
+          </div>
         </div>
       ) : null}
 

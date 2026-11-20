@@ -86,8 +86,8 @@ const TransferSubscriptionModal = ({
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [affiliations, setAffiliations] = useState<string[]>([]);
-  const [hasTshirt, setHasTshirt] = useState(false);
   const [tShirtSizes, setTShirtSizes] = useState<string[]>([]);
+  const includesTshirt = detail?.ticket ? detail.ticket.includesTshirt === true : false;
 
   const {
     register,
@@ -157,12 +157,10 @@ const TransferSubscriptionModal = ({
       .getTshirts(championshipId)
       .then((tshirts) => {
         if (cancelled) return;
-        setHasTshirt(tshirts.hasTshirt);
         setTShirtSizes(tshirts.tShirtSizes ?? []);
       })
       .catch(() => {
         if (cancelled) return;
-        setHasTshirt(false);
         setTShirtSizes([]);
       });
 
@@ -177,14 +175,14 @@ const TransferSubscriptionModal = ({
       nickname: '',
       participants: Array.from({ length: addNeeded }, () => emptyAthlete()),
     });
-    if (!hasTshirt && addNeeded > 0) {
+    if (!includesTshirt && addNeeded > 0) {
       for (let index = 0; index < addNeeded; index++) {
         setValue(`participants.${index}.tShirtSize`, 'Sem camiseta', {
           shouldValidate: true,
         });
       }
     }
-  }, [addNeeded, hasTshirt, reset, setValue, toCategoryId]);
+  }, [addNeeded, includesTshirt, reset, setValue, toCategoryId]);
 
   const destinationOptions = categories.filter(
     (category) => category.id !== detail?.category.id,
@@ -228,6 +226,7 @@ const TransferSubscriptionModal = ({
             ...participant,
             identificationCode: regexOnlyNumber(participant.identificationCode),
             affiliation: normalizeAffiliation(participant.affiliation),
+            tShirtSize: includesTshirt ? participant.tShirtSize : 'Sem camiseta',
           }))
         : [];
 
@@ -474,12 +473,12 @@ const TransferSubscriptionModal = ({
                       <Select
                         id={`add-shirt-${index}`}
                         invalid={!!errors.participants?.[index]?.tShirtSize}
-                        disabled={!hasTshirt}
+                        disabled={!includesTshirt}
                         {...register(`participants.${index}.tShirtSize`, {
-                          required: hasTshirt ? validationMessages.required : false,
+                          required: includesTshirt ? validationMessages.required : false,
                         })}
                       >
-                        {hasTshirt ? (
+                        {includesTshirt ? (
                           <>
                             <option value="">Selecione um tamanho</option>
                             {tShirtSizes.map((size) => (
